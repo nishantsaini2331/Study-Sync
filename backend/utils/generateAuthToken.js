@@ -5,7 +5,8 @@ function generateAuthToken(user) {
   const payload = {
     id: user.id,
     username: user.username,
-    role: user.role,
+    roles: user.roles,
+    name: user.name,
   };
 
   const secretKey = JWT_SECRET;

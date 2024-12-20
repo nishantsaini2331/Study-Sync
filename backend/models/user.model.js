@@ -6,39 +6,54 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
     email: {
       type: String,
       required: true,
       unique: true,
     },
+
     password: {
       type: String,
       required: true,
     },
+
     username: {
       type: String,
       required: true,
       unique: true,
     },
-    role: {
-      type: String,
+
+    roles: {
+      type: [String],
       enum: ["instructor", "student", "admin"],
-      default: "student",
+      default: ["student"],
     },
-    enrolledCourses: [
+
+    purchasedCourse: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Course",
       },
     ],
+
+    createdCourses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course",
+      },
+    ],
+
     photoUrl: {
       type: String,
       default: "",
     },
+
     photoUrlId: {
       type: String,
       default: null,
     },
+
     socials: {
       youtube: {
         type: String,
@@ -56,26 +71,52 @@ const userSchema = new mongoose.Schema(
         type: String,
         default: "",
       },
+      website: {
+        type: String,
+        default: "",
+      },
     },
-    shortBio: {
+    bio: {
       type: String,
       default: "",
     },
-    qualifications: {
+    headline: {
       type: String,
-      enum: ["B.Tech", "M.Tech", "Ph.D", "MBA", "BBA", "BCA", "MCA"],
+      default: "",
     },
+
+    qualification: {
+      type: String,
+      enum: [
+        "Secondary (10th Pass)",
+        "Higher Secondary (12th Pass)",
+        "Bachelors",
+        "Masters",
+        "PhD",
+        "Other",
+      ],
+      default: "Other",
+    },
+
     isVerified: {
       type: Boolean,
       default: false,
     },
+
     googleAuth: {
       type: Boolean,
       default: false,
     },
+
     courseUploadedLimit: {
       type: Number,
       default: 2,
+    },
+
+    instructorOnBoardFrom: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "InstructorOnBoardFrom",
+      default: null,
     },
   },
   { timestamps: true }

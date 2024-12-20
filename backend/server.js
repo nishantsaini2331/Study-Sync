@@ -6,7 +6,12 @@ const userRoute = require("./routes/user.route");
 const app = express();
 const cookieParser = require("cookie-parser");
 
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Your frontend URL
+    credentials: true, // Allows cookies to be sent
+  })
+);
 app.use(cookieParser());
 app.use(express.json());
 

@@ -1,37 +1,68 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Route, Routes } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import AuthForm from "./pages/AuthForm";
+import Header from "./components/Header";
+import VerifyUser from "./components/VerifyUser";
+import UpdateProfile from "./pages/UpdateProfile";
+import TeacherPage from "./pages/TeacherPage";
+import TeacherOnboard from "./pages/TeacherOnboard";
+import {
+  AuthenticateInstructor,
+  AuthenticateUser,
+} from "./components/AuthenticateUser";
+import InstructorDashboard from "./components/InstructorDashboard";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>
-        
-      </h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <AuthenticateUser>
+              <Header />
+            </AuthenticateUser>
+          }
+        >
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<AuthForm type="login" />} />
+          <Route path="/register" element={<AuthForm type="register" />} />
+          <Route
+            path="/profile"
+            element={
+              <AuthenticateUser protect={true}>
+                <UpdateProfile />
+              </AuthenticateUser>
+            }
+          />
+          <Route path="/teachers" element={<TeacherPage />} />
+
+          <Route
+            path="/teaching/onbording"
+            element={
+              <AuthenticateUser protect={true}>
+                <TeacherOnboard />
+              </AuthenticateUser>
+            }
+          />
+        </Route>
+        <Route
+          path="/verify-email/:verificationToken"
+          element={<VerifyUser />}
+        ></Route>
+
+        <Route
+          path="/instructor/dashboard"
+          element={
+            <AuthenticateInstructor>
+              <InstructorDashboard />
+            </AuthenticateInstructor>
+          }
+        />
+        <Route path="/contact" element={<h1>Contact</h1>} />
+      </Routes>
+    </div>
+  );
 }
 
-export default App
+export default App;
