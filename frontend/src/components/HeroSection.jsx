@@ -1,9 +1,9 @@
-import React from 'react';
+import React from "react";
 
 const HeroSection = () => {
   return (
     <section className="bg-gray-50 py-16">
-      <div className="container mx-auto flex flex-col lg:flex-row items-center">
+      <div className="container mx-auto flex flex-col lg:flex-row lg:justify-between items-center">
         <div className="lg:w-1/2 text-center lg:text-left">
           <h1 className="text-4xl font-bold mb-4">
             Explore Live Creative Classes
@@ -21,11 +21,11 @@ const HeroSection = () => {
             </button>
           </div>
         </div>
-        <div className="lg:w-1/2 mt-8 lg:mt-0">
+        <div className="lg:w-1/2 mt-8 lg:mt-0 rounded-3xl lg:ml-40">
           <img
-            src="https://via.placeholder.com/500"
+            src="https://static.vecteezy.com/system/resources/previews/004/578/793/non_2x/man-working-with-computer-at-desk-free-vector.jpg"
             alt="Hero Section"
-            className="rounded-lg"
+            className="rounded-lg w-[600px]"
           />
         </div>
       </div>

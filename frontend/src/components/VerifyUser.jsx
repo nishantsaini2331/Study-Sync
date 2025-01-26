@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 function VerifyUser() {
   const { verificationToken } = useParams();
+  console.log(verificationToken);
   const navigate = useNavigate();
   useEffect(() => {
     async function verifyUser() {
@@ -12,7 +13,7 @@ function VerifyUser() {
         const res = await axios.get(
           `${
             import.meta.env.VITE_BACKEND_URL
-          }/verify-email/${verificationToken}`
+          }user/verify-email/${verificationToken}`
         );
 
         toast.success(res.data.message);

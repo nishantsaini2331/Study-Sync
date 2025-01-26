@@ -10,10 +10,16 @@ const courseSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    courseId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     minimumSkill: {
       type: String,
       required: true,
       enum: ["beginner", "intermediate", "advanced"],
+      default: "beginner",
     },
     instructor: {
       type: mongoose.Schema.Types.ObjectId,
@@ -64,11 +70,9 @@ const courseSchema = new mongoose.Schema(
     },
     totalDuration: {
       type: Number,
-      required: true,
     },
     totalLectures: {
       type: Number,
-      required: true,
     },
     lectures: [
       {
@@ -85,16 +89,17 @@ const courseSchema = new mongoose.Schema(
       type: String,
       default: "default-certificate.pdf",
     },
-    difficulty: {
-      type: String,
-      enum: ["beginner", "intermediate", "advanced"],
-      required: true,
-    },
     requiredCompletionPercentage: {
       type: Number,
       default: 80,
       min: 0,
       max: 100,
+    },
+    status: {
+      type: String,
+      enum: ["Draft", "Published", "Under Review", "Rejected"],
+      default: "Draft",
+      required: true,
     },
   },
   { timestamps: true }

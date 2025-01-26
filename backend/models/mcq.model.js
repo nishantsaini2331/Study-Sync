@@ -11,22 +11,13 @@ const mcqSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    options: [
-      {
-        text: {
-          type: String,
-          required: true,
-        },
-        isCorrect: {
-          type: Boolean,
-          default: false,
-        },
-      },
-    ],
-    difficulty: {
-      type: String,
-      enum: ["easy", "medium", "hard"],
-      default: "medium",
+    options: {
+      type: [String],
+      required: true,
+    },
+    correctOption: {
+      type: Number,
+      required: true,
     },
     // passingPercentage: {
     //   type: Number,

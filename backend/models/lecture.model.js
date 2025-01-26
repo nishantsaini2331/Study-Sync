@@ -6,6 +6,14 @@ const lectureSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    description: {
+      type: String,
+      required: true,
+    },
+    lectureId: {
+      type: String,
+      required: true,
+    },
     videoUrl: {
       type: String,
       required: true,
@@ -31,23 +39,25 @@ const lectureSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
-    isLocked: {
-      type: Boolean,
-      default: true,
-    },
-    prerequisites: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Lecture",
-      },
-    ],
+
+    // isLocked: {
+    //   type: Boolean,
+    //   default: true,
+    // },
+
+    // prerequisites: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Lecture",
+    //   },
+    // ],
     duration: {
       type: Number, // duration in minutes
       required: true,
     },
     order: {
       type: Number,
-      required: true,
+      //   required: true,
     },
   },
   { timestamps: true }

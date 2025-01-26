@@ -28,7 +28,7 @@ function TeacherPage() {
           </div>
           <div className="lg:w-1/2 mt-8 lg:mt-0">
             <img
-              src="https://via.placeholder.com/500"
+              src="https://classplusapp.com/growth/wp-content/uploads/2023/01/Scaffolding-in-education-a-teachers-guide.jpg"
               alt="Hero Section"
               className="rounded-lg"
             />
@@ -41,9 +41,9 @@ function TeacherPage() {
           <h2 className="text-3xl font-bold mb-8">So many reasons to start</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-gray-100 p-6 rounded-lg shadow flex flex-col items-center">
-              <div className="">
+              <div className="w-[200px]">
                 <img
-                  src="https://via.placeholder.com/200"
+                  src="https://img.freepik.com/free-vector/lesson-concept-illustration_114360-7987.jpg?t=st=1734930517~exp=1734934117~hmac=99e6605a2ecbb6e478212f812d5164e3cecb7d403e6ef4e96984a0e2ac1f5aec&w=740"
                   alt="Hero Section"
                   className="rounded-lg"
                 />
@@ -55,9 +55,9 @@ function TeacherPage() {
               </p>
             </div>
             <div className="bg-gray-100 p-6 rounded-lg shadow flex flex-col items-center">
-              <div className="">
+              <div className="w-[200px]">
                 <img
-                  src="https://via.placeholder.com/200"
+                  src="https://img.freepik.com/premium-photo/vibrant-back-school-posters_1008415-79803.jpg"
                   alt="Hero Section"
                   className="rounded-lg"
                 />
@@ -71,7 +71,7 @@ function TeacherPage() {
             <div className="bg-gray-100 p-6 rounded-lg shadow flex flex-col items-center ">
               <div className="">
                 <img
-                  src="https://via.placeholder.com/200"
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgZReMq43kbtlk6ToNI6H8GsKLO7tuxwR7o8iLdd6Qmp4YoNXfptYXe8Hm0mDu3o5lNl0&usqp=CAU"
                   alt="Hero Section"
                   className="rounded-lg"
                 />

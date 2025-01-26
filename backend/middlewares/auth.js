@@ -29,7 +29,7 @@ const admin = async (req, res, next) => {
     const user = req.user;
     //role is an array of roles
 
-    if (user.roles.includes("admin")) {
+    if (!user.roles.includes("admin")) {
       return res.status(401).json({
         success: false,
         message: "Unauthorized access",
@@ -48,7 +48,7 @@ const instructor = async (req, res, next) => {
   try {
     const user = req.user;
 
-    if (user.roles.includes("instructor")) {
+    if (!user.roles.includes("instructor")) {
       return res.status(401).json({
         success: false,
         message: "Unauthorized access",
@@ -67,7 +67,7 @@ const student = async (req, res, next) => {
   try {
     const user = req.user;
 
-    if (user.roles.includes("student")) {
+    if (!user.roles.includes("student")) {
       return res.status(401).json({
         success: false,
         message: "Unauthorized access",

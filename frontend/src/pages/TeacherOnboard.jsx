@@ -1,10 +1,12 @@
 import axios from "axios";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const TeacherOnboard = () => {
   const [answers, setAnswers] = useState({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const navigate = useNavigate();
 
   const questions = [
     {
@@ -87,9 +89,9 @@ const TeacherOnboard = () => {
       );
 
       if (response.data.success) {
-        setIsSubmitted(true);
+        toast.success("We love to onboard you as an instructor");
+        navigate("/instructor/dashboard");
         //onboard success
-        toast.success("We love you to onboard as an instructor");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -100,19 +102,6 @@ const TeacherOnboard = () => {
   const allQuestionsAnswered =
     Object.keys(answers).length === questions.length &&
     Object.values(answers).every((answer) => answer !== "");
-
-  if (isSubmitted) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-        <h2 className="text-2xl font-bold text-blue-500">
-          Thank You for Submitting!
-        </h2>
-        <p className="text-lg mt-2 text-gray-600">
-          We’ll review your application and get back to you soon.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center">

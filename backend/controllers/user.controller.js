@@ -39,7 +39,7 @@ async function sendVerificationEmail(user) {
 
   const url = `http://localhost:5173/verify-email/${verifyToken}`;
   const message = {
-    from: NODEMAILER_USER,
+    from: "Study Sync",
     to: user.email,
     subject: "Account Verification",
     text: `Click this link to verify your account: ${url}`,

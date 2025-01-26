@@ -3,6 +3,8 @@ const dbConnect = require("./config/dbConnect");
 const cors = require("cors");
 const { PORT } = require("./config/dotenv");
 const userRoute = require("./routes/user.route");
+const courseRoute = require("./routes/course.route");
+const lectureRoute = require("./routes/lecture.route");
 const app = express();
 const cookieParser = require("cookie-parser");
 
@@ -18,6 +20,8 @@ app.use(express.json());
 const port = PORT || 3000;
 
 app.use("/api/v1/user", userRoute);
+app.use("/api/v1/course", courseRoute);
+app.use("/api/v1/lecture", lectureRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

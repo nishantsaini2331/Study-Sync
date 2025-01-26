@@ -11,6 +11,10 @@ import {
   AuthenticateUser,
 } from "./components/AuthenticateUser";
 import InstructorDashboard from "./components/InstructorDashboard";
+import CourseCreationForm from "./components/CourseCreationForm";
+import CreateLecture from "./components/CreateLecture";
+import CourseDetailsPage from "./pages/CourseDetailsPage";
+import CourseManagement from "./pages/CourseManagement";
 
 function App() {
   return (
@@ -27,6 +31,12 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<AuthForm type="login" />} />
           <Route path="/register" element={<AuthForm type="register" />} />
+          <Route
+            path="/about"
+            element={
+              <h1 className="text-center mt-80 text-3xl">Coming Soon....</h1>
+            }
+          />
           <Route
             path="/profile"
             element={
@@ -45,7 +55,11 @@ function App() {
               </AuthenticateUser>
             }
           />
+
+          <Route path="/course" element={<CourseDetailsPage />} />
         </Route>
+
+        <Route path="/course-preview/:id" element={<CourseManagement />} />
         <Route
           path="/verify-email/:verificationToken"
           element={<VerifyUser />}
@@ -59,6 +73,39 @@ function App() {
             </AuthenticateInstructor>
           }
         />
+        <Route
+          path="/create-course"
+          element={
+            <AuthenticateInstructor>
+              <CourseCreationForm />
+            </AuthenticateInstructor>
+          }
+        />
+        <Route
+          path="/create-lecture/:id"
+          element={
+            <AuthenticateInstructor>
+              <CreateLecture />
+            </AuthenticateInstructor>
+          }
+        />
+        <Route
+          path="/edit-course/:id"
+          element={
+            <AuthenticateInstructor>
+              <CourseCreationForm edit={true} />
+            </AuthenticateInstructor>
+          }
+        />
+        <Route
+          path="/edit-lecture/:id"
+          element={
+            <AuthenticateInstructor>
+              <CreateLecture edit={true} />
+            </AuthenticateInstructor>
+          }
+        />
+
         <Route path="/contact" element={<h1>Contact</h1>} />
       </Routes>
     </div>

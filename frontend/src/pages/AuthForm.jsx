@@ -38,16 +38,19 @@ function AuthForm({ type }) {
 
       if (formData.email === "") {
         toast.error("Email is required");
+        setLoading((prev) => !prev);
         return;
       }
 
       if (!emailRegex.test(formData.email)) {
         toast.error("Invalid email");
+        setLoading((prev) => !prev);
         return;
       }
 
       if (formData.password === "") {
         toast.error("Password is required");
+        setLoading((prev) => !prev);
         return;
       }
 
@@ -55,15 +58,18 @@ function AuthForm({ type }) {
         toast.error(
           "Password must be at least 8 characters long and contain at least one number, one uppercase letter, and one lowercase letter"
         );
+        setLoading((prev) => !prev);
         return;
       }
 
       if (formData.password !== formData.confirmPassword) {
         toast.error("Passwords do not match");
+        setLoading((prev) => !prev);
         return;
       }
       if (formData.qualification === "") {
         toast.error("Qualification is required");
+        setLoading((prev) => !prev);
         return;
       }
     }
@@ -71,14 +77,17 @@ function AuthForm({ type }) {
     if (type === "login") {
       if (!emailRegex.test(formData.email)) {
         toast.error("Invalid email");
+        setLoading((prev) => !prev);
         return;
       }
       if (formData.email === "") {
         toast.error("Email is required");
+        setLoading((prev) => !prev);
         return;
       }
       if (formData.password === "") {
         toast.error("Password is required");
+        setLoading((prev) => !prev);
         return;
       }
     }
@@ -102,7 +111,7 @@ function AuthForm({ type }) {
       console.error(error);
       toast.error(error.response.data.message);
     } finally {
-      setLoading((prev) => !prev);
+      setLoading(false);
     }
   };
 
