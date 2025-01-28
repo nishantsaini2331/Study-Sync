@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Info, Plus, Trash2, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
-const FinalQuizComponent = () => {
+const FinalQuizComponent = ({ edit = false }) => {
   const { courseId } = useParams();
+  console.log(edit);
 
   const [quizForm, setQuizForm] = useState({
     mcqs: [
@@ -169,6 +170,26 @@ const FinalQuizComponent = () => {
     }
     // }
   };
+
+  useEffect(() => {
+    if (edit) {
+      (async () => {
+        try {
+          const res = await axios.get(
+            `${import.meta.env.VITE_BACKEND_URL}final-quiz/${courseId}`,
+            {
+              withCredentials: true,
+            }
+          );
+
+          setQuizForm({ mcqs: res.data.finalQuiz.mcqs });
+        } catch (error) {
+          console.error(error);
+          toast.error(error.response.data.error || "Internal server error");
+        }
+      })();
+    }
+  }, [edit, courseId]);
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-white">

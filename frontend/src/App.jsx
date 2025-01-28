@@ -108,7 +108,16 @@ function App() {
         />
 
         <Route
-          path="/course-completion-quiz/:courseId"
+          path="/edit-final-quiz/:courseId"
+          element={
+            <AuthenticateInstructor>
+              <FinalQuizComponent edit={true} />
+            </AuthenticateInstructor>
+          }
+        />
+
+        <Route
+          path="/create-final-quiz/:courseId"
           element={
             <AuthenticateInstructor>
               <FinalQuizComponent />

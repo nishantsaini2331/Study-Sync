@@ -78,6 +78,31 @@ async function createFinalQuiz(req, res) {
   }
 }
 
+async function getFinalQuiz(req, res) {
+  try {
+    const { courseId } = req.params;
+    const course = await Course.findOne({ courseId }).populate("finalQuiz");
+
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    if (!course.finalQuiz) {
+      return res.status(404).json({ error: "Final quiz not found" });
+    }
+
+    const finalQuiz = await FinalQuiz.findById(course.finalQuiz).populate(
+      "mcqs"
+    );
+
+    res.status(200).json({ success: true, finalQuiz });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 module.exports = {
   createFinalQuiz,
+  getFinalQuiz,
 };

@@ -64,6 +64,16 @@ const CourseManagement = () => {
     ],
   });
 
+  function valdidateToSubmitReview() {
+    if (
+      courseData?.lectures?.length >= 3 &&
+      courseData?.finalQuiz?.mcqs.length >= 5
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   useEffect(() => {
     async function fetchCourseData() {
       try {
@@ -84,7 +94,7 @@ const CourseManagement = () => {
   }, [id]);
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <div className="max-w-5xl mx-auto p-6 space-y-6 ">
       {/* Course Header */}
       <button
         className="rounded-full text-white bg-black px-7 py-2 mb-5"
@@ -222,24 +232,54 @@ const CourseManagement = () => {
             Final Quiz
             <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
               <Info size={14} className="mr-2" />
-              Add a quiz that students must pass to complete the course
+              Add atleast 5 MCQs to publish course
             </div>
           </div>
-          <Link to={`/course-completion-quiz/${id}`}>
+          <Link
+            to={`${
+              courseData?.finalQuiz ? "/edit-final-quiz" : "/create-final-quiz"
+            }/${id}`}
+          >
             <button
               //   onClick={handleAddLecture}
               className="flex items-center px-4 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100"
             >
               <Plus size={16} className="mr-1" />
-              {courseData.finalQuiz ? "Edit" : "Add"} Final Quiz
+              {courseData?.finalQuiz ? "Edit" : "Add"} Final Quiz
             </button>
           </Link>
+        </div>
+
+        <div className="border rounded-lg p-4 capitalize">
+          {courseData?.finalQuiz?.mcqs.map((mcq, mcqIndex) => (
+            <div key={mcq._id} className="p-4 border rounded-lg space-y-4 my-2">
+              <div className="text-lg font-semibold">{mcq.question}</div>
+              <div className="grid grid-cols-2 gap-4 ">
+                {mcq.options.map((option, index) => (
+                  <div
+                    key={index}
+                    className={`p-2 border-2  rounded-lg ${
+                      mcq.correctOption === index ? "bg-green-100" : ""
+                    }`}
+                  >
+                    {option}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Submit Button */}
       <div className="flex justify-center mt-8">
-        <button className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+        <button
+          className={`flex items-center px-6 py-3  text-white rounded-md ${
+            valdidateToSubmitReview()
+              ? "bg-blue-700 "
+              : " bg-blue-300 cursor-not-allowed "
+          } `}
+        >
           <Send size={16} className="mr-2" />
           Submit for Review
         </button>
