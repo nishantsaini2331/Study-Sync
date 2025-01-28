@@ -82,7 +82,7 @@ const courseSchema = new mongoose.Schema(
     ],
     finalQuiz: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "MCQ",
+      ref: "FinalQuiz",
       default: null,
     },
     certificateTemplate: {

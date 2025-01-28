@@ -11,7 +11,7 @@ import { useDispatch } from "react-redux";
 import { setUser } from "../store/userSlice";
 function HomePage() {
   const dispatch = useDispatch();
-  
+
   useEffect(() => {
     async function VerifyUser() {
       try {

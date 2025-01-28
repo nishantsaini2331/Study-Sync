@@ -98,9 +98,14 @@ async function getCourses(req, res) {
 async function getCourse(req, res) {
   try {
     const courseId = req.params.id;
-    const course = await Course.findOne({ courseId }).populate(
-      "instructor lectures"
-    );
+    const course = await Course.findOne({ courseId })
+      .populate("instructor lectures")
+      .populate({
+        path: "finalQuiz",
+        populate: {
+          path: "mcqs",
+        },
+      });
 
     if (!course) {
       return res
@@ -208,7 +213,7 @@ async function deleteCourse(req, res) {
 
     await deleteMediaFromCloudinary(deletedCourse.thumbnailId);
     await deleteVideoFromCloudinary(deletedCourse.previewVideoId);
-    
+
     const lectures = await Lecture.find({ course: deletedCourse._id });
     for (let lecture of lectures) {
       await deleteVideoFromCloudinary(lecture.videoId);
@@ -218,7 +223,6 @@ async function deleteCourse(req, res) {
       await Lecture.findByIdAndDelete(lecture._id);
     }
 
-    
     const users = await User.find({ enrolledCourses: deletedCourse._id });
     for (let user of users) {
       await User.findByIdAndUpdate(user._id, {

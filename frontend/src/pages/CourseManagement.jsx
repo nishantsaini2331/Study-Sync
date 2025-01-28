@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Pencil, Trash2, Plus, Video, Send } from "lucide-react";
+import { Pencil, Trash2, Plus, Video, Send, Info } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -138,9 +138,15 @@ const CourseManagement = () => {
 
       {/* Lectures Section */}
       <div className="space-y-4">
-        <Link to={`/create-lecture/${id}`}>
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-800">Lectures</h2>
+        <div className="flex justify-between items-center">
+          <div className="text-xl font-semibold text-gray-800 flex gap-3">
+            Lectures
+            <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+              <Info size={14} className="mr-2" />
+              Atleast 3 lectures required to publish course
+            </div>
+          </div>
+          <Link to={`/create-lecture/${id}`}>
             <button
               //   onClick={handleAddLecture}
               className="flex items-center px-4 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100"
@@ -148,8 +154,8 @@ const CourseManagement = () => {
               <Plus size={16} className="mr-1" />
               Add Lecture
             </button>
-          </div>
-        </Link>
+          </Link>
+        </div>
 
         {/* Lecture List */}
         <div className="space-y-4">
@@ -209,8 +215,26 @@ const CourseManagement = () => {
         </div>
       </div>
 
-      <div>
-        
+      {/* final quiz Section */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <div className="text-xl font-semibold text-gray-800 flex gap-3">
+            Final Quiz
+            <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+              <Info size={14} className="mr-2" />
+              Add a quiz that students must pass to complete the course
+            </div>
+          </div>
+          <Link to={`/course-completion-quiz/${id}`}>
+            <button
+              //   onClick={handleAddLecture}
+              className="flex items-center px-4 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100"
+            >
+              <Plus size={16} className="mr-1" />
+              {courseData.finalQuiz ? "Edit" : "Add"} Final Quiz
+            </button>
+          </Link>
+        </div>
       </div>
 
       {/* Submit Button */}
@@ -220,7 +244,6 @@ const CourseManagement = () => {
           Submit for Review
         </button>
       </div>
-      
     </div>
   );
 };

@@ -225,7 +225,7 @@ export default function CourseCreationForm({ edit = false }) {
         className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8"
       >
         <button
-          className="rounded-full text-white bg-black px-7 py-2 mb-5"
+          className="rounded-full text-white bg-black px-7 py-2 my-5"
           onClick={(e) => {
             e.preventDefault();
             navigate(-1);

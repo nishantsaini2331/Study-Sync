@@ -5,7 +5,12 @@ const mcqSchema = new mongoose.Schema(
     lecture: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Lecture",
-      required: true,
+      default: null,
+    },
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+      default: null,
     },
     question: {
       type: String,
@@ -19,12 +24,6 @@ const mcqSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    // passingPercentage: {
-    //   type: Number,
-    //   default: 60,
-    //   min: 0,
-    //   max: 100,
-    // },
   },
   { timestamps: true }
 );

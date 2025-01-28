@@ -15,6 +15,7 @@ import CourseCreationForm from "./components/CourseCreationForm";
 import CreateLecture from "./components/CreateLecture";
 import CourseDetailsPage from "./pages/CourseDetailsPage";
 import CourseManagement from "./pages/CourseManagement";
+import FinalQuizComponent from "./components/FinalQuizComponent";
 
 function App() {
   return (
@@ -102,6 +103,15 @@ function App() {
           element={
             <AuthenticateInstructor>
               <CreateLecture edit={true} />
+            </AuthenticateInstructor>
+          }
+        />
+
+        <Route
+          path="/course-completion-quiz/:courseId"
+          element={
+            <AuthenticateInstructor>
+              <FinalQuizComponent />
             </AuthenticateInstructor>
           }
         />

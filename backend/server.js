@@ -5,6 +5,7 @@ const { PORT } = require("./config/dotenv");
 const userRoute = require("./routes/user.route");
 const courseRoute = require("./routes/course.route");
 const lectureRoute = require("./routes/lecture.route");
+const finalQuizRoute = require("./routes/finalQuiz.route");
 const app = express();
 const cookieParser = require("cookie-parser");
 
@@ -22,6 +23,7 @@ const port = PORT || 3000;
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/course", courseRoute);
 app.use("/api/v1/lecture", lectureRoute);
+app.use("/api/v1/final-quiz", finalQuizRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
