@@ -1,5 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Pencil, Trash2, Plus, Video, Send, Info } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  Video,
+  Send,
+  Info,
+  DollarSign,
+  Globe,
+  Percent,
+  BookOpen,
+  Tag,
+  IndianRupee,
+} from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -38,9 +51,7 @@ async function deleteLecture(lectureId, navigate) {
   }
 }
 
-const CourseManagement = () => {
-  // Sample data structure (in real app, this would come from backend)
-
+function CourseManagement() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [courseData, setCourseData] = useState({
@@ -62,6 +73,40 @@ const CourseManagement = () => {
         previewVideo: "https://example.com/lecture2.mp4",
       },
     ],
+    finalQuiz: {
+      mcqs: [
+        {
+          question: "What does HTML stand for?",
+          options: [
+            "Hyper Text Markup Language",
+            "Hyperlinks and Text Markup Language",
+            "Home Tool Markup Language",
+          ],
+          correctOption: 0,
+        },
+        {
+          question:
+            "Which of the following tag is used to mark a begining of paragraph ?",
+          options: ["<TD>", "<br>", "<P>"],
+          correctOption: 2,
+        },
+        {
+          question: "From which tag descriptive list starts ?",
+          options: ["<LL>", "<DD>", "<DL>"],
+          correctOption: 2,
+        },
+        {
+          question: "Correct HTML tag for the largest heading is",
+          options: ["<head>", "<h6>", "<heading>"],
+          correctOption: 1,
+        },
+        {
+          question: "The attribute of <form> tag",
+          options: ["Method", "Action", "Both (a)&(b)"],
+          correctOption: 2,
+        },
+      ],
+    },
   });
 
   function valdidateToSubmitReview() {
@@ -95,7 +140,6 @@ const CourseManagement = () => {
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6 ">
-      {/* Course Header */}
       <button
         className="rounded-full text-white bg-black px-7 py-2 mb-5"
         onClick={(e) => {
@@ -105,43 +149,116 @@ const CourseManagement = () => {
       >
         Back
       </button>
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-start">
-          <div className="space-y-2 flex-1">
-            <h1 className="text-2xl font-bold text-gray-800">
-              {courseData.title}
-            </h1>
-            <p className="text-gray-600">{courseData.description}</p>
-          </div>
-          <div className="flex gap-2">
-            <Link to={`/edit-course/${id}`}>
-              <button className="flex items-center px-3 py-2 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100">
-                <Pencil size={16} className="mr-1" />
-                Edit
-              </button>
-            </Link>
-            <button
-              onClick={() => deleteCourse(id, navigate)}
-              className="flex items-center px-3 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100"
-            >
-              <Trash2 size={16} className="mr-1" />
-              Delete
-            </button>
-          </div>
-        </div>
 
-        {/* Course Preview Video */}
-        <div className="mt-6 bg-gray-100 rounded-lg p-4 flex items-center justify-center h-64">
-          <div className="text-gray-500 ">
-            {courseData.previewVideo ? (
-              <video
-                src={courseData.previewVideo}
-                controls
-                className="my-4 rounded-lg"
-              />
-            ) : (
-              <span className="text-gray-400">No preview video available</span>
-            )}
+
+
+      <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-md">
+        <div className="p-6">
+          {/* Header Section */}
+          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+            <div className="space-y-3 flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+                {courseData.title}
+              </h1>
+              <p className="text-gray-600 text-sm md:text-base">
+                {courseData.description}
+              </p>
+            </div>
+
+            <div className="flex gap-2 w-full md:w-auto">
+              <Link to={`/edit-course/${id}`} className="flex-1 md:flex-none">
+                <button className="w-full md:w-auto flex items-center justify-center px-4 py-2 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors duration-200">
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
+                </button>
+              </Link>
+              <button
+                onClick={() => deleteCourse(id, navigate)}
+                className="flex-1 md:flex-none w-full md:w-auto flex items-center justify-center px-4 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors duration-200"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </button>
+            </div>
+          </div>
+
+          {/* Video Preview Section */}
+          <div className="mt-8 bg-gray-50 rounded-lg overflow-hidden">
+            <div className="aspect-video w-full">
+              {courseData.previewVideo ? (
+                <video
+                  src={courseData.previewVideo}
+                  controls
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No preview video available
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Course Details and Thumbnail Section */}
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Course Details */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Course Details
+              </h2>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 text-gray-600">
+                  <IndianRupee className="w-5 h-5" />
+                  <span className="font-medium">Price:</span>
+                  <span>₹ {courseData.price}</span>
+                </div>
+
+                <div className="flex items-center gap-3 text-gray-600">
+                  <Globe className="w-5 h-5" />
+                  <span className="font-medium">Language:</span>
+                  <span className="capitalize">{courseData.language}</span>
+                </div>
+
+                <div className="flex items-center gap-3 text-gray-600">
+                  <BookOpen className="w-5 h-5" />
+                  <span className="font-medium">Minimum Skill:</span>
+                  <span className="capitalize">{courseData.minimumSkill}</span>
+                </div>
+
+                <div className="flex items-center gap-3 text-gray-600">
+                  <Percent className="w-5 h-5" />
+                  <span className="font-medium">Required Pass:</span>
+                  <span>{courseData.requiredCompletionPercentage}%</span>
+                </div>
+
+                <div className="flex items-start gap-3 text-gray-600">
+                  <Tag className="w-5 h-5 mt-1" />
+                  <span className="font-medium">Tags:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {courseData.tags?.map((tag) => (
+                      <span
+                        key={tag}
+                        className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Thumbnail */}
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold text-gray-800">Thumbnail</h2>
+              <div className="aspect-video w-full rounded-lg overflow-hidden bg-gray-50">
+                <img
+                  src={courseData.thumbnail}
+                  alt="Course thumbnail"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -286,6 +403,6 @@ const CourseManagement = () => {
       </div>
     </div>
   );
-};
+}
 
 export default CourseManagement;

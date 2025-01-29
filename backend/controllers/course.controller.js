@@ -13,7 +13,14 @@ const { randomUUID } = new ShortUniqueId({ length: 6 });
 async function createCourse(req, res) {
   try {
     const user = req.user;
-    const { title, description, price, minimumSkill, language } = req.body;
+    const {
+      title,
+      description,
+      price,
+      minimumSkill,
+      language,
+      requiredCompletionPercentage,
+    } = req.body;
     const tags = JSON.parse(req.body.tags);
     const thumbnail = req.files.thumbnail[0];
     const previewVideo = req.files.previewVideo[0];
@@ -26,7 +33,8 @@ async function createCourse(req, res) {
       !description ||
       !price ||
       !minimumSkill ||
-      !language
+      !language ||
+      !requiredCompletionPercentage
     ) {
       return res
         .status(400)
@@ -62,6 +70,7 @@ async function createCourse(req, res) {
       previewVideoId,
       language,
       courseId,
+      requiredCompletionPercentage,
     });
 
     await User.findByIdAndUpdate(user.id, {
@@ -136,7 +145,14 @@ async function updateCourse(req, res) {
         .json({ success: false, message: "Course not found" });
     }
 
-    const { title, description, price, minimumSkill, language } = req.body;
+    const {
+      title,
+      description,
+      price,
+      minimumSkill,
+      language,
+      requiredCompletionPercentage,
+    } = req.body;
     const tags = JSON.parse(req.body.tags);
     if (
       !tags ||
@@ -144,7 +160,8 @@ async function updateCourse(req, res) {
       !description ||
       !price ||
       !minimumSkill ||
-      !language
+      !language ||
+      !requiredCompletionPercentage
     ) {
       return res
         .status(400)
@@ -183,6 +200,7 @@ async function updateCourse(req, res) {
     course.minimumSkill = minimumSkill;
     course.language = language;
     course.tags = tags;
+    course.requiredCompletionPercentage = requiredCompletionPercentage;
 
     await course.save();
 

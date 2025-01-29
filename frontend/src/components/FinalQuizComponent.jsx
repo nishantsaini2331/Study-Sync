@@ -150,20 +150,27 @@ const FinalQuizComponent = ({ edit = false }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     // if (validateQuiz()) {
-    console.log(quizForm);
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}final-quiz/${courseId}`,
-        {
-          quiz: quizForm.mcqs,
-        },
-        {
-          withCredentials: true,
-        }
-      );
-      console.log(res.data);
-
-      toast.success("Quiz saved successfully!");
+      let res;
+      if (edit) {
+        res = await axios.put(
+          `${import.meta.env.VITE_BACKEND_URL}final-quiz/${courseId}`,
+          { quiz: quizForm.mcqs },
+          {
+            withCredentials: true,
+          }
+        );
+      } else {
+        res = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}final-quiz/${courseId}`,
+          { quiz: quizForm.mcqs },
+          {
+            withCredentials: true,
+          }
+        );
+      }
+      toast.success(res.data.message || "Quiz saved successfully");
+      navigate(-1);
     } catch (error) {
       console.error(error);
       toast.error(error.response.data.error || "Internal server error");
@@ -306,7 +313,7 @@ const FinalQuizComponent = ({ edit = false }) => {
                 type="submit"
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >
-                Save Quiz
+                {edit ? "Update Quiz" : "Create Quiz"}
               </button>
             </div>
           </form>

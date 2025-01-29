@@ -18,6 +18,7 @@ export default function CourseCreationForm({ edit = false }) {
     tags: [],
     minimumSkill: "beginner",
     language: "english",
+    requiredCompletionPercentage: 50,
   });
 
   const [thumbnailPreview, setThumbnailPreview] = useState("");
@@ -40,6 +41,9 @@ export default function CourseCreationForm({ edit = false }) {
       newErrors.previewVideo = "Preview video is required";
     if (formData.tags.length === 0)
       newErrors.tags = "At least one tag is required";
+    if (!formData.language) newErrors.language = "Language is required";
+    if (!formData.minimumSkill)
+      newErrors.minimumSkill = "Minimum skill level is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -133,6 +137,10 @@ export default function CourseCreationForm({ edit = false }) {
       payload.append("minimumSkill", formData.minimumSkill);
       payload.append("thumbnail", formData.thumbnail);
       payload.append("previewVideo", formData.previewVideo);
+      payload.append(
+        "requiredCompletionPercentage",
+        formData.requiredCompletionPercentage
+      );
       payload.append("tags", JSON.stringify(formData.tags));
 
       try {
@@ -175,6 +183,7 @@ export default function CourseCreationForm({ edit = false }) {
           tags: [],
           minimumSkill: "beginner",
           language: "english",
+          requiredCompletionPercentage: 50,
         });
         navigate("/instructor/dashboard");
       }
@@ -207,6 +216,7 @@ export default function CourseCreationForm({ edit = false }) {
             tags: course.tags,
             minimumSkill: course.minimumSkill,
             language: course.language,
+            requiredCompletionPercentage: course.requiredCompletionPercentage,
           });
           setThumbnailPreview(course.thumbnail);
           setVideoPreview(course.previewVideo);
@@ -319,6 +329,35 @@ export default function CourseCreationForm({ edit = false }) {
               <option value="hindi">Hindi</option>
             </select>
             {renderError("language")}
+          </div>
+
+          {/* Required pass percentage field */}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Required Pass Percentage <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              value={formData.requiredCompletionPercentage}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  requiredCompletionPercentage: e.target.value,
+                });
+                setErrors({
+                  ...errors,
+                  requiredCompletionPercentage: undefined,
+                });
+              }}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                errors.language ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="Enter required pass percentage"
+              required
+              max={100}
+              min={0}
+            />
           </div>
 
           {/* Price Input */}

@@ -101,6 +101,14 @@ const courseSchema = new mongoose.Schema(
       default: "Draft",
       required: true,
     },
+    submittedAt: {
+      type: Date,
+      default: null,
+    },
+    publishedAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
