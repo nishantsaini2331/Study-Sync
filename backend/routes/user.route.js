@@ -26,7 +26,7 @@ router.post("/instructor/onboard", auth, onboard);
 
 router.get("/auth", auth, async (req, res) => {
   const user = await User.findById(req.user.id).select(
-    "name photoUrl username roles"
+    "name photoUrl username roles email"
   );
   res.json({
     user,

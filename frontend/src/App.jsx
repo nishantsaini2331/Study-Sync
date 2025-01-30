@@ -7,6 +7,7 @@ import UpdateProfile from "./pages/UpdateProfile";
 import TeacherPage from "./pages/TeacherPage";
 import TeacherOnboard from "./pages/TeacherOnboard";
 import {
+  AuthenticateAdmin,
   AuthenticateInstructor,
   AuthenticateUser,
 } from "./components/AuthenticateUser";
@@ -125,6 +126,23 @@ function App() {
           }
         />
 
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AuthenticateAdmin>
+              {/* <AdminDashboard /> */}
+              <h1>Admin Dashboard</h1>
+            </AuthenticateAdmin>
+          }
+        />
+        <Route
+          path="/admin/courses"
+          element={
+            <AuthenticateAdmin>
+              <h1>Admin Verify Course</h1>
+            </AuthenticateAdmin>
+          }
+        />
         <Route path="/contact" element={<h1>Contact</h1>} />
       </Routes>
     </div>

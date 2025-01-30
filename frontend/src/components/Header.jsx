@@ -49,7 +49,9 @@ const Header = () => {
             </a>
 
             {user ? (
-              user?.roles?.includes("instructor") ? (
+              user?.roles?.includes("admin") ? (
+                ""
+              ) : user?.roles?.includes("instructor") ? (
                 <Link
                   to="/instructor/dashboard"
                   className="text-gray-700 hover:text-blue-600"

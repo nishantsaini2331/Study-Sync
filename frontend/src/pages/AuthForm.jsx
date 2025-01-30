@@ -106,6 +106,9 @@ function AuthForm({ type }) {
         confirmPassword: "",
         qualification: "",
       });
+      if (res.data.user.roles.includes("admin")) {
+        return navigate("/admin/dashboard");
+      }
       navigate("/");
     } catch (error) {
       console.error(error);
@@ -118,8 +121,8 @@ function AuthForm({ type }) {
   useEffect(() => {
     setFormData({
       name: "",
-      email: "",
-      password: "",
+      email: "ns0109375@gmail.com",
+      password: "#Nishant1",
       confirmPassword: "",
       qualification: "",
     });
@@ -173,12 +176,9 @@ function AuthForm({ type }) {
                   className="text-right
                     mt-2"
                 >
-                  <a
-                    href="#"
-                    className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
-                  >
+                  <Link className="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
                     Forgot Password?
-                  </a>
+                  </Link>
                 </div>
                 <button
                   type="submit"

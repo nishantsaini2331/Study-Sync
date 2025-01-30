@@ -4,140 +4,79 @@ import { useDispatch } from "react-redux";
 import { setUser } from "../store/userSlice";
 import { useNavigate } from "react-router-dom";
 
-// export async function verifyUser(
-//   dispatch,
-//   navigate,
-//   setIsLoading = () => {},
-//   protect = false,
-//   path = "/"
-// ) {
-//   try {
-//     const response = await axios.get(
-//       `${import.meta.env.VITE_BACKEND_URL}user/auth`,
-//       { withCredentials: true }
-//     );
+async function verifyUser(dispatch, navigate, protect = false, role = null) {
+  try {
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}user/auth`,
+      { withCredentials: true }
+    );
 
-//     if (response.data.success) {
-//       dispatch(setUser(response.data.user));
-//       if (protect) navigate(path);
-//     } else if (protect) {
-//       navigate("/login"); // Redirect if user is not authorized and the route is protected
-//     }
-//   } catch (error) {
-//     if (protect) navigate("/login"); // Redirect only for protected routes
-//   } finally {
-//     setIsLoading(false); // Finish loading
-//   }
-// }
+    if (response.data.success) {
+      const user = response.data.user;
+      dispatch(setUser(user));
 
-function AuthenticateUser({ children, protect = false }) {
+      if (role === "instructor" && user.roles.includes("admin")) {
+        navigate("/admin/dashboard");
+        return;
+      }
+
+      if (role === "admin" && user.roles.includes("instructor")) {
+        navigate("/instructor/dashboard");
+        return;
+      }
+
+      if (role && !user.roles.includes(role)) {
+        navigate("/unauthorized");
+        return;
+      }
+    } else if (protect) {
+      navigate("/login");
+    }
+  } catch (error) {
+    console.error("Error verifying user:", error);
+    if (protect) navigate("/login");
+  }
+}
+
+function AuthenticationWrapper({ children, protect = false, role = null }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true); // Handle loading state
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function verifyUser() {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}user/auth`,
-          { withCredentials: true }
-        );
+    const checkUser = async () => {
+      await verifyUser(dispatch, navigate, protect, role);
+      setIsLoading(false);
+    };
 
-        if (response.data.success) {
-          dispatch(setUser(response.data.user));
-        } else if (protect) {
-          navigate("/login"); // Redirect if user is not authorized and the route is protected
-        }
-      } catch (error) {
-        console.error("Error verifying user:", error);
-        if (protect) navigate("/login"); // Redirect only for protected routes
-      } finally {
-        setIsLoading(false); // Finish loading
-      }
-    }
-
-    verifyUser();
+    checkUser();
   }, [dispatch, navigate, protect]);
 
-  if (isLoading) return <div>Loading...</div>; // Show a loader while checking
+  if (isLoading) return <div>Loading...</div>;
 
   return children;
+}
+
+function AuthenticateUser({ children, protect = false }) {
+  return (
+    <AuthenticationWrapper protect={protect}>{children}</AuthenticationWrapper>
+  );
 }
 
 function AuthenticateInstructor({ children }) {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true); // Handle loading state
-
-  useEffect(() => {
-    async function verifyInstructor() {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}user/auth`,
-          { withCredentials: true }
-        );
-
-        if (response.data.success) {
-          if (response.data.user.roles.includes("instructor")) {
-            dispatch(setUser(response.data.user));
-          } else {
-            navigate("/");
-          }
-        } else {
-          navigate("/login");
-        }
-      } catch (error) {
-        console.error("Error verifying instructor:", error);
-        navigate("/login");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    verifyInstructor();
-  }, [dispatch, navigate]);
-
-  if (isLoading) return <div>Loading...</div>;
-
-  return children;
+  return (
+    <AuthenticationWrapper protect={true} role="instructor">
+      {children}
+    </AuthenticationWrapper>
+  );
 }
 
 function AuthenticateAdmin({ children }) {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true); // Handle loading state
-
-  useEffect(() => {
-    async function verifyAdmin() {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}user/auth`,
-          { withCredentials: true }
-        );
-
-        if (response.data.success) {
-          if (response.data.user.roles.includes("admin")) {
-            dispatch(setUser(response.data.user));
-          } else {
-            navigate("/");
-          }
-        } else {
-          navigate("/login");
-        }
-      } catch (error) {
-        console.error("Error verifying admin:", error);
-        navigate("/login");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    verifyAdmin();
-  }, [dispatch, navigate]);
-
-  if (isLoading) return <div>Loading...</div>;
-
-  return children;
+  return (
+    <AuthenticationWrapper protect={true} role="admin">
+      {children}
+    </AuthenticationWrapper>
+  );
 }
 
 export { AuthenticateUser, AuthenticateInstructor, AuthenticateAdmin };

@@ -2,12 +2,15 @@ const Course = require("../models/course.model");
 const Lecture = require("../models/lecture.model");
 const MCQ = require("../models/mcq.model");
 const User = require("../models/user.model");
+
 const {
   uploadMedia,
   deleteMediaFromCloudinary,
   deleteVideoFromCloudinary,
 } = require("../utils/cloudinary");
+
 const ShortUniqueId = require("short-unique-id");
+
 const { randomUUID } = new ShortUniqueId({ length: 6 });
 
 async function createCourse(req, res) {

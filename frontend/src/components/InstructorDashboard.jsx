@@ -117,7 +117,7 @@ const InstructorDashboard = () => {
         // toast.success("Course created successfully");
       } catch (error) {
         console.error(error);
-        toast.error("Failed to create course");
+        toast.error(error.response.data.message || "Please try again later");
       }
     }
 
@@ -283,7 +283,6 @@ const InstructorDashboard = () => {
                       <span
                         className="bg-black text-white rounded-full px-7 py-2 cursor-pointer"
                         onClick={(e) =>
-                            
                           navigate(`/edit-course/${course.courseId}`)
                         }
                       >

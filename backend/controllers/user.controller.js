@@ -47,7 +47,7 @@ async function sendVerificationEmail(user) {
   const response = await transporter.sendMail(message);
 }
 
-const verifyEmail = async (req, res) => {
+async function verifyEmail(req, res) {
   try {
     const { verificationToken } = req.params;
     const verifyToken = await jwt.verify(verificationToken, JWT_SECRET);
@@ -83,9 +83,9 @@ const verifyEmail = async (req, res) => {
       error: err.message,
     });
   }
-};
+}
 
-const register = async (req, res) => {
+async function register(req, res) {
   try {
     const { name, email, password, qualification } = req.body;
 
@@ -177,9 +177,9 @@ const register = async (req, res) => {
       message: error.message,
     });
   }
-};
+}
 
-const login = async (req, res) => {
+async function login(req, res) {
   try {
     const { email, password } = req.body;
 
@@ -249,6 +249,7 @@ const login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        roles: user.roles,
       },
     });
   } catch (error) {
@@ -257,9 +258,9 @@ const login = async (req, res) => {
       message: error.message,
     });
   }
-};
+}
 
-const googleAuth = async (req, res) => {
+async function googleAuth(req, res) {
   try {
     const { accessToken } = req.body;
 
@@ -331,9 +332,9 @@ const googleAuth = async (req, res) => {
       message: err.message,
     });
   }
-};
+}
 
-const logout = async (req, res) => {
+async function logout(req, res) {
   try {
     return res.status(200).clearCookie("token").json({
       success: true,
@@ -342,9 +343,9 @@ const logout = async (req, res) => {
   } catch (error) {
     res.status(500).send();
   }
-};
+}
 
-const getUser = async (req, res) => {
+async function getUser(req, res) {
   try {
     const { username } = req.params;
     const user = await User.findOne({ username }).select(
@@ -368,9 +369,9 @@ const getUser = async (req, res) => {
       message: error.message,
     });
   }
-};
+}
 
-const updateUser = async (req, res) => {
+async function updateUser(req, res) {
   try {
     const updateFields = [
       "name",
@@ -442,9 +443,9 @@ const updateUser = async (req, res) => {
       message: error.message,
     });
   }
-};
+}
 
-const deleteUser = async (req, res) => {
+async function deleteUser(req, res) {
   try {
     const user = await User.findByIdAndDelete(req.user.id);
 
@@ -469,9 +470,9 @@ const deleteUser = async (req, res) => {
       message: error.message,
     });
   }
-};
+}
 
-const resetPassword = async (req, res) => {
+async function resetPassword(req, res) {
   try {
     const { email } = req.body;
 
@@ -514,9 +515,9 @@ const resetPassword = async (req, res) => {
       message: error.message,
     });
   }
-};
+}
 
-const changePassword = async (req, res) => {
+async function changePassword(req, res) {
   try {
     const { newPassword, oldPassword } = req.body;
 
@@ -562,9 +563,9 @@ const changePassword = async (req, res) => {
       message: error.message,
     });
   }
-};
+}
 
-const onboard = async (req, res) => {
+async function onboard(req, res) {
   try {
     const { questions } = req.body;
     const userId = req.user.id;
@@ -628,7 +629,7 @@ const onboard = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
-};
+}
 
 module.exports = {
   register,
