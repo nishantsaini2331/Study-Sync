@@ -17,6 +17,7 @@ import CreateLecture from "./components/CreateLecture";
 import CourseDetailsPage from "./pages/CourseDetailsPage";
 import CourseManagement from "./pages/CourseManagement";
 import FinalQuizComponent from "./components/FinalQuizComponent";
+import AdminDashboard from "./components/AdminDashboard";
 
 function App() {
   return (
@@ -130,8 +131,7 @@ function App() {
           path="/admin/dashboard"
           element={
             <AuthenticateAdmin>
-              {/* <AdminDashboard /> */}
-              <h1>Admin Dashboard</h1>
+              <AdminDashboard />
             </AuthenticateAdmin>
           }
         />
