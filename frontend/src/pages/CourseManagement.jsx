@@ -110,6 +110,9 @@ function CourseManagement() {
   });
 
   function valdidateToSubmitReview() {
+    if (courseData?.status === "under review") {
+      return false;
+    }
     if (
       courseData?.lectures?.length >= 3 &&
       courseData?.finalQuiz?.mcqs.length >= 5
@@ -119,6 +122,25 @@ function CourseManagement() {
     return false;
   }
 
+  async function handleSubmitReview() {
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}course-review`,
+        {
+          courseId: id,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      toast.success(res.data.message || "Course submitted for review");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error.response.data.message || "Failed to submit course for review"
+      );
+    }
+  }
   useEffect(() => {
     async function fetchCourseData() {
       try {
@@ -149,8 +171,6 @@ function CourseManagement() {
       >
         Back
       </button>
-
-
 
       <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-md">
         <div className="p-6">
@@ -391,6 +411,8 @@ function CourseManagement() {
       {/* Submit Button */}
       <div className="flex justify-center mt-8">
         <button
+          disabled={!valdidateToSubmitReview()}
+          onClick={handleSubmitReview}
           className={`flex items-center px-6 py-3  text-white rounded-md ${
             valdidateToSubmitReview()
               ? "bg-blue-700 "
@@ -401,6 +423,10 @@ function CourseManagement() {
           Submit for Review
         </button>
       </div>
+
+      {courseData?.status === "under review" && (
+        <div className="text-center text-gray-500">Course is under review</div>
+      )}
     </div>
   );
 }

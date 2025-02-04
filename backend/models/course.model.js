@@ -60,10 +60,6 @@ const courseSchema = new mongoose.Schema(
       type: [String],
       required: true,
     },
-    isPublished: {
-      type: Boolean,
-      default: false,
-    },
     language: {
       type: String,
       required: true,
@@ -97,9 +93,14 @@ const courseSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Draft", "Published", "Under Review", "Rejected"],
+      enum: ["draft", "published", "under review", "rejected"],
       default: "Draft",
       required: true,
+    },
+    courseVerification: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CourseReview",
+      default: null,
     },
   },
   { timestamps: true }

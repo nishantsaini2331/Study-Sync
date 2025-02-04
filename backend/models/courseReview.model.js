@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const courseReviewSchema = new mongoose.Schema(
   {
@@ -14,9 +14,8 @@ const courseReviewSchema = new mongoose.Schema(
     },
     comment: {
       type: String,
-      required: true,
-      minlength: 5,
       maxlength: 500,
+      default: "",
     },
     status: {
       type: String,
@@ -36,4 +35,4 @@ const courseReviewSchema = new mongoose.Schema(
 );
 
 const CourseReview = mongoose.model("CourseReview", courseReviewSchema);
-export default CourseReview;
+module.exports = CourseReview;
