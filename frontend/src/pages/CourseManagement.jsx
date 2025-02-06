@@ -12,6 +12,7 @@ import {
   BookOpen,
   Tag,
   IndianRupee,
+  ChartBarBig,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -73,6 +74,9 @@ function CourseManagement() {
         previewVideo: "https://example.com/lecture2.mp4",
       },
     ],
+    category: {
+      name: "Programming",
+    },
     finalQuiz: {
       mcqs: [
         {
@@ -249,6 +253,12 @@ function CourseManagement() {
                   <Percent className="w-5 h-5" />
                   <span className="font-medium">Required Pass:</span>
                   <span>{courseData.requiredCompletionPercentage}%</span>
+                </div>
+
+                <div className="flex items-center gap-3 text-gray-600">
+                  <ChartBarBig className="w-5 h-5" />
+                  <span className="font-medium">Category:</span>
+                  <span>{courseData.category.name}</span>
                 </div>
 
                 <div className="flex items-start gap-3 text-gray-600">

@@ -60,6 +60,15 @@ function App() {
           />
 
           <Route path="/course" element={<CourseDetailsPage />} />
+
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AuthenticateAdmin>
+                <AdminDashboard />
+              </AuthenticateAdmin>
+            }
+          />
         </Route>
 
         <Route path="/course-preview/:id" element={<CourseManagement />} />
@@ -124,15 +133,6 @@ function App() {
             <AuthenticateInstructor>
               <FinalQuizComponent />
             </AuthenticateInstructor>
-          }
-        />
-
-        <Route
-          path="/admin/dashboard"
-          element={
-            <AuthenticateAdmin>
-              <AdminDashboard />
-            </AuthenticateAdmin>
           }
         />
         <Route

@@ -94,13 +94,18 @@ const courseSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["draft", "published", "under review", "rejected"],
-      default: "Draft",
+      default: "draft",
       required: true,
     },
     courseVerification: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "CourseReview",
       default: null,
+    },
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
     },
   },
   { timestamps: true }

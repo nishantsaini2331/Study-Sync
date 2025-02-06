@@ -1,3 +1,4 @@
+const Category = require("../models/category.model");
 const Course = require("../models/course.model");
 const Lecture = require("../models/lecture.model");
 const MCQ = require("../models/mcq.model");
@@ -23,6 +24,7 @@ async function createCourse(req, res) {
       minimumSkill,
       language,
       requiredCompletionPercentage,
+      category,
     } = req.body;
     const tags = JSON.parse(req.body.tags);
     const thumbnail = req.files.thumbnail[0];
@@ -37,11 +39,23 @@ async function createCourse(req, res) {
       !price ||
       !minimumSkill ||
       !language ||
-      !requiredCompletionPercentage
+      !requiredCompletionPercentage ||
+      !category
     ) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required" });
+    }
+
+    const checkCategory = await Category.findOne({
+      name: { $regex: new RegExp(`^${category}$`, "i") },
+    });
+
+    if (!checkCategory) {
+      return res.status(400).json({
+        message: "Please enter valid category",
+        success: false,
+      });
     }
 
     const { secure_url: thumbnailUrl, public_id: thumbnailId } =
@@ -74,8 +88,12 @@ async function createCourse(req, res) {
       language,
       courseId,
       requiredCompletionPercentage,
+      category: checkCategory._id,
     });
 
+    await Category.findByIdAndUpdate(checkCategory._id, {
+      $push: { courses: course._id },
+    });
     await User.findByIdAndUpdate(user.id, {
       $push: { createdCourses: course._id },
     });
@@ -117,6 +135,10 @@ async function getCourse(req, res) {
         populate: {
           path: "mcqs",
         },
+      })
+      .populate({
+        path: "category",
+        select: "name",
       });
 
     if (!course) {
@@ -133,7 +155,7 @@ async function getCourse(req, res) {
 async function updateCourse(req, res) {
   try {
     const courseId = req.params.id;
-    const course = await Course.findOne({ courseId });
+    const course = await Course.findOne({ courseId }).populate("category");
     const user = req.user;
 
     if (!user) {
@@ -155,8 +177,11 @@ async function updateCourse(req, res) {
       minimumSkill,
       language,
       requiredCompletionPercentage,
+      category,
     } = req.body;
+
     const tags = JSON.parse(req.body.tags);
+
     if (
       !tags ||
       !title ||
@@ -164,11 +189,23 @@ async function updateCourse(req, res) {
       !price ||
       !minimumSkill ||
       !language ||
-      !requiredCompletionPercentage
+      !requiredCompletionPercentage ||
+      !category
     ) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required" });
+    }
+
+    const checkCategory = await Category.findOne({
+      name: { $regex: new RegExp(`^${category}$`, "i") },
+    });
+
+    if (!checkCategory) {
+      return res.status(400).json({
+        message: "Please enter valid category",
+        success: false,
+      });
     }
 
     if (req?.files?.thumbnail) {
@@ -195,7 +232,28 @@ async function updateCourse(req, res) {
       course.previewVideoId = previewVideoId;
     }
 
-    console.log("object");
+    if (
+      checkCategory.name.toLowerCase() !== course.category.name.toLowerCase()
+    ) {
+      //   Promise.all([
+      //     await Category.findOneAndUpdate(course.category._id, {
+      //       $pull: { courses: course._id },
+      //     }),
+      //     await Category.findByIdAndUpdate(checkCategory._id, {
+      //       $push: { courses: course._id },
+      //     }),
+      //   ]);
+
+      await Category.findOneAndUpdate(course.category._id, {
+        $pull: { courses: course._id },
+      });
+
+      course.category = checkCategory._id;
+
+      await Category.findByIdAndUpdate(checkCategory._id, {
+        $push: { courses: course._id },
+      });
+    }
 
     course.title = title;
     course.description = description;

@@ -53,9 +53,9 @@ async function createCourseReview(req, res) {
 async function getCourseReviews(req, res) {
   try {
     const courseReviews = await CourseReview.find();
-    res.status(200).send(courseReviews);
+    res.status(200).json({ success: true, courseReviews });
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
 

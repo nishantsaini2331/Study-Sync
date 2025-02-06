@@ -19,8 +19,10 @@ export default function CourseCreationForm({ edit = false }) {
     minimumSkill: "beginner",
     language: "english",
     requiredCompletionPercentage: 50,
+    category: "Programming",
   });
-
+  console.log(formData);
+  const [categories, setCategories] = useState([]);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [videoPreview, setVideoPreview] = useState("");
   const [currentTag, setCurrentTag] = useState("");
@@ -42,6 +44,7 @@ export default function CourseCreationForm({ edit = false }) {
     if (formData.tags.length === 0)
       newErrors.tags = "At least one tag is required";
     if (!formData.language) newErrors.language = "Language is required";
+    if (!formData.category) newErrors.category = "Category is required";
     if (!formData.minimumSkill)
       newErrors.minimumSkill = "Minimum skill level is required";
 
@@ -128,7 +131,6 @@ export default function CourseCreationForm({ edit = false }) {
     e.preventDefault();
 
     if (validateForm()) {
-      console.log("Form Data:", formData);
       const payload = new FormData();
       payload.append("title", formData.title);
       payload.append("description", formData.description);
@@ -137,6 +139,7 @@ export default function CourseCreationForm({ edit = false }) {
       payload.append("minimumSkill", formData.minimumSkill);
       payload.append("thumbnail", formData.thumbnail);
       payload.append("previewVideo", formData.previewVideo);
+      payload.append("category", formData.category);
       payload.append(
         "requiredCompletionPercentage",
         formData.requiredCompletionPercentage
@@ -145,6 +148,7 @@ export default function CourseCreationForm({ edit = false }) {
 
       try {
         let res;
+
         if (edit) {
           res = await axios.patch(
             `${import.meta.env.VITE_BACKEND_URL}course/edit-course/${id}`,
@@ -168,11 +172,11 @@ export default function CourseCreationForm({ edit = false }) {
             }
           );
         }
-        console.log(res.data);
-        toast.success("Course created successfully");
+
+        toast.success(res.data.message || "successful");
       } catch (error) {
         console.error(error);
-        toast.error("Failed to create course");
+        toast.error(error.response.data.message || "Failed to create course");
       } finally {
         setFormData({
           title: "",
@@ -184,8 +188,9 @@ export default function CourseCreationForm({ edit = false }) {
           minimumSkill: "beginner",
           language: "english",
           requiredCompletionPercentage: 50,
+          category: "",
         });
-        navigate("/instructor/dashboard");
+        navigate(-1);
       }
     }
   };
@@ -208,24 +213,40 @@ export default function CourseCreationForm({ edit = false }) {
           );
           const course = res.data.course;
           setFormData({
-            title: course.title,
-            description: course.description,
-            price: course.price,
-            thumbnail: course.thumbnail,
-            previewVideo: course.previewVideo,
-            tags: course.tags,
-            minimumSkill: course.minimumSkill,
-            language: course.language,
-            requiredCompletionPercentage: course.requiredCompletionPercentage,
+            title: course?.title,
+            description: course?.description,
+            price: course?.price,
+            thumbnail: course?.thumbnail,
+            previewVideo: course?.previewVideo,
+            tags: course?.tags,
+            minimumSkill: course?.minimumSkill,
+            language: course?.language,
+            requiredCompletionPercentage: course?.requiredCompletionPercentage,
+            category: course?.category?.name.toLowerCase(),
           });
-          setThumbnailPreview(course.thumbnail);
-          setVideoPreview(course.previewVideo);
+          setThumbnailPreview(course?.thumbnail);
+          setVideoPreview(course?.previewVideo);
         } catch (error) {
           console.error(error);
         }
       }
+
       fetchCourseData();
     }
+    async function fetchAllCategories() {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}category`,
+          {
+            withCredentials: true,
+          }
+        );
+        setCategories(res?.data?.categories);
+      } catch (error) {
+        toast.error("Please try again");
+      }
+    }
+    fetchAllCategories();
   }, [id]);
 
   return (
@@ -329,6 +350,29 @@ export default function CourseCreationForm({ edit = false }) {
               <option value="hindi">Hindi</option>
             </select>
             {renderError("language")}
+          </div>
+
+          {/* Category Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Category <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={formData.category}
+              onChange={(e) => {
+                console.log(e.target.value);
+                setFormData({ ...formData, category: e.target.value });
+                setErrors({ ...errors, category: undefined });
+              }}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                errors.category ? "border-red-500" : "border-gray-300"
+              }`}
+            >
+              {categories?.map((cat) => (
+                <option value={cat.toLowerCase()}>{cat}</option>
+              ))}
+            </select>
+            {renderError("category")}
           </div>
 
           {/* Required pass percentage field */}
