@@ -121,7 +121,7 @@ function CourseTable({ courses, handleAction }) {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredCourses.map((course) => (
-                <tr key={course.id} className="hover:bg-gray-50">
+                <tr key={course._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="font-medium text-gray-900">
                       {course.title}

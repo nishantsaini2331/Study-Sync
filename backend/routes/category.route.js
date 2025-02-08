@@ -17,6 +17,8 @@ router
   .post(auth, admin, createCategory)
   .get(auth, showAllCategoriesName);
 
+router.get("/all", auth, admin, showAllCategories);
+
 router
   .route("/:id")
   .put(auth, admin, updateCategory)

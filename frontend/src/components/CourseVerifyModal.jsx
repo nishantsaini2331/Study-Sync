@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import React from "react";
 
 function CourseVerifyModal({ isOpen, onClose, title, children }) {

@@ -240,7 +240,7 @@ const FinalQuizComponent = ({ edit = false }) => {
               </div>
 
               {quizForm.mcqs.map((mcq, mcqIndex) => (
-                <div key={mcq.id} className="p-4 border rounded-lg space-y-4">
+                <div key={mcqIndex} className="p-4 border rounded-lg space-y-4">
                   <div className="flex justify-between items-start">
                     <input
                       type="text"

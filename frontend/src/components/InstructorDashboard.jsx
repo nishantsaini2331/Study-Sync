@@ -9,7 +9,7 @@ const InstructorDashboard = () => {
   // Dummy course data
   const [courses, setCourses] = useState([
     {
-      id: 1,
+      _id: 1,
       title: "Complete React Developer Course",
       thumbnail: "/api/placeholder/400/300",
       status: "Published",
@@ -20,7 +20,7 @@ const InstructorDashboard = () => {
       description: "Learn React from scratch with hooks, Redux, and more",
     },
     {
-      id: 2,
+      _id: 2,
       title: "Advanced JavaScript Patterns",
       thumbnail: "/api/placeholder/400/300",
       status: "Published",
@@ -31,7 +31,7 @@ const InstructorDashboard = () => {
       description: "Master JavaScript design patterns and advanced concepts",
     },
     {
-      id: 3,
+      _id: 3,
       title: "Node.js Microservices",
       thumbnail: "/api/placeholder/400/300",
       status: "Draft",
@@ -43,7 +43,7 @@ const InstructorDashboard = () => {
         "Build scalable applications with microservices architecture",
     },
     {
-      id: 4,
+      _id: 4,
       title: "Python for Data Science",
       thumbnail: "/api/placeholder/400/300",
       status: "Published",
@@ -54,7 +54,7 @@ const InstructorDashboard = () => {
       description: "Learn Python for data analysis and machine learning",
     },
     {
-      id: 5,
+      _id: 5,
       title: "AWS Cloud Practitioner",
       thumbnail: "/api/placeholder/400/300",
       status: "Published",
@@ -65,7 +65,7 @@ const InstructorDashboard = () => {
       description: "Complete guide to AWS fundamentals and certification",
     },
     {
-      id: 6,
+      _id: 6,
       title: "UI/UX Design Fundamentals",
       thumbnail: "/api/placeholder/400/300",
       status: "Draft",
@@ -207,25 +207,22 @@ const InstructorDashboard = () => {
           ))}
         </div>
 
-        {/* Courses Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.map((course) => (
+          {courses.map((course, index) => (
             <div
-              key={course._id}
+              key={course?._id}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
               <Link
                 to={`/course-preview/${course.courseId}`}
-                key={course.courseId}
+                // key={course.courseId}
               >
                 <div className="relative h-48 bg-gray-200">
-                  {/* <div> */}
                   <img
                     src={course.thumbnail}
                     alt={course.title}
                     className="w-full h-full object-cover "
                   />
-                  {/* </div> */}
                   <div className="absolute top-2 right-2">
                     <div className="relative inline-block">
                       <button

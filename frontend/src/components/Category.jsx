@@ -33,8 +33,10 @@ function Category() {
       setCategories((prev) => [...prev, res.data.category]);
       toast.success(res.data.message || "Category added successfully.");
     } catch (error) {
-        console.log(error);
-      toast.error( error.response.data.message || "An error occurred. Please try again.");
+      console.log(error);
+      toast.error(
+        error.response.data.message || "An error occurred. Please try again."
+      );
     } finally {
       setFormData({ name: "", description: "" });
       setIsAddModalOpen(false);
@@ -101,7 +103,8 @@ function Category() {
   useEffect(() => {
     async function fetchCategories() {
       const res = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}category`
+        `${import.meta.env.VITE_BACKEND_URL}category/all`,
+        { withCredentials: true }
       );
       setCategories(res.data.categories);
     }
@@ -123,7 +126,6 @@ function Category() {
         </button>
       </div>
 
-      {/* Search Bar */}
       <div className="mb-6 relative">
         <input
           type="text"
@@ -135,12 +137,11 @@ function Category() {
         <Search className="absolute left-3 top-3 text-gray-400" size={20} />
       </div>
 
-      {/* Categories List */}
       <div className="bg-white rounded-lg shadow">
         <div className="grid grid-cols-1 gap-4 p-4">
           {filteredCategories.map((category) => (
             <div
-              key={category.id}
+              key={category._id}
               className="border rounded-lg p-4 hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start">
@@ -175,14 +176,16 @@ function Category() {
         </div>
       </div>
 
-      {/* Add Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Add New Category</h2>
               <button
-                onClick={() => setIsAddModalOpen(false)}
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  setFormData({ name: "", description: "" });
+                }}
                 className="p-2 hover:bg-gray-100 rounded-full"
               >
                 <X size={20} />
@@ -214,7 +217,10 @@ function Category() {
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsAddModalOpen(false)}
+                  onClick={() => {
+                    setIsAddModalOpen(false);
+                    setFormData({ name: "", description: "" });
+                  }}
                   className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
                 >
                   Cancel
@@ -237,7 +243,10 @@ function Category() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Edit Category</h2>
               <button
-                onClick={() => setIsEditModalOpen(false)}
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setFormData({ name: "", description: "" });
+                }}
                 className="p-2 hover:bg-gray-100 rounded-full"
               >
                 <X size={20} />
@@ -269,7 +278,10 @@ function Category() {
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsEditModalOpen(false)}
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setFormData({ name: "", description: "" });
+                  }}
                   className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
                 >
                   Cancel

@@ -66,12 +66,14 @@ function CourseManagement() {
         title: "HTML Basics",
         description: "Understanding HTML structure and common elements",
         previewVideo: "https://example.com/lecture1.mp4",
+        lectureId: "1",
       },
       {
         id: 2,
         title: "CSS Fundamentals",
         description: "Learning CSS styling and layouts",
         previewVideo: "https://example.com/lecture2.mp4",
+        lectureId: "2",
       },
     ],
     category: {
@@ -87,27 +89,32 @@ function CourseManagement() {
             "Home Tool Markup Language",
           ],
           correctOption: 0,
+          _id: "1",
         },
         {
           question:
             "Which of the following tag is used to mark a begining of paragraph ?",
           options: ["<TD>", "<br>", "<P>"],
           correctOption: 2,
+          _id: "2",
         },
         {
           question: "From which tag descriptive list starts ?",
           options: ["<LL>", "<DD>", "<DL>"],
           correctOption: 2,
+          _id: "3",
         },
         {
           question: "Correct HTML tag for the largest heading is",
           options: ["<head>", "<h6>", "<heading>"],
           correctOption: 1,
+          _id: "4",
         },
         {
           question: "The attribute of <form> tag",
           options: ["Method", "Action", "Both (a)&(b)"],
           correctOption: 2,
+          _id: "5",
         },
       ],
     },

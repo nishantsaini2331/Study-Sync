@@ -38,7 +38,7 @@ function HomepageManagement({ courses }) {
           <div className="space-y-4">
             {courses.map((course) => (
               <div
-                key={course.id}
+                key={course._id}
                 className="flex items-center justify-between"
               >
                 <span>{course.title}</span>

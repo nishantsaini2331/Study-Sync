@@ -102,6 +102,7 @@ async function deleteCategory(req, res) {
     const categoryId = req.params.id;
 
     const category = await Category.findByIdAndDelete(categoryId);
+
     if (!category) {
       return res.status(404).json({
         success: false,
@@ -109,10 +110,16 @@ async function deleteCategory(req, res) {
       });
     }
 
+    const defaultCategoryId = "67a46c535bd71fbf48818e80";
+
     await Course.updateMany(
       { category: categoryId },
-      { $unset: { category: "" } }
+      { $set: { category: defaultCategoryId } }
     );
+
+    await Category.findByIdAndUpdate(defaultCategoryId, {
+      $push: { courses: category.courses },
+    });
 
     return res.status(200).json({
       success: true,

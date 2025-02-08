@@ -369,7 +369,9 @@ export default function CourseCreationForm({ edit = false }) {
               }`}
             >
               {categories?.map((cat) => (
-                <option value={cat.toLowerCase()}>{cat}</option>
+                <option key={cat} value={cat.toLowerCase()}>
+                  {cat}
+                </option>
               ))}
             </select>
             {renderError("category")}

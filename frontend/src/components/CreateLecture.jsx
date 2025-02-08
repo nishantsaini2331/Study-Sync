@@ -235,7 +235,7 @@ const CreateLecture = ({ edit = false }) => {
 
         <div className="bg-white rounded-lg p-6 w-full max-w-4xl my-8">
           <h2 className="text-2xl font-bold mb-4">
-            {id ? "Edit Lecture" : "Create New Lecture"}
+            {edit ? "Edit Lecture" : "Create New Lecture"}
           </h2>
           <form onSubmit={handleLectureSubmit} className="space-y-4">
             <div>
@@ -367,7 +367,7 @@ const CreateLecture = ({ edit = false }) => {
               </div>
 
               {lectureForm.mcqs.map((mcq, mcqIndex) => (
-                <div key={mcq.id} className="p-4 border rounded-lg space-y-4">
+                <div key={mcqIndex} className="p-4 border rounded-lg space-y-4">
                   <div className="flex justify-between items-start">
                     <input
                       type="text"
