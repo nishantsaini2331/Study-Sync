@@ -41,12 +41,9 @@ const Header = () => {
             <Link to="/about" className="text-gray-700 hover:text-blue-600">
               About
             </Link>
-            <a
-              href="#courseCategory"
-              className="text-gray-700 hover:text-blue-600"
-            >
+            <Link to="/courses" className="text-gray-700 hover:text-blue-600">
               Courses
-            </a>
+            </Link>
 
             {user ? (
               user?.roles?.includes("admin") ? (

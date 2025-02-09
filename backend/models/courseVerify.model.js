@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 
-const courseReviewSchema = new mongoose.Schema(
+const courseVerifySchema = new mongoose.Schema(
   {
-    courseId: {
+    course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
       required: true,
@@ -34,5 +34,5 @@ const courseReviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const CourseReview = mongoose.model("CourseReview", courseReviewSchema);
-module.exports = CourseReview;
+const CourseVerify = mongoose.model("courseVerify", courseVerifySchema);
+module.exports = CourseVerify;

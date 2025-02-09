@@ -169,13 +169,13 @@ const FinalQuizComponent = ({ edit = false }) => {
           }
         );
       }
+      console.log(res.data);
       toast.success(res.data.message || "Quiz saved successfully");
       navigate(-1);
     } catch (error) {
       console.error(error);
-      toast.error(error.response.data.error || "Internal server error");
+      toast.error(error.response.data.message || "Internal server error");
     }
-    // }
   };
 
   useEffect(() => {

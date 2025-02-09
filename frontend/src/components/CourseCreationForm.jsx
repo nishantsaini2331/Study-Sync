@@ -151,7 +151,7 @@ export default function CourseCreationForm({ edit = false }) {
 
         if (edit) {
           res = await axios.patch(
-            `${import.meta.env.VITE_BACKEND_URL}course/edit-course/${id}`,
+            `${import.meta.env.VITE_BACKEND_URL}course/${id}`,
             payload,
             {
               withCredentials: true,
@@ -162,7 +162,7 @@ export default function CourseCreationForm({ edit = false }) {
           );
         } else {
           res = await axios.post(
-            `${import.meta.env.VITE_BACKEND_URL}course/create-course`,
+            `${import.meta.env.VITE_BACKEND_URL}course`,
             payload,
             {
               withCredentials: true,
@@ -206,7 +206,7 @@ export default function CourseCreationForm({ edit = false }) {
       async function fetchCourseData() {
         try {
           const res = await axios.get(
-            `${import.meta.env.VITE_BACKEND_URL}course/course/${id}`,
+            `${import.meta.env.VITE_BACKEND_URL}course/${id}`,
             {
               withCredentials: true,
             }

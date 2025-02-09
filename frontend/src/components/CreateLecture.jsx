@@ -174,7 +174,7 @@ const CreateLecture = ({ edit = false }) => {
       let res;
       if (edit) {
         res = await axios.patch(
-          `${import.meta.env.VITE_BACKEND_URL}lecture/edit-lecture/${id}`,
+          `${import.meta.env.VITE_BACKEND_URL}lecture/${id}`,
           payload,
           {
             withCredentials: true,
@@ -183,7 +183,7 @@ const CreateLecture = ({ edit = false }) => {
         toast.success("Lecture updated successfully");
       } else {
         res = await axios.post(
-          `${import.meta.env.VITE_BACKEND_URL}lecture/create-lecture/${id}`,
+          `${import.meta.env.VITE_BACKEND_URL}lecture/${id}`,
           payload,
           {
             withCredentials: true,
@@ -203,7 +203,7 @@ const CreateLecture = ({ edit = false }) => {
       async function fetchLectureData() {
         try {
           const res = await axios.get(
-            `${import.meta.env.VITE_BACKEND_URL}lecture/lecture/${id}`,
+            `${import.meta.env.VITE_BACKEND_URL}lecture/${id}`,
             {
               withCredentials: true,
             }

@@ -99,7 +99,7 @@ const courseSchema = new mongoose.Schema(
     },
     courseVerification: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "CourseReview",
+      ref: "CourseVerify",
       default: null,
     },
     category: {

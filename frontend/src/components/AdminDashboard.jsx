@@ -1,42 +1,80 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CourseTable from "./CourseTable";
 import HomepageManagement from "./HomepageManagement";
 import AdminDashboardSidebar from "./AdminDashboardSidebar";
 import CourseVerifyModal from "./CourseVerifyModal";
 import Category from "./Category";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("courses");
   const [courses, setCourses] = useState([
     {
-      id: 1,
-      title: "React Fundamentals",
-      instructor: "John Doe",
-      status: "pending",
-      category: "Programming",
-      createdAt: "2024-02-06",
-      description: "Learn the basics of React development",
-      students: 120,
-    },
-    {
-      id: 2,
-      title: "Advanced JavaScript",
-      instructor: "Jane Smith",
+      _id: 1,
+      course: {
+        _id: 1,
+        title: "Introduction to Python",
+        status: "approved",
+        description: "Learn the basics of Python programming",
+        category: {
+          _id: 1,
+          name: "Programming",
+        },
+      },
+      instructor: {
+        _id: 1,
+        name: "John Doe",
+        username: "john123",
+      },
+      approvedAt: null,
+      submittedAt: "2024-02-06",
+      comment: "",
       status: "approved",
-      category: "Programming",
-      createdAt: "2024-02-05",
-      description: "Master advanced JavaScript concepts",
-      students: 85,
     },
     {
-      id: 3,
-      title: "UI/UX Design Basics",
-      instructor: "Alice Johnson",
+      _id: 2,
+      course: {
+        _id: 2,
+        title: "Introduction to React",
+        status: "approved",
+        description: "Learn the basics of React",
+        category: {
+          _id: 2,
+          name: "Web Development",
+        },
+      },
+      instructor: {
+        _id: 2,
+        name: "Jane Doe",
+        username: "jane123",
+      },
+      approvedAt: null,
+      submittedAt: "2024-02-05",
+      comment: "",
+      status: "approved",
+    },
+    {
+      _id: 3,
+      course: {
+        _id: 3,
+        title: "UI/UX Design Basics",
+        status: "rejected",
+        description: "Introduction to UI/UX design principles",
+        category: {
+          _id: 3,
+          name: "Design",
+        },
+      },
+      instructor: {
+        _id: 3,
+        name: "Alice Johnson",
+        username: "alice123",
+      },
+      approvedAt: null,
+      submittedAt: "2024-02-04",
+      comment: "",
       status: "rejected",
-      category: "Design",
-      createdAt: "2024-02-04",
-      description: "Introduction to UI/UX design principles",
-      students: 0,
     },
   ]);
 
@@ -48,15 +86,28 @@ function AdminDashboard() {
 
   const [comment, setComment] = useState("");
 
-  const handleAction = (type, courseId) => {
+  function handleAction(type, courseId) {
     setActionModal({ type, isOpen: true, courseId });
     setComment("");
-  };
+  }
 
-  const handleSubmitAction = () => {
+  async function handleSubmitAction() {
+    try {
+      const response = await axios.patch(
+        `${import.meta.env.VITE_BACKEND_URL}course-verify/${
+          actionModal.courseId
+        }/${actionModal.type}`,
+        { comment },
+        { withCredentials: true }
+      );
+      toast.success(response.data.message || "Course approved successfully");
+    } catch (error) {
+      toast.error(error.response.data.message || "An error occurred");
+    }
+
     setCourses(
       courses.map((course) =>
-        course.id === actionModal.courseId
+        course.course.courseId === actionModal.courseId
           ? { ...course, status: actionModal.type }
           : course
       )
@@ -65,8 +116,26 @@ function AdminDashboard() {
     setActionModal({ type: null, isOpen: false, courseId: null });
 
     setComment("");
+  }
 
-  };
+  useEffect(() => {
+    async function fetchCoursesForReview() {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}course-verify`,
+          { withCredentials: true }
+        );
+        console.log(response.data.courseVerifications);
+        setCourses(response.data.courseVerifications);
+      } catch (error) {
+        console.error("Error fetching courses: ", error);
+      }
+    }
+
+    fetchCoursesForReview();
+
+    document.title = "Admin Dashboard - Study Sync";
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -127,7 +196,6 @@ function AdminDashboard() {
           </div>
         </div>
       </CourseVerifyModal>
-
     </div>
   );
 }

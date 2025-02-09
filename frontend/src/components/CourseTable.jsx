@@ -6,26 +6,29 @@ import {
   XCircle,
   Search,
   Clock,
-  Filter
+  Filter,
 } from "lucide-react";
 import React, { useState } from "react";
+import { formatDate } from "../utils/formatDate";
+import { Link } from "react-router-dom";
 
 function CourseTable({ courses, handleAction }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortDirection, setSortDirection] = useState("desc");
+
   const filteredCourses = courses
     .filter(
       (course) =>
-        course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.instructor.toLowerCase().includes(searchTerm.toLowerCase())
+        course.course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.instructor.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .filter((course) =>
       statusFilter === "all" ? true : course.status === statusFilter
     )
     .sort((a, b) => {
-      const dateA = new Date(a.createdAt);
-      const dateB = new Date(b.createdAt);
+      const dateA = new Date(a.submittedAt);
+      const dateB = new Date(b.submittedAt);
       return sortDirection === "desc" ? dateB - dateA : dateA - dateB;
     });
 
@@ -45,9 +48,6 @@ function CourseTable({ courses, handleAction }) {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Course Management</h2>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-          Add New Course
-        </button>
       </div>
 
       {/* Filters */}
@@ -86,7 +86,7 @@ function CourseTable({ courses, handleAction }) {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
-                  Course Details
+                  Course
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">
                   Instructor
@@ -106,7 +106,7 @@ function CourseTable({ courses, handleAction }) {
                   }
                 >
                   <div className="flex items-center gap-1">
-                    Date
+                    Submitted At
                     {sortDirection === "desc" ? (
                       <ChevronDown className="w-4 h-4" />
                     ) : (
@@ -124,17 +124,17 @@ function CourseTable({ courses, handleAction }) {
                 <tr key={course._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="font-medium text-gray-900">
-                      {course.title}
+                      {course.course.title}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {course.description}
+                    <div className="text-sm text-gray-500 line-clamp-1">
+                      {course.course.description.slice(0, 50)}...
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {course.instructor}
+                    {course.instructor.name}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {course.category}
+                    {course.course.category.name}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1">
@@ -145,26 +145,29 @@ function CourseTable({ courses, handleAction }) {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {new Date(course.createdAt).toLocaleDateString()}
+                    {/* {new Date(course.submittedAt).toLocaleDateString()} */}
+                    {formatDate(course.submittedAt)}
                   </td>
                   <td className="px-6 py-4 text-right space-x-2">
-                    <button
-                      className="text-blue-600 hover:text-blue-900"
-                      onClick={() =>
-                        console.log(`Reviewing course ${course.id}`)
-                      }
-                    >
-                      <Eye className="w-5 h-5 inline" />
-                    </button>
+                    <Link to={`/admin/verify-course/${course.course.courseId}`}>
+                      <button
+                        className="text-blue-600 hover:text-blue-900"
+                        onClick={() =>
+                          console.log(`Reviewing course ${course.course.courseId}`)
+                        }
+                      >
+                        <Eye className="w-5 h-5 inline" />
+                      </button>
+                    </Link>
                     <button
                       className="text-green-600 hover:text-green-900"
-                      onClick={() => handleAction("approved", course.id)}
+                      onClick={() => handleAction("approved", course.course.courseId)}
                     >
                       <CheckCircle className="w-5 h-5 inline" />
                     </button>
                     <button
                       className="text-red-600 hover:text-red-900"
-                      onClick={() => handleAction("rejected", course.id)}
+                      onClick={() => handleAction("rejected", course.course.courseId)}
                     >
                       <XCircle className="w-5 h-5 inline" />
                     </button>

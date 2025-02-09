@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config/dotenv");
 
-const auth = async (req, res, next) => {
+async function auth(req, res, next) {
   try {
     const token = req.cookies.token;
 
@@ -22,9 +22,9 @@ const auth = async (req, res, next) => {
       message: error.message,
     });
   }
-};
+}
 
-const admin = async (req, res, next) => {
+async function admin(req, res, next) {
   try {
     const user = req.user;
     //role is an array of roles
@@ -42,9 +42,9 @@ const admin = async (req, res, next) => {
       message: error.message,
     });
   }
-};
+}
 
-const instructor = async (req, res, next) => {
+async function instructor(req, res, next) {
   try {
     const user = req.user;
 
@@ -61,9 +61,9 @@ const instructor = async (req, res, next) => {
       message: error.message,
     });
   }
-};
+}
 
-const student = async (req, res, next) => {
+async function student(req, res, next) {
   try {
     const user = req.user;
 
@@ -80,6 +80,17 @@ const student = async (req, res, next) => {
       message: error.message,
     });
   }
-};
+}
 
-module.exports = { auth, admin, instructor, student };
+function isInstructorOrAdmin(req, res, next) {
+  if (
+    req.user.roles.includes("instructor") ||
+    req.user.roles.includes("admin")
+  ) {
+    next();
+  } else {
+    res.status(403).json({ message: "Access denied. Not authorized." });
+  }
+}
+
+module.exports = { auth, admin, instructor, student, isInstructorOrAdmin };

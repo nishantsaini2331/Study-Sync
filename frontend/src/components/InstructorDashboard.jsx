@@ -107,7 +107,7 @@ const InstructorDashboard = () => {
     async function fetchCourses() {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}course/courses`,
+          `${import.meta.env.VITE_BACKEND_URL}course`,
           {
             withCredentials: true,
           }

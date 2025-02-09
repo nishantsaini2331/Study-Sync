@@ -18,10 +18,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-export async function deleteCourse(id, navigate) {
+export async function deleteCourse(courseId, navigate) {
   try {
     const res = await axios.delete(
-      `${import.meta.env.VITE_BACKEND_URL}course/course/${id}`,
+      `${import.meta.env.VITE_BACKEND_URL}course/${courseId}`,
       {
         withCredentials: true,
       }
@@ -38,7 +38,7 @@ export async function deleteCourse(id, navigate) {
 async function deleteLecture(lectureId, navigate) {
   try {
     const res = await axios.delete(
-      `${import.meta.env.VITE_BACKEND_URL}lecture/lecture/${lectureId}`,
+      `${import.meta.env.VITE_BACKEND_URL}lecture/${lectureId}`,
       {
         withCredentials: true,
       }
@@ -52,8 +52,9 @@ async function deleteLecture(lectureId, navigate) {
   }
 }
 
-function CourseManagement() {
-  const { id } = useParams();
+function CourseManagement({ isVerify = false }) {
+  const { courseId } = useParams();
+  console.log({ courseId });
   const navigate = useNavigate();
   const [courseData, setCourseData] = useState({
     title: "Introduction to Web Development",
@@ -133,17 +134,36 @@ function CourseManagement() {
     return false;
   }
 
+  async function fetchCourseData() {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}course/${courseId}`,
+        {
+          withCredentials: true,
+        }
+      );
+      setCourseData(res.data.course);
+      // toast.success("Course created successfully");
+    } catch (error) {
+      console.error(error);
+      // toast.error("Failed to create course");
+    }
+  }
+
   async function handleSubmitReview() {
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}course-review`,
+        `${import.meta.env.VITE_BACKEND_URL}course-verify`,
         {
-          courseId: id,
+          courseId,
         },
         {
           withCredentials: true,
         }
       );
+      if (res.data.success) {
+        fetchCourseData();
+      }
       toast.success(res.data.message || "Course submitted for review");
     } catch (error) {
       console.error(error);
@@ -152,29 +172,15 @@ function CourseManagement() {
       );
     }
   }
+
   useEffect(() => {
-    async function fetchCourseData() {
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}course/course/${id}`,
-          {
-            withCredentials: true,
-          }
-        );
-        setCourseData(res.data.course);
-        // toast.success("Course created successfully");
-      } catch (error) {
-        console.error(error);
-        // toast.error("Failed to create course");
-      }
-    }
     fetchCourseData();
-  }, [id]);
+  }, [courseId]);
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6 ">
       <button
-        className="rounded-full text-white bg-black px-7 py-2 mb-5"
+        className="rounded-full text-white bg-black px-7 py-2 mb-5 fixed left-[23rem] z-30"
         onClick={(e) => {
           e.preventDefault();
           navigate(-1);
@@ -183,8 +189,15 @@ function CourseManagement() {
         Back
       </button>
 
+      {!isVerify && courseData?.status === "under review" && (
+        <div className="flex items-center text-2xl text-gray-600 bg-yellow-400/30 px-3 py-1 rounded-full">
+          <Info size={25} className="mr-2" />
+          Course is under review
+        </div>
+      )}
+
       <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-md">
-        <div className="p-6">
+        <div className="px-6">
           {/* Header Section */}
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
             <div className="space-y-3 flex-1">
@@ -195,22 +208,26 @@ function CourseManagement() {
                 {courseData.description}
               </p>
             </div>
-
-            <div className="flex gap-2 w-full md:w-auto">
-              <Link to={`/edit-course/${id}`} className="flex-1 md:flex-none">
-                <button className="w-full md:w-auto flex items-center justify-center px-4 py-2 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors duration-200">
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Edit
+            {!isVerify && (
+              <div className="flex gap-2 w-full md:w-auto">
+                <Link
+                  to={`/edit-course/${courseId}`}
+                  className="flex-1 md:flex-none"
+                >
+                  <button className="w-full md:w-auto flex items-center justify-center px-4 py-2 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors duration-200">
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edit
+                  </button>
+                </Link>
+                <button
+                  onClick={() => deleteCourse(courseId, navigate)}
+                  className="flex-1 md:flex-none w-full md:w-auto flex items-center justify-center px-4 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors duration-200"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
                 </button>
-              </Link>
-              <button
-                onClick={() => deleteCourse(id, navigate)}
-                className="flex-1 md:flex-none w-full md:w-auto flex items-center justify-center px-4 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors duration-200"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
-              </button>
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Video Preview Section */}
@@ -310,15 +327,17 @@ function CourseManagement() {
               Atleast 3 lectures required to publish course
             </div>
           </div>
-          <Link to={`/create-lecture/${id}`}>
-            <button
-              //   onClick={handleAddLecture}
-              className="flex items-center px-4 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100"
-            >
-              <Plus size={16} className="mr-1" />
-              Add Lecture
-            </button>
-          </Link>
+          {!isVerify && (
+            <Link to={`/create-lecture/${courseId}`}>
+              <button
+                //   onClick={handleAddLecture}
+                className="flex items-center px-4 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100"
+              >
+                <Plus size={16} className="mr-1" />
+                Add Lecture
+              </button>
+            </Link>
+          )}
         </div>
 
         {/* Lecture List */}
@@ -336,21 +355,27 @@ function CourseManagement() {
                     </h3>
                     <p className="text-gray-600">{lecture.description}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <Link to={`/edit-lecture/${lecture.lectureId}`}>
-                      <button className="flex items-center px-3 py-2 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100">
-                        <Pencil size={16} className="mr-1" />
-                        Edit
+                  {isVerify ? (
+                    <div>Check lecture</div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Link to={`/edit-lecture/${lecture.lectureId}`}>
+                        <button className="flex items-center px-3 py-2 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100">
+                          <Pencil size={16} className="mr-1" />
+                          Edit
+                        </button>
+                      </Link>
+                      <button
+                        onClick={() =>
+                          deleteLecture(lecture.lectureId, navigate)
+                        }
+                        className="flex items-center px-3 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100"
+                      >
+                        <Trash2 size={16} className="mr-1" />
+                        Delete
                       </button>
-                    </Link>
-                    <button
-                      onClick={() => deleteLecture(lecture.lectureId, navigate)}
-                      className="flex items-center px-3 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100"
-                    >
-                      <Trash2 size={16} className="mr-1" />
-                      Delete
-                    </button>
-                  </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Lecture Preview Video */}
@@ -389,19 +414,24 @@ function CourseManagement() {
               Add atleast 5 MCQs to publish course
             </div>
           </div>
-          <Link
-            to={`${
-              courseData?.finalQuiz ? "/edit-final-quiz" : "/create-final-quiz"
-            }/${id}`}
-          >
-            <button
-              //   onClick={handleAddLecture}
-              className="flex items-center px-4 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100"
+
+          {!isVerify && (
+            <Link
+              to={`${
+                courseData?.finalQuiz
+                  ? "/edit-final-quiz"
+                  : "/create-final-quiz"
+              }/${courseId}`}
             >
-              <Plus size={16} className="mr-1" />
-              {courseData?.finalQuiz ? "Edit" : "Add"} Final Quiz
-            </button>
-          </Link>
+              <button
+                //   onClick={handleAddLecture}
+                className="flex items-center px-4 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100"
+              >
+                <Plus size={16} className="mr-1" />
+                {courseData?.finalQuiz ? "Edit" : "Add"} Final Quiz
+              </button>
+            </Link>
+          )}
         </div>
 
         <div className="border rounded-lg p-4 capitalize">
@@ -425,24 +455,21 @@ function CourseManagement() {
         </div>
       </div>
 
-      {/* Submit Button */}
-      <div className="flex justify-center mt-8">
-        <button
-          disabled={!valdidateToSubmitReview()}
-          onClick={handleSubmitReview}
-          className={`flex items-center px-6 py-3  text-white rounded-md ${
-            valdidateToSubmitReview()
-              ? "bg-blue-700 "
-              : " bg-blue-300 cursor-not-allowed "
-          } `}
-        >
-          <Send size={16} className="mr-2" />
-          Submit for Review
-        </button>
-      </div>
-
-      {courseData?.status === "under review" && (
-        <div className="text-center text-gray-500">Course is under review</div>
+      {courseData?.status === "draft" && (
+        <div className="flex justify-center mt-8">
+          <button
+            disabled={!valdidateToSubmitReview()}
+            onClick={handleSubmitReview}
+            className={`flex items-center px-6 py-3  text-white rounded-md ${
+              valdidateToSubmitReview()
+                ? "bg-blue-700 "
+                : " bg-blue-300 cursor-not-allowed "
+            } `}
+          >
+            <Send size={16} className="mr-2" />
+            Submit for Review
+          </button>
+        </div>
       )}
     </div>
   );

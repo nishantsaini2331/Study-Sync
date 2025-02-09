@@ -69,9 +69,14 @@ function App() {
               </AuthenticateAdmin>
             }
           />
+
+          <Route path="/courses" element={<h1>Courses</h1>} />
         </Route>
 
-        <Route path="/course-preview/:id" element={<CourseManagement />} />
+        <Route
+          path="/course-preview/:courseId"
+          element={<CourseManagement />}
+        />
         <Route
           path="/verify-email/:verificationToken"
           element={<VerifyUser />}
@@ -143,6 +148,15 @@ function App() {
             </AuthenticateAdmin>
           }
         />
+        <Route
+          path="/admin/verify-course/:courseId"
+          element={
+            <AuthenticateAdmin>
+              <CourseManagement isVerify={true} />
+            </AuthenticateAdmin>
+          }
+        />
+
         <Route path="/contact" element={<h1>Contact</h1>} />
       </Routes>
     </div>

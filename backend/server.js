@@ -6,7 +6,7 @@ const userRoute = require("./routes/user.route");
 const courseRoute = require("./routes/course.route");
 const lectureRoute = require("./routes/lecture.route");
 const finalQuizRoute = require("./routes/finalQuiz.route");
-const courseReviewRoute = require("./routes/courseReview.route");
+const courseVerifyRoute = require("./routes/courseVerify.route");
 const categoryRoute = require("./routes/category.route");
 const app = express();
 const cookieParser = require("cookie-parser");
@@ -26,7 +26,7 @@ app.use("/api/v1/user", userRoute);
 app.use("/api/v1/course", courseRoute);
 app.use("/api/v1/lecture", lectureRoute);
 app.use("/api/v1/final-quiz", finalQuizRoute);
-app.use("/api/v1/course-review", courseReviewRoute);
+app.use("/api/v1/course-verify", courseVerifyRoute);
 app.use("/api/v1/category", categoryRoute);
 
 app.get("/", (req, res) => {

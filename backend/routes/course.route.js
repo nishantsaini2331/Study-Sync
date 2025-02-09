@@ -5,13 +5,18 @@ const {
   updateCourse,
   deleteCourse,
 } = require("../controllers/course.controller");
-const { auth, instructor } = require("../middlewares/auth");
+const {
+  auth,
+  instructor,
+  admin,
+  isInstructorOrAdmin,
+} = require("../middlewares/auth");
 const upload = require("../utils/multer");
 
 const router = require("express").Router();
 
 router.post(
-  "/create-course",
+  "/",
   auth,
   instructor,
   upload.fields([
@@ -21,12 +26,12 @@ router.post(
   createCourse
 );
 
-router.get("/courses", auth, instructor, getCourses);
+router.get("/", auth, instructor, getCourses);
 
-router.get("/course/:id", auth, instructor, getCourse);
+router.get("/:id", auth, isInstructorOrAdmin, getCourse);
 
 router.patch(
-  "/edit-course/:id",
+  "/:id",
   auth,
   instructor,
   upload.fields([
@@ -36,6 +41,6 @@ router.patch(
   updateCourse
 );
 
-router.delete("/course/:id", auth, instructor, deleteCourse);
+router.delete("/:id", auth, instructor, deleteCourse);
 
 module.exports = router;
