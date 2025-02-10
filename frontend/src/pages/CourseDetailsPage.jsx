@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Clock,
   Book,
@@ -7,8 +7,13 @@ import {
   Play,
   ShoppingCart,
 } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 const CourseDetailsPage = () => {
+  const { courseId } = useParams();
+
+  console.log(courseId);
+
   const courseDetails = {
     title: "Advanced Funnels with Google Analytics",
     price: "$99.00 USD",
@@ -45,6 +50,11 @@ const CourseDetailsPage = () => {
         "Provide most popular courses that your want to join and lets start the course for the most simply way in here",
     },
   ];
+
+  useEffect(() => {
+    async function fetchCourseDetails() {
+    }
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">

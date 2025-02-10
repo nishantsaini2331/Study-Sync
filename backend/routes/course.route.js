@@ -4,6 +4,7 @@ const {
   getCourse,
   updateCourse,
   deleteCourse,
+  getCoursesBySearchQuery,
 } = require("../controllers/course.controller");
 const {
   auth,
@@ -25,6 +26,8 @@ router.post(
   ]),
   createCourse
 );
+
+router.get("/search", getCoursesBySearchQuery);
 
 router.get("/", auth, instructor, getCourses);
 

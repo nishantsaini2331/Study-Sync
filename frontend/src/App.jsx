@@ -18,6 +18,7 @@ import CourseDetailsPage from "./pages/CourseDetailsPage";
 import CourseManagement from "./pages/CourseManagement";
 import FinalQuizComponent from "./components/FinalQuizComponent";
 import AdminDashboard from "./components/AdminDashboard";
+import CoursesPage from "./pages/CoursesPage";
 
 function App() {
   return (
@@ -59,8 +60,6 @@ function App() {
             }
           />
 
-          <Route path="/course" element={<CourseDetailsPage />} />
-
           <Route
             path="/admin/dashboard"
             element={
@@ -70,7 +69,8 @@ function App() {
             }
           />
 
-          <Route path="/courses" element={<h1>Courses</h1>} />
+          <Route path="/courses" element={<CoursesPage />} />
+          <Route path="/course/:courseId" element={<CourseDetailsPage />} />
         </Route>
 
         <Route

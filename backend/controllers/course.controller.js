@@ -319,10 +319,62 @@ async function deleteCourse(req, res) {
   }
 }
 
+async function getCoursesBySearchQuery(req, res) {
+  try {
+    const { search: title, language, category } = req.query;
+
+    const checkCategory = await Category.findOne({
+      name: { $regex: new RegExp(`^${category}$`, "i") },
+    });
+
+    let query = { status: "published" };
+
+    if (title) {
+      query.title = { $regex: title, $options: "i" };
+    }
+
+    if (language) {
+      query.language = { $regex: language, $options: "i" };
+    }
+
+    if (category) {
+      query.category = checkCategory._id;
+    }
+
+    const courses = await Course.find(query)
+      .populate({
+        path: "instructor",
+        select: "name username -_id",
+      })
+      .populate({
+        path: "category",
+        select: "name -_id",
+      })
+      .select(
+        "title description price thumbnail language courseId enrolledStudents -_id"
+      );
+
+    const formattedCourses = courses.map((course) => {
+      return {
+        ...course.toObject(),
+        enrolledStudents: course.enrolledStudents.length,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      results: courses.length,
+      courses: formattedCourses,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+}
 module.exports = {
   createCourse,
   getCourses,
   getCourse,
   updateCourse,
   deleteCourse,
+  getCoursesBySearchQuery,
 };
