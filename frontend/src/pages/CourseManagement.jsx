@@ -54,7 +54,6 @@ async function deleteLecture(lectureId, navigate) {
 
 function CourseManagement({ isVerify = false }) {
   const { courseId } = useParams();
-  console.log({ courseId });
   const navigate = useNavigate();
   const [courseData, setCourseData] = useState({
     title: "Introduction to Web Development",
@@ -119,6 +118,12 @@ function CourseManagement({ isVerify = false }) {
         },
       ],
     },
+
+    whatYouWillLearn: [
+      "HTML Basics",
+      "CSS Fundamentals",
+      "JavaScript Introduction",
+    ],
   });
 
   function valdidateToSubmitReview() {
@@ -312,6 +317,24 @@ function CourseManagement({ isVerify = false }) {
                   className="w-full h-full object-cover"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* render whatYouWillLearn  */}
+          <div className="mt-8 ">
+            <h2 className="text-xl font-semibold text-gray-800">
+              What you will learn
+            </h2>
+            <div className="space-y-4 py-3">
+              {courseData.whatYouWillLearn.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 text-gray-600 text-lg fonb"
+                >
+                  <span className="font-medium">{index + 1}.</span>
+                  <span>{item}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

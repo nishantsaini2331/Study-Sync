@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, Upload, ImagePlus, Video, Trash2 } from "lucide-react";
+import { X, Upload, ImagePlus, Video, Trash2, Info } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -20,8 +20,9 @@ export default function CourseCreationForm({ edit = false }) {
     language: "english",
     requiredCompletionPercentage: 50,
     category: "Programming",
+    whatYouWillLearn: [],
   });
-  console.log(formData);
+
   const [categories, setCategories] = useState([]);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [videoPreview, setVideoPreview] = useState("");
@@ -47,12 +48,23 @@ export default function CourseCreationForm({ edit = false }) {
     if (!formData.category) newErrors.category = "Category is required";
     if (!formData.minimumSkill)
       newErrors.minimumSkill = "Minimum skill level is required";
+    if (formData.whatYouWillLearn.length === 0)
+      newErrors.whatYouWillLearn = "At least one point is required";
+    if (formData.whatYouWillLearn.length > 7)
+      newErrors.whatYouWillLearn = "Maximum 7 points are allowed";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleThumbnailChange = (e) => {
+  function removeWhatYouWillLearn(index) {
+    const newWhatYouWillLearn = formData.whatYouWillLearn.filter(
+      (_, i) => i !== index
+    );
+    setFormData({ ...formData, whatYouWillLearn: newWhatYouWillLearn });
+  }
+
+  function handleThumbnailChange(e) {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
@@ -70,9 +82,9 @@ export default function CourseCreationForm({ edit = false }) {
       reader.readAsDataURL(file);
       setErrors({ ...errors, thumbnail: undefined });
     }
-  };
+  }
 
-  const handleVideoChange = (e) => {
+  function handleVideoChange(e) {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 100 * 1024 * 1024) {
@@ -87,28 +99,28 @@ export default function CourseCreationForm({ edit = false }) {
       setVideoPreview(url);
       setErrors({ ...errors, previewVideo: undefined });
     }
-  };
+  }
 
-  const removeThumbnail = () => {
+  function removeThumbnail() {
     setFormData({ ...formData, thumbnail: null });
     setThumbnailPreview("");
     fileInputRef.current.value = "";
-  };
+  }
 
-  const removeVideo = () => {
+  function removeVideo() {
     setFormData({ ...formData, previewVideo: null });
     setVideoPreview("");
     videoInputRef.current.value = "";
-  };
+  }
 
-  const handleTagInput = (e) => {
+  function handleTagInput(e) {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       addTag();
     }
-  };
+  }
 
-  const addTag = () => {
+  function addTag() {
     const trimmedTag = currentTag.trim();
     if (trimmedTag && !formData.tags.includes(trimmedTag)) {
       setFormData({
@@ -118,16 +130,16 @@ export default function CourseCreationForm({ edit = false }) {
       setErrors({ ...errors, tags: undefined });
     }
     setCurrentTag("");
-  };
+  }
 
-  const removeTag = (tagToRemove) => {
+  function removeTag(tagToRemove) {
     setFormData({
       ...formData,
       tags: formData.tags.filter((tag) => tag !== tagToRemove),
     });
-  };
+  }
 
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
 
     if (validateForm()) {
@@ -140,6 +152,10 @@ export default function CourseCreationForm({ edit = false }) {
       payload.append("thumbnail", formData.thumbnail);
       payload.append("previewVideo", formData.previewVideo);
       payload.append("category", formData.category);
+      payload.append(
+        "whatYouWillLearn",
+        JSON.stringify(formData.whatYouWillLearn)
+      );
       payload.append(
         "requiredCompletionPercentage",
         formData.requiredCompletionPercentage
@@ -189,17 +205,20 @@ export default function CourseCreationForm({ edit = false }) {
           language: "english",
           requiredCompletionPercentage: 50,
           category: "",
+          whatYouWillLearn: [],
         });
         navigate(-1);
       }
     }
-  };
+  }
 
-  const renderError = (field) => {
+  console.log(errors);
+
+  function renderError(field) {
     return errors[field] ? (
       <p className="mt-1 text-sm text-red-600">{errors[field]}</p>
     ) : null;
-  };
+  }
 
   useEffect(() => {
     if (id) {
@@ -223,6 +242,7 @@ export default function CourseCreationForm({ edit = false }) {
             language: course?.language,
             requiredCompletionPercentage: course?.requiredCompletionPercentage,
             category: course?.category?.name.toLowerCase(),
+            whatYouWillLearn: course?.whatYouWillLearn,
           });
           setThumbnailPreview(course?.thumbnail);
           setVideoPreview(course?.previewVideo);
@@ -252,7 +272,7 @@ export default function CourseCreationForm({ edit = false }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 p-6">
       <form
-        onSubmit={handleSubmit}
+        // onSubmit={handleSubmit}
         className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8"
       >
         <button
@@ -308,8 +328,64 @@ export default function CourseCreationForm({ edit = false }) {
             {renderError("description")}
           </div>
 
-          {/* Minimum Skill Input */}
+          {/* What will You Learn Input */}
+          <div>
+            <label className=" flex  items-center text-sm font-medium text-gray-700 mb-2">
+              What Will You Learn <span className="text-red-500">*</span>
+              <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+                <Info size={14} className="mr-2" />
+                click enter to add & try to keep it short
+              </div>
+            </label>
+            <input
+              type="text"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.keyCode === 13) {
+                  e.preventDefault();
+                  if (formData.whatYouWillLearn.length + 1 > 7) {
+                    toast.error("What you will learn should not be more than 7")
+                    setErrors({ ...errors, whatYouWillLearn: true });
+                  } else {
+                    setFormData({
+                      ...formData,
+                      whatYouWillLearn: [
+                        ...formData.whatYouWillLearn,
+                        e.target.value,
+                      ],
+                    });
+                    e.target.value = "";
+                    setErrors({ ...errors, whatYouWillLearn: undefined });
+                  }
+                }
+              }}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                errors.whatYouWillLearn ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="Enter Points"
+            />
 
+            <div className="gap-2 mt-2">
+              {formData.whatYouWillLearn.map((point, index) => (
+                <div
+                  key={index}
+                  className="bg-indigo-100 text-indigo-800 px-3 py-1 my-1 rounded-full text-lg flex items-center gap-1 justify-between"
+                >
+                  <span>{point}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeWhatYouWillLearn(index)}
+                    className=" bg-red-500 rounded-full text-white p-1 hover:bg-red-600"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {renderError("whatYouWillLearn")}
+          </div>
+
+          {/* Minimum Skill Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Minimum Skill <span className="text-red-500">*</span>
@@ -567,7 +643,8 @@ export default function CourseCreationForm({ edit = false }) {
         {/* Submit Button */}
         <div className="mt-8">
           <button
-            type="submit"
+            // type="submit"
+            onClick={handleSubmit}
             className="w-full bg-gradient-to-r from-indigo-600 to-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:from-indigo-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform transition-all hover:scale-[1.02]"
           >
             {edit ? "Update Course" : "Create Course"}

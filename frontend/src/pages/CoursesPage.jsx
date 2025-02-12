@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const CoursesPage = () => {
   const [filters, setFilters] = useState({
@@ -96,6 +97,7 @@ const CoursesPage = () => {
       );
       setCourses(response.data.courses);
     } catch (error) {
+      //   toast.error("Please try again");
       console.error(error);
     }
   }, []);
@@ -151,7 +153,7 @@ const CoursesPage = () => {
         );
         setCategories(res?.data?.categories);
       } catch (error) {
-        toast.error("Please try again");
+        // toast.error("Please try again");
       }
     }
     fetchAllCategories();

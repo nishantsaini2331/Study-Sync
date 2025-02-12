@@ -107,6 +107,11 @@ const courseSchema = new mongoose.Schema(
       ref: "Category",
       required: true,
     },
+
+    whatYouWillLearn: {
+      type: [String],
+      required: true,
+    },
   },
   { timestamps: true }
 );

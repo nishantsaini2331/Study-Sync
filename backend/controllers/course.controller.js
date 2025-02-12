@@ -1,5 +1,7 @@
 const Category = require("../models/category.model");
 const Course = require("../models/course.model");
+const CourseVerify = require("../models/courseVerify.model");
+const FinalQuiz = require("../models/finalQuiz.model");
 const Lecture = require("../models/lecture.model");
 const MCQ = require("../models/mcq.model");
 const User = require("../models/user.model");
@@ -26,6 +28,7 @@ async function createCourse(req, res) {
       requiredCompletionPercentage,
       category,
     } = req.body;
+    const whatYouWillLearn = JSON.parse(req.body.whatYouWillLearn);
     const tags = JSON.parse(req.body.tags);
     const thumbnail = req.files.thumbnail[0];
     const previewVideo = req.files.previewVideo[0];
@@ -40,11 +43,26 @@ async function createCourse(req, res) {
       !minimumSkill ||
       !language ||
       !requiredCompletionPercentage ||
-      !category
+      !category ||
+      !whatYouWillLearn
     ) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required" });
+    }
+
+    if (!Array.isArray(whatYouWillLearn) || whatYouWillLearn.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter valid what you will learn",
+      });
+    }
+
+    if (whatYouWillLearn.length > 7) {
+      return res.status(400).json({
+        success: false,
+        message: "What you will learn should not be more than 7",
+      });
     }
 
     const checkCategory = await Category.findOne({
@@ -89,6 +107,7 @@ async function createCourse(req, res) {
       courseId,
       requiredCompletionPercentage,
       category: checkCategory._id,
+      whatYouWillLearn,
     });
 
     await Category.findByIdAndUpdate(checkCategory._id, {
@@ -181,6 +200,7 @@ async function updateCourse(req, res) {
     } = req.body;
 
     const tags = JSON.parse(req.body.tags);
+    const whatYouWillLearn = JSON.parse(req.body.whatYouWillLearn);
 
     if (
       !tags ||
@@ -190,11 +210,26 @@ async function updateCourse(req, res) {
       !minimumSkill ||
       !language ||
       !requiredCompletionPercentage ||
-      !category
+      !category ||
+      !whatYouWillLearn
     ) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required" });
+    }
+
+    if (!Array.isArray(whatYouWillLearn) || whatYouWillLearn.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter valid what you will learn",
+      });
+    }
+
+    if (whatYouWillLearn.length > 7) {
+      return res.status(400).json({
+        success: false,
+        message: "What you will learn should not be more than 7",
+      });
     }
 
     const checkCategory = await Category.findOne({
@@ -262,6 +297,7 @@ async function updateCourse(req, res) {
     course.language = language;
     course.tags = tags;
     course.requiredCompletionPercentage = requiredCompletionPercentage;
+    course.whatYouWillLearn = whatYouWillLearn;
 
     await course.save();
 
@@ -274,7 +310,7 @@ async function updateCourse(req, res) {
 async function deleteCourse(req, res) {
   try {
     const courseId = req.params.id;
-    const course = await Course.findOne({ courseId });
+    const course = await Course.findOne({ courseId }).populate("finalQuiz");
     const user = req.user;
 
     if (!user) {
@@ -303,6 +339,7 @@ async function deleteCourse(req, res) {
     }
 
     const users = await User.find({ enrolledCourses: deletedCourse._id });
+
     for (let user of users) {
       await User.findByIdAndUpdate(user._id, {
         $pull: { enrolledCourses: deletedCourse._id },
@@ -312,6 +349,18 @@ async function deleteCourse(req, res) {
     await User.findByIdAndUpdate(deletedCourse.instructor, {
       $pull: { createdCourses: deletedCourse._id },
     });
+
+    await Category.findByIdAndUpdate(deletedCourse.category, {
+      $pull: { courses: deletedCourse._id },
+    });
+
+    await CourseVerify.findByIdAndDelete(deletedCourse.courseVerification);
+
+    for (let mcq of course.finalQuiz.mcqs) {
+      await MCQ.findByIdAndDelete(mcq);
+    }
+
+    await FinalQuiz.findByIdAndDelete(course.finalQuiz._id);
 
     return res.status(200).json({ success: true, message: "Course deleted" });
   } catch (error) {
