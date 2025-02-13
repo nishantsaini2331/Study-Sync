@@ -343,7 +343,9 @@ export default function CourseCreationForm({ edit = false }) {
                 if (e.key === "Enter" || e.keyCode === 13) {
                   e.preventDefault();
                   if (formData.whatYouWillLearn.length + 1 > 7) {
-                    toast.error("What you will learn should not be more than 7")
+                    toast.error(
+                      "What you will learn should not be more than 7"
+                    );
                     setErrors({ ...errors, whatYouWillLearn: true });
                   } else {
                     setFormData({
@@ -572,6 +574,7 @@ export default function CourseCreationForm({ edit = false }) {
                     src={videoPreview}
                     controls
                     className="max-h-48 mx-auto rounded-lg"
+                    controlsList="nodownload"
                   />
                   <button
                     type="button"
@@ -586,7 +589,10 @@ export default function CourseCreationForm({ edit = false }) {
                 </div>
               ) : (
                 <div className="py-8">
-                  <Video className="mx-auto h-12 w-12 text-gray-400" />
+                  <Video
+                    className="mx-auto h-12 w-12 text-gray-400"
+                    controlsList="nodownload"
+                  />
                   <p className="mt-2 text-sm text-gray-600">
                     Click to upload preview video
                   </p>

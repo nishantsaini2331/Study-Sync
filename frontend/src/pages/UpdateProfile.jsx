@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 
 const UpdateProfile = () => {
-  const { username } = useSelector((state) => state.userSlice.user);
+  const { username } = useSelector((state) => state.user.user);
 
   const [initialData, setInitialData] = useState(null); // To hold the original fetched data
   const [formData, setFormData] = useState({

@@ -5,6 +5,7 @@ const {
   updateCourse,
   deleteCourse,
   getCoursesBySearchQuery,
+  getCourseForStudent,
 } = require("../controllers/course.controller");
 const {
   auth,
@@ -31,7 +32,8 @@ router.get("/search", getCoursesBySearchQuery);
 
 router.get("/", auth, instructor, getCourses);
 
-router.get("/:id", auth, isInstructorOrAdmin, getCourse);
+router.get("/:id", auth, isInstructorOrAdmin, getCourse); // this is for instructor
+router.get("/public/:id", getCourseForStudent); // this is for student
 
 router.patch(
   "/:id",

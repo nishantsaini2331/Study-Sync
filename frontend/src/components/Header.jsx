@@ -9,9 +9,9 @@ export function handleProfileDropDown(dispatch) {
 }
 
 const Header = () => {
-  const user = useSelector((state) => state.userSlice.user);
+  const user = useSelector((state) => state.user.user);
   const isShowProfileMenu = useSelector(
-    (state) => state.userSlice.showProfileDropdown
+    (state) => state.user.showProfileDropdown
   );
   const dispatch = useDispatch();
 

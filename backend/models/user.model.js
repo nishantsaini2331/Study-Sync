@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     email: {
       type: String,
       required: true,
@@ -118,10 +117,16 @@ const userSchema = new mongoose.Schema(
       ref: "InstructorOnBoardFrom",
       default: null,
     },
+
+    cart: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course",
+      },
+    ],
   },
   { timestamps: true }
 );
 
-// module.exports = mongoose.model("User", userSchema);
 const User = mongoose.model("User", userSchema);
 module.exports = User;

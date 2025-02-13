@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Clock,
   Book,
@@ -6,23 +6,68 @@ import {
   BarChart2,
   Play,
   ShoppingCart,
+  IndianRupee,
+  BadgeIndianRupee,
+  ChevronDown,
+  ChevronUp,
+  Edit,
 } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import axios from "axios";
 
 const CourseDetailsPage = () => {
   const { courseId } = useParams();
 
-  console.log(courseId);
+  const username = useSelector((state) => state.user.user.username);
 
-  const courseDetails = {
+  const [courseDetails, setCourseDetails] = useState({
     title: "Advanced Funnels with Google Analytics",
     price: "$99.00 USD",
-    instructor: "Albert Flores",
-    level: "Intermediate",
-    duration: "6hr 44m",
-    lessons: 40,
+    instructor: {
+      name: "Albert Flores",
+      username: "albertflores",
+      photo: "/api/placeholder/40/40",
+    },
+    minimumSkill: "Intermediate",
+    // duration: "6hr 44m",
+    lectures: [
+      {
+        title: "Introduction",
+        description: "Introduction to the course",
+        duration: "00:05:00",
+      },
+      {
+        title: "Understanding the basics",
+        description: "Understanding the basics of Google Analytics",
+        duration: "00:15:00",
+      },
+      {
+        title: "Creating advanced funnels",
+        description: "Creating advanced funnels in Google Analytics",
+        duration: "00:30:00",
+      },
+      {
+        title: "Understanding user behavior",
+        description: "Understanding user behavior in Google Analytics",
+        duration: "00:45:00",
+      },
+      {
+        title: "Optimizing your website",
+        description: "Optimizing your website with Google Analytics",
+        duration: "00:45:00",
+      },
+    ],
+    previewVideo: "",
     language: "English",
-  };
+    description: "Learn how to build advanced funnels with Google Analytics",
+    whatYouWillLearn: [
+      "Understand the basics of Google Analytics",
+      "Create advanced funnels",
+      "Analyze user behavior",
+      "Optimize your website",
+    ],
+  });
 
   const relatedCourses = [
     {
@@ -53,7 +98,18 @@ const CourseDetailsPage = () => {
 
   useEffect(() => {
     async function fetchCourseDetails() {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}course/public/${courseId}`
+        );
+
+        setCourseDetails(response.data.course);
+      } catch (error) {
+        console.error(error);
+      }
     }
+
+    fetchCourseDetails();
   }, []);
 
   return (
@@ -62,59 +118,61 @@ const CourseDetailsPage = () => {
         <div className="md:col-span-2">
           <h1 className="text-4xl font-bold mb-4">{courseDetails.title}</h1>
 
-          <div className="flex items-center gap-2 mb-6">
-            <img
-              src="/api/placeholder/40/40"
-              alt="instructor"
-              className="rounded-full"
-            />
-            <span className="text-gray-600">by {courseDetails.instructor}</span>
-          </div>
+          <Link>
+            <div className="flex items-center gap-2 mb-6">
+              <img
+                src={courseDetails.instructor.photoUrl}
+                alt="instructor"
+                className="rounded-full w-10 h-10"
+              />
+              <span className="text-gray-600 text-2xl underline hover:decoration-yellow-400">
+                by {courseDetails.instructor.name}
+              </span>
+            </div>
+          </Link>
 
           <div className="relative aspect-video mb-8">
-            <img
-              src="/api/placeholder/800/450"
-              alt="Course preview"
+            <video
+              src={courseDetails.previewVideo}
+              controls
               className="w-full h-full object-cover rounded-lg"
+              controlsList="nodownload"
             />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-white p-4 rounded-full shadow-lg">
-                <Play className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
           </div>
 
           <div className="space-y-8">
             <section>
               <h2 className="text-2xl font-bold mb-4">About the course</h2>
-              <p className="text-gray-600">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Felis
-                donec massa aliquam id.Lorem ipsum dolor sit amet, consectetur
-                adipiscing elit. Purus viverra praesent felis consequat
-                pellentesque turpis et quisque platea. Eu, elit ut nunc ac
-                mauris bibendum nulla placerat.
-              </p>
+              <p className="text-gray-600">{courseDetails.description}</p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold mb-4">What will you learn</h2>
+              <h2 className="text-2xl font-bold mb-4">What you will learn</h2>
               <p className="text-gray-600 mb-4">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Felis
                 donec massa aliquam id.Lorem ipsum dolor sit amet, consectetur
                 adipiscing elit.
               </p>
               <ul className="list-decimal pl-5 space-y-2">
-                <li>
-                  Sed viverra ipsum nunc aliquet bibendum enim facilisis
-                  gravida.
-                </li>
-                <li>At urna condimentum mattis pellentesque id nibh.</li>
-                <li>Magna etiam tempor orci eu lobortis elementum.</li>
-                <li>
-                  Bibendum est ultricies integer quis. Semper eget duis at
-                  tellus.
-                </li>
+                {courseDetails.whatYouWillLearn.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
               </ul>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold mb-4">Course Content</h2>
+              <div className="flex flex-col border border-gray-400">
+                {courseDetails.lectures.map((lecture, index) => (
+                  <CourseContent
+                    key={index} // This is only for React's internal tracking
+                    lectureIndex={index} // Pass it explicitly
+                    length={courseDetails.lectures.length}
+                    lecture={lecture}
+                  />
+                ))}
+              </div>
+              {/* <CourseContent lectures={courseDetails.lectures} /> */}
             </section>
           </div>
         </div>
@@ -122,39 +180,59 @@ const CourseDetailsPage = () => {
         <div className="md:col-span-1">
           <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4">
             <div className="mb-6">
-              <h3 className="text-3xl font-bold mb-2">{courseDetails.price}</h3>
+              <div className="flex items-center gap-1 text-3xl font-bold mb-2">
+                <IndianRupee />
+                <h3>{courseDetails.price}</h3>
+              </div>
               <p className="text-gray-600">
                 Provide most popular courses that your want to join and lets
                 start the course for the most simply way in here
               </p>
             </div>
 
-            <button className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
-              <ShoppingCart className="w-5 h-5" />
-              Add to Cart
-            </button>
+            {username === courseDetails.instructor.username ? (
+              <Link to={`/course-preview/${courseId}`}>
+                <button className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
+                  <Edit className="w-5 h-5" />
+                  Edit Course
+                </button>
+              </Link>
+            ) : (
+              <>
+                <button className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
+                  <ShoppingCart className="w-5 h-5" />
+                  Add to Cart
+                </button>
 
-            <div className="space-y-4">
+                <button className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
+                  {/* <ShoppingCart className="w-5 h-5" /> */}
+                  <BadgeIndianRupee />
+                  Buy Now
+                </button>
+              </>
+            )}
+
+            <div className="space-y-4 capitalize">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-600">
                   <BarChart2 className="w-5 h-5" />
                   <span>Course Level</span>
                 </div>
-                <span>{courseDetails.level}</span>
+                <span>{courseDetails.minimumSkill}</span>
               </div>
-              <div className="flex items-center justify-between">
+              {/* <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-600">
                   <Clock className="w-5 h-5" />
                   <span>Course Duration</span>
                 </div>
                 <span>{courseDetails.duration}</span>
-              </div>
+              </div> */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-600">
                   <Book className="w-5 h-5" />
-                  <span>Lessons</span>
+                  <span>Lectures</span>
                 </div>
-                <span>{courseDetails.lessons}</span>
+                <span>{courseDetails.lectures.length}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-600">
@@ -213,5 +291,37 @@ const CourseDetailsPage = () => {
     </div>
   );
 };
+
+function CourseContent({ lectureIndex, lecture, length }) {
+  const [activeLecture, setActiveLecture] = useState(false);
+
+  return (
+    <>
+      <div
+        onClick={() => setActiveLecture(!activeLecture)}
+        className={`bg-gray-100 p-4 cursor-pointer border-gray-400 ${
+          lectureIndex === length - 1 ? "" : "border-b"
+        }`}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            {activeLecture ? <ChevronUp /> : <ChevronDown />}
+            <h3 className="text-lg font-bold">{lecture.title}</h3>
+          </div>
+          <span>Duration: {lecture.duration}</span>
+        </div>
+      </div>
+      {activeLecture && (
+        <p
+          className={`text-gray-600 p-3  border-gray-400 ${
+            lectureIndex === length - 1 ? "" : "border-b"
+          }`}
+        >
+          {lecture.description}
+        </p>
+      )}
+    </>
+  );
+}
 
 export default CourseDetailsPage;

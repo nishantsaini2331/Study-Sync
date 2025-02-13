@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import { handleProfileDropDown } from "./Header";
 
 function ProfileDropdown() {
-  const user = useSelector((state) => state.userSlice.user);
+  const user = useSelector((state) => state.user.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 

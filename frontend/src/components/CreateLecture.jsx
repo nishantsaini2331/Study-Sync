@@ -317,6 +317,7 @@ const CreateLecture = ({ edit = false }) => {
                         src={lectureForm.videoPreview}
                         controls
                         className="max-h-48 w-full"
+                         controlsList="nodownload"
                       />
                       <button
                         type="button"
@@ -331,7 +332,7 @@ const CreateLecture = ({ edit = false }) => {
                     </div>
                   ) : (
                     <>
-                      <Video className="h-12 w-12 text-gray-400" />
+                      <Video className="h-12 w-12 text-gray-400"  controlsList="nodownload" />
                       <span className="mt-2 text-sm text-gray-600">
                         Click to upload video
                       </span>

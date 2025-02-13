@@ -419,6 +419,44 @@ async function getCoursesBySearchQuery(req, res) {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 }
+
+async function getCourseForStudent(req, res) {
+  try {
+    const courseId = req.params.id;
+    const course = await Course.findOne({ courseId })
+      .populate({
+        path: "instructor",
+        select: "name username photoUrl -_id",
+      })
+      .populate({
+        path: "lectures",
+        select: " title description duration -_id",
+      })
+      .select(
+        "title description price thumbnail language courseId previewVideo minimumSkill lectures language whatYouWillLearn -_id"
+      );
+
+    if (!course) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
+    }
+
+    // const totalDuration = course.lectures.reduce((acc, curr) => {
+    //   return acc + curr.duration;
+    // }, 0);
+
+    // const formattedCourse = {
+    //   ...course.toObject(),
+    //   lectures: course.lectures.length,
+    // };
+
+    return res.status(200).json({ success: true, course });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+}
+
 module.exports = {
   createCourse,
   getCourses,
@@ -426,4 +464,5 @@ module.exports = {
   updateCourse,
   deleteCourse,
   getCoursesBySearchQuery,
+  getCourseForStudent,
 };

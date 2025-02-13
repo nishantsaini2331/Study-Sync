@@ -243,6 +243,7 @@ function CourseManagement({ isVerify = false }) {
                   src={courseData.previewVideo}
                   controls
                   className="w-full h-full object-cover"
+                  controlsList="nodownload"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -409,6 +410,7 @@ function CourseManagement({ isVerify = false }) {
                         src={lecture.videoUrl}
                         controls
                         className="my-4 rounded-lg"
+                        controlsList="nodownload"
                       />
                     ) : (
                       <span className="text-gray-400">
