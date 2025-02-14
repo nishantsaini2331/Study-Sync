@@ -6,6 +6,7 @@ const {
   deleteCourse,
   getCoursesBySearchQuery,
   getCourseForStudent,
+  checkStudentEnrollment,
 } = require("../controllers/course.controller");
 const {
   auth,
@@ -29,6 +30,8 @@ router.post(
 );
 
 router.get("/search", getCoursesBySearchQuery);
+
+router.get("/check-enrolled/:id", auth, checkStudentEnrollment);
 
 router.get("/", auth, instructor, getCourses);
 

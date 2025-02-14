@@ -124,6 +124,27 @@ const userSchema = new mongoose.Schema(
         ref: "Course",
       },
     ],
+    paymentHistory: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Payment",
+      },
+    ],
+
+    intructorProfile: {
+      totalStudents: {
+        type: Number,
+        default: 0,
+      },
+      totalCourses: {
+        type: Number,
+        default: 0,
+      },
+      totalEarnings: {
+        type: Number,
+        default: 0,
+      },
+    },
   },
   { timestamps: true }
 );

@@ -9,7 +9,9 @@ export function handleProfileDropDown(dispatch) {
 }
 
 const Header = () => {
-  const user = useSelector((state) => state.user.user);
+  const { username, name, email, roles } = useSelector(
+    (state) => state.user.user
+  );
   const isShowProfileMenu = useSelector(
     (state) => state.user.showProfileDropdown
   );
@@ -45,10 +47,10 @@ const Header = () => {
               Courses
             </Link>
 
-            {user ? (
-              user?.roles?.includes("admin") ? (
+            {username ? (
+              roles?.includes("admin") ? (
                 ""
-              ) : user?.roles?.includes("instructor") ? (
+              ) : roles?.includes("instructor") ? (
                 <Link
                   to="/instructor/dashboard"
                   className="text-gray-700 hover:text-blue-600"
@@ -72,7 +74,7 @@ const Header = () => {
               </Link>
             )}
 
-            {user ? (
+            {username ? (
               <span
                 className="text-gray-700 hover:text-blue-600"
                 // onMouseOver={() => {
@@ -87,7 +89,7 @@ const Header = () => {
                   dispatch(showProfileDropdown(!isShowProfileMenu));
                 }}
               >
-                {user.name}
+                {name}
               </span>
             ) : (
               <Link to="/login" className="text-gray-700 hover:text-blue-600">

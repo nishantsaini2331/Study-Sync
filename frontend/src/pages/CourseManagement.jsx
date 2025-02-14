@@ -244,6 +244,7 @@ function CourseManagement({ isVerify = false }) {
                   controls
                   className="w-full h-full object-cover"
                   controlsList="nodownload"
+                  disablePictureInPicture
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -411,6 +412,7 @@ function CourseManagement({ isVerify = false }) {
                         controls
                         className="my-4 rounded-lg"
                         controlsList="nodownload"
+                        disablePictureInPicture
                       />
                     ) : (
                       <span className="text-gray-400">

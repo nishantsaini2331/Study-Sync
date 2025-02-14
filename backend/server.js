@@ -8,6 +8,8 @@ const lectureRoute = require("./routes/lecture.route");
 const finalQuizRoute = require("./routes/finalQuiz.route");
 const courseVerifyRoute = require("./routes/courseVerify.route");
 const categoryRoute = require("./routes/category.route");
+const paymentRoute = require("./routes/payment.route");
+
 const app = express();
 const cookieParser = require("cookie-parser");
 
@@ -28,6 +30,7 @@ app.use("/api/v1/lecture", lectureRoute);
 app.use("/api/v1/final-quiz", finalQuizRoute);
 app.use("/api/v1/course-verify", courseVerifyRoute);
 app.use("/api/v1/category", categoryRoute);
+app.use("/api/v1/payment", paymentRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

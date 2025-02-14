@@ -12,18 +12,23 @@ import {
   ChevronUp,
   Edit,
 } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const CourseDetailsPage = () => {
   const { courseId } = useParams();
 
-  const username = useSelector((state) => state.user.user.username);
+  const navigate = useNavigate();
+
+  const { username, name, email } = useSelector((state) => state?.user?.user);
+
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
   const [courseDetails, setCourseDetails] = useState({
     title: "Advanced Funnels with Google Analytics",
-    price: "$99.00 USD",
+    price: "99.00",
     instructor: {
       name: "Albert Flores",
       username: "albertflores",
@@ -96,6 +101,117 @@ const CourseDetailsPage = () => {
     },
   ];
 
+  function loadScript(src) {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  }
+
+  async function handlePayment() {
+    if (!username) {
+      toast.error("Please login to continue");
+      navigate("/login");
+      return;
+    }
+
+    const res = await loadScript(
+      "https://checkout.razorpay.com/v1/checkout.js"
+    );
+
+    if (!res) {
+      alert("Failed to load Razorpay SDK");
+      return;
+    }
+
+    try {
+      const {
+        data: { data },
+      } = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}payment/create-order`,
+        {
+          amount: courseDetails.price,
+          courseId,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: data.amount,
+        currency: data.currency,
+        order_id: data.id,
+        name: "Study Sync",
+        description: `Purchase of ${courseDetails.title}`,
+        handler: async (response) => {
+          try {
+            const { data } = await axios.post(
+              `${import.meta.env.VITE_BACKEND_URL}payment/verify-payment`,
+              {
+                courseId,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              },
+              {
+                withCredentials: true,
+              }
+            );
+
+            console.log(data);
+            if (data.success) {
+              toast.success("Payment successful");
+              chechStudentEnrolled();
+            }
+          } catch (error) {
+            console.log(error);
+            toast.error("Payment failed please try again");
+          }
+        },
+        prefill: {
+          name,
+          email,
+        },
+        theme: {
+          color: "#f5a623",
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+
+      paymentObject.open();
+    } catch (error) {
+      toast.error(
+        error.response.data.message || "Something went wrong. Please try again"
+      );
+    }
+  }
+
+  async function chechStudentEnrolled() {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}course/check-enrolled/${courseId}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      console.log(response.data);
+
+      if (response.data.isEnrolled) {
+        //   navigate(`/course/${courseId}/learn`);
+        setIsEnrolled(true);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   useEffect(() => {
     async function fetchCourseDetails() {
       try {
@@ -110,13 +226,16 @@ const CourseDetailsPage = () => {
     }
 
     fetchCourseDetails();
+    chechStudentEnrolled();
   }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="grid md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
-          <h1 className="text-4xl font-bold mb-4">{courseDetails.title}</h1>
+          <h1 className="text-4xl font-bold mb-4 noselect">
+            {courseDetails.title}
+          </h1>
 
           <Link>
             <div className="flex items-center gap-2 mb-6">
@@ -137,6 +256,7 @@ const CourseDetailsPage = () => {
               controls
               className="w-full h-full object-cover rounded-lg"
               controlsList="nodownload"
+              disablePictureInPicture
             />
           </div>
 
@@ -190,26 +310,34 @@ const CourseDetailsPage = () => {
               </p>
             </div>
 
-            {username === courseDetails.instructor.username ? (
-              <Link to={`/course-preview/${courseId}`}>
-                <button className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
-                  <Edit className="w-5 h-5" />
-                  Edit Course
-                </button>
-              </Link>
-            ) : (
-              <>
-                <button className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
-                  <ShoppingCart className="w-5 h-5" />
-                  Add to Cart
-                </button>
+            {!isEnrolled ? (
+              username === courseDetails?.instructor?.username ? (
+                <Link to={`/course-preview/${courseId}`}>
+                  <button className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
+                    <Edit className="w-5 h-5" />
+                    Edit Course
+                  </button>
+                </Link>
+              ) : (
+                <>
+                  <button className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
+                    <ShoppingCart className="w-5 h-5" />
+                    Add to Cart
+                  </button>
 
-                <button className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
-                  {/* <ShoppingCart className="w-5 h-5" /> */}
-                  <BadgeIndianRupee />
-                  Buy Now
-                </button>
-              </>
+                  <button
+                    onClick={handlePayment}
+                    className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2"
+                  >
+                    <BadgeIndianRupee className="w-5 h-5" />
+                    Buy Now
+                  </button>
+                </>
+              )
+            ) : (
+              <div className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
+                Go to course
+              </div>
             )}
 
             <div className="space-y-4 capitalize">

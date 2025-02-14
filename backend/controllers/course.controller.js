@@ -430,7 +430,7 @@ async function getCourseForStudent(req, res) {
       })
       .populate({
         path: "lectures",
-        select: " title description duration -_id",
+        select: "title description duration -_id",
       })
       .select(
         "title description price thumbnail language courseId previewVideo minimumSkill lectures language whatYouWillLearn -_id"
@@ -457,6 +457,32 @@ async function getCourseForStudent(req, res) {
   }
 }
 
+async function checkStudentEnrollment(req, res) {
+  try {
+    const courseId = req.params.id;
+    const course = await Course.findOne({ courseId });
+    const user = req.user;
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found" });
+    }
+
+    if (!course) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
+    }
+
+    const isEnrolled = course.enrolledStudents.includes(user.id);
+
+    return res.status(200).json({ success: true, isEnrolled });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+}
+
 module.exports = {
   createCourse,
   getCourses,
@@ -465,4 +491,5 @@ module.exports = {
   deleteCourse,
   getCoursesBySearchQuery,
   getCourseForStudent,
+  checkStudentEnrollment,
 };

@@ -3,12 +3,20 @@ import { createSlice } from "@reduxjs/toolkit";
 const userSlice = createSlice({
   name: "user",
   initialState: {
-    user: null,
+    user: {
+      name: "",
+      email: "",
+      username: "",
+      roles: [],
+      photoUrl: "",
+    },
     showProfileDropdown: false,
   },
   reducers: {
     setUser: (state, action) => {
-      state.user = action.payload;
+      state.user = action.payload
+        ? action.payload
+        : { name: "", email: "", username: "", roles: [], photoUrl: "" };
     },
     showProfileDropdown: (state, action) => {
       state.showProfileDropdown = action.payload;
@@ -16,5 +24,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUser , showProfileDropdown} = userSlice.actions;
+export const { setUser, showProfileDropdown } = userSlice.actions;
 export default userSlice.reducer;

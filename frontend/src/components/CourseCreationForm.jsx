@@ -575,6 +575,7 @@ export default function CourseCreationForm({ edit = false }) {
                     controls
                     className="max-h-48 mx-auto rounded-lg"
                     controlsList="nodownload"
+                    disablePictureInPicture
                   />
                   <button
                     type="button"
@@ -592,6 +593,7 @@ export default function CourseCreationForm({ edit = false }) {
                   <Video
                     className="mx-auto h-12 w-12 text-gray-400"
                     controlsList="nodownload"
+                    disablePictureInPicture
                   />
                   <p className="mt-2 text-sm text-gray-600">
                     Click to upload preview video

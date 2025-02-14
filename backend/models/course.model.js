@@ -112,6 +112,28 @@ const courseSchema = new mongoose.Schema(
       type: [String],
       required: true,
     },
+    courseStats: {
+      totalStudents: {
+        type: Number,
+        default: 0,
+      },
+      totalRevenue: {
+        type: Number,
+        default: 0,
+      },
+      //   totalReviews: {
+      //     type: Number,
+      //     default: 0,
+      //   },
+      //   averageRating: {
+      //     type: Number,
+      //     default: 0,
+      //   },
+      //   totalRatings: {
+      //     type: Number,
+      //     default: 0,
+      //   },
+    },
   },
   { timestamps: true }
 );
