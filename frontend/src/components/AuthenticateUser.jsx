@@ -2,9 +2,16 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "../store/userSlice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { chechStudentEnrolled } from "../pages/CourseDetailsPage";
 
-async function verifyUser(dispatch, navigate, protect = false, role = null) {
+async function verifyUser(
+  dispatch,
+  navigate,
+  protect = false,
+  role = null,
+  courseId = null
+) {
   try {
     const response = await axios.get(
       `${import.meta.env.VITE_BACKEND_URL}user/auth`,
@@ -29,6 +36,14 @@ async function verifyUser(dispatch, navigate, protect = false, role = null) {
         navigate("/unauthorized");
         return;
       }
+
+      if (courseId && role === "student") {
+        const enrolled = await chechStudentEnrolled(courseId);
+        if (!enrolled) {
+          navigate("/courses");
+          return;
+        }
+      }
     } else if (protect) {
       navigate("/login");
     }
@@ -38,19 +53,24 @@ async function verifyUser(dispatch, navigate, protect = false, role = null) {
   }
 }
 
-function AuthenticationWrapper({ children, protect = false, role = null }) {
+function AuthenticationWrapper({
+  children,
+  protect = false,
+  role = null,
+  courseId = null,
+}) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkUser = async () => {
-      await verifyUser(dispatch, navigate, protect, role);
+      await verifyUser(dispatch, navigate, protect, role, courseId);
       setIsLoading(false);
     };
 
     checkUser();
-  }, [dispatch, navigate, protect]);
+  }, [dispatch, navigate, protect, courseId]);
 
   if (isLoading) return <div>Loading...</div>;
 
@@ -71,6 +91,15 @@ function AuthenticateInstructor({ children }) {
   );
 }
 
+function CheckStudentEnrollment({ children }) {
+  const { courseId } = useParams();
+
+  return (
+    <AuthenticationWrapper protect={true} role="student" courseId={courseId}>
+      {children}
+    </AuthenticationWrapper>
+  );
+}
 function AuthenticateAdmin({ children }) {
   return (
     <AuthenticationWrapper protect={true} role="admin">
@@ -79,4 +108,9 @@ function AuthenticateAdmin({ children }) {
   );
 }
 
-export { AuthenticateUser, AuthenticateInstructor, AuthenticateAdmin };
+export {
+  AuthenticateUser,
+  AuthenticateInstructor,
+  AuthenticateAdmin,
+  CheckStudentEnrollment,
+};

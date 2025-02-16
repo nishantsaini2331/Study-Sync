@@ -5,6 +5,9 @@ const Course = require("../models/course.model");
 const User = require("../models/user.model");
 const { RAZORPAY_SECRET } = require("../config/dotenv");
 const { default: mongoose } = require("mongoose");
+const CourseProgress = require("../models/courseProgress.model");
+const transporter = require("../utils/transporter");
+const paymentSuccessfullTemplate = require("../mail/paymentSuccessfullTemplate");
 
 async function createOrder(req, res) {
   try {
@@ -83,7 +86,11 @@ async function verifyPayment(req, res) {
 
     await session.startTransaction();
 
-    const user = req.user;
+    // const user = req.user;
+
+    const user = await User.findById(req.user.id)
+      .select("email name")
+      .session(session);
 
     const existingPayment = await Payment.findOne({
       razorpay_payment_id,
@@ -98,7 +105,13 @@ async function verifyPayment(req, res) {
       });
     }
 
-    const course = await Course.findOne({ courseId }).session(session);
+    const course = await Course.findOne({ courseId })
+      .populate({
+        path: "lectures",
+        select: "order",
+      })
+      .session(session);
+
     if (!course) {
       await session.abortTransaction();
       return res.status(404).json({
@@ -108,7 +121,7 @@ async function verifyPayment(req, res) {
     }
 
     const alreadyPurchased = await Payment.findOne({
-      user: user.id,
+      user: user._id,
       course: course._id,
       status: "successful",
     }).session(session);
@@ -136,7 +149,7 @@ async function verifyPayment(req, res) {
     const payment = await Payment.create(
       [
         {
-          user: user.id,
+          user: user._id,
           course: course._id,
           razorpay_payment_id,
           razorpay_order_id,
@@ -152,7 +165,7 @@ async function verifyPayment(req, res) {
     await Course.findByIdAndUpdate(
       course._id,
       {
-        $addToSet: { enrolledStudents: user.id },
+        $addToSet: { enrolledStudents: user._id },
         $inc: {
           "courseStats.totalStudents": 1,
           "courseStats.totalRevenue": course.price,
@@ -162,7 +175,7 @@ async function verifyPayment(req, res) {
     );
 
     await User.findByIdAndUpdate(
-      user.id,
+      user._id,
       {
         $addToSet: { purchasedCourse: course._id },
         $push: { paymentHistory: payment[0]._id },
@@ -174,7 +187,7 @@ async function verifyPayment(req, res) {
     const instructorId = course.instructor;
 
     const previousPurchase = await Payment.findOne({
-      user: user.id,
+      user: user._id,
       status: "successful",
       course: {
         $in: await Course.find({ instructor: instructorId }).distinct("_id"),
@@ -199,18 +212,40 @@ async function verifyPayment(req, res) {
       { session }
     );
 
-    await session.commitTransaction();
+    const sortedLectures = course.lectures.sort((a, b) => a.order - b.order);
 
-    // try {
-    //   await sendPaymentSuccessEmail(user.email, {
-    //     courseName: course.title,
-    //     amount: course.price,
-    //     paymentId: razorpay_payment_id,
-    //   });
-    // } catch (emailError) {
-    //   console.error("Error sending success email:", emailError);
-    //   // Don't fail the transaction if email fails
-    // }
+    const newProgress = await CourseProgress.create({
+      student: user._id,
+      course: course._id,
+      lectureProgress: sortedLectures.map((lecture) => ({
+        lecture: lecture._id,
+        isUnlocked: lecture.order === 1,
+        quizAttempts: [],
+        isCompleted: false,
+      })),
+    });
+
+    try {
+      const message = {
+        from: "Study Sync",
+        to: user.email,
+        subject: "Payment Successfull",
+        html: paymentSuccessfullTemplate(
+          course.title,
+          course.courseId,
+          course.price,
+          user.name,
+          razorpay_payment_id,
+          payment[0].createdAt.toString(),
+          razorpay_order_id
+        ),
+      };
+      const response = await transporter.sendMail(message);
+
+      await session.commitTransaction();
+    } catch (emailError) {
+      console.error("Error sending success email:", emailError);
+    }
 
     res.status(200).json({
       success: true,

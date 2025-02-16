@@ -33,6 +33,14 @@ async function createLecture(req, res) {
         .json({ success: false, message: "Course not found" });
     }
 
+    const highestOrderLecture = await Lecture.findOne(
+      { course: course._id },
+      {},
+      { sort: { order: -1 } }
+    );
+
+    const newOrder = highestOrderLecture ? highestOrderLecture.order + 1 : 1;
+
     const {
       secure_url: videoUrl,
       public_id: videoId,
@@ -53,6 +61,7 @@ async function createLecture(req, res) {
       duration,
       requiredPassPercentage,
       lectureId,
+      order: newOrder,
     });
 
     // Now create MCQs and associate them with the lecture

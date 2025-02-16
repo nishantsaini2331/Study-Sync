@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const courseProgressSchema = new mongoose.Schema(
   {
-    user: {
+    student: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -12,50 +12,52 @@ const courseProgressSchema = new mongoose.Schema(
       ref: "Course",
       required: true,
     },
-    completedLectures: [
+    lectureProgress: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Lecture",
+        lecture: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Lecture",
+          required: true,
+        },
+        quizAttempts: [
+          {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "QuizAttempt",
+          },
+        ],
+        isUnlocked: {
+          type: Boolean,
+          default: false,
+        },
+        isCompleted: {
+          type: Boolean,
+          default: false,
+        },
       },
     ],
-    lectureProgress: [{
-      lecture: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Lecture",
-        required: true
-      },
-      quizAttempts: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "QuizAttempt"
-      }],
-      isUnlocked: {
-        type: Boolean,
-        default: false
-      },
-      isCompleted: {
-        type: Boolean,
-        default: false
-      }
-    }],
     overallProgress: {
       type: Number,
       default: 0,
       min: 0,
-      max: 100
+      max: 100,
     },
     isCourseFinalQuizPassed: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   { timestamps: true }
 );
 
+
 // Method to update lecture progress
-courseProgressSchema.methods.updateLectureProgress = async function(lectureId, quizAttempt) {
+courseProgressSchema.methods.updateLectureProgress = async function (
+  lectureId,
+  quizAttempt
+) {
   // Find or create lecture progress
   let lectureProgressItem = this.lectureProgress.find(
-    progress => progress.lecture.toString() === lectureId.toString()
+    (progress) => progress.lecture.toString() === lectureId.toString()
   );
 
   if (!lectureProgressItem) {
@@ -63,7 +65,7 @@ courseProgressSchema.methods.updateLectureProgress = async function(lectureId, q
       lecture: lectureId,
       quizAttempts: [],
       isUnlocked: false,
-      isCompleted: false
+      isCompleted: false,
     };
     this.lectureProgress.push(lectureProgressItem);
   }
@@ -77,7 +79,11 @@ courseProgressSchema.methods.updateLectureProgress = async function(lectureId, q
     lectureProgressItem.isCompleted = true;
 
     // Add to completed lectures if not already there
-    if (!this.completedLectures.some(id => id.toString() === lectureId.toString())) {
+    if (
+      !this.completedLectures.some(
+        (id) => id.toString() === lectureId.toString()
+      )
+    ) {
       this.completedLectures.push(lectureId);
     }
   }
@@ -90,11 +96,11 @@ courseProgressSchema.methods.updateLectureProgress = async function(lectureId, q
 };
 
 // Method to calculate overall course progress
-courseProgressSchema.methods.calculateOverallProgress = function() {
+courseProgressSchema.methods.calculateOverallProgress = function () {
   if (this.lectureProgress.length === 0) return 0;
 
   const completedLecturesCount = this.lectureProgress.filter(
-    progress => progress.isCompleted
+    (progress) => progress.isCompleted
   ).length;
 
   this.overallProgress = Math.round(
@@ -105,19 +111,24 @@ courseProgressSchema.methods.calculateOverallProgress = function() {
 };
 
 // Method to unlock next lecture
-courseProgressSchema.methods.unlockNextLecture = async function(currentLectureId) {
-  const course = await mongoose.model('Course').findById(this.course).populate('lectures');
+courseProgressSchema.methods.unlockNextLecture = async function (
+  currentLectureId
+) {
+  const course = await mongoose
+    .model("Course")
+    .findById(this.course)
+    .populate("lectures");
   const lectures = course.lectures.sort((a, b) => a.order - b.order);
-  
+
   const currentIndex = lectures.findIndex(
-    lecture => lecture._id.toString() === currentLectureId.toString()
+    (lecture) => lecture._id.toString() === currentLectureId.toString()
   );
 
   if (currentIndex !== -1 && currentIndex + 1 < lectures.length) {
     const nextLecture = lectures[currentIndex + 1];
-    
+
     let nextLectureProgress = this.lectureProgress.find(
-      progress => progress.lecture.toString() === nextLecture._id.toString()
+      (progress) => progress.lecture.toString() === nextLecture._id.toString()
     );
 
     if (!nextLectureProgress) {
@@ -125,7 +136,7 @@ courseProgressSchema.methods.unlockNextLecture = async function(currentLectureId
         lecture: nextLecture._id,
         isUnlocked: true,
         quizAttempts: [],
-        isCompleted: false
+        isCompleted: false,
       });
     } else {
       nextLectureProgress.isUnlocked = true;

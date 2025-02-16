@@ -17,6 +17,25 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+export async function chechStudentEnrolled(courseId, setIsEnrolled = () => {}) {
+  try {
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}course/check-enrolled/${courseId}`,
+      {
+        withCredentials: true,
+      }
+    );
+
+    if (response.data.isEnrolled) {
+      //   navigate(`/course/${courseId}/learn`);
+      setIsEnrolled(true);
+      return true;
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 const CourseDetailsPage = () => {
   const { courseId } = useParams();
 
@@ -118,97 +137,84 @@ const CourseDetailsPage = () => {
       return;
     }
 
-    const res = await loadScript(
-      "https://checkout.razorpay.com/v1/checkout.js"
-    );
-
-    if (!res) {
-      alert("Failed to load Razorpay SDK");
-      return;
-    }
-
-    try {
-      const {
-        data: { data },
-      } = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}payment/create-order`,
-        {
-          amount: courseDetails.price,
-          courseId,
-        },
-        {
-          withCredentials: true,
-        }
+    if (
+      confirm(
+        "Are you sure you want to buy this course ? We don't have any refund policy"
+      )
+    ) {
+      const res = await loadScript(
+        "https://checkout.razorpay.com/v1/checkout.js"
       );
 
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: data.amount,
-        currency: data.currency,
-        order_id: data.id,
-        name: "Study Sync",
-        description: `Purchase of ${courseDetails.title}`,
-        handler: async (response) => {
-          try {
-            const { data } = await axios.post(
-              `${import.meta.env.VITE_BACKEND_URL}payment/verify-payment`,
-              {
-                courseId,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-              },
-              {
-                withCredentials: true,
-              }
-            );
-
-            console.log(data);
-            if (data.success) {
-              toast.success("Payment successful");
-              chechStudentEnrolled();
-            }
-          } catch (error) {
-            console.log(error);
-            toast.error("Payment failed please try again");
-          }
-        },
-        prefill: {
-          name,
-          email,
-        },
-        theme: {
-          color: "#f5a623",
-        },
-      };
-
-      const paymentObject = new window.Razorpay(options);
-
-      paymentObject.open();
-    } catch (error) {
-      toast.error(
-        error.response.data.message || "Something went wrong. Please try again"
-      );
-    }
-  }
-
-  async function chechStudentEnrolled() {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}course/check-enrolled/${courseId}`,
-        {
-          withCredentials: true,
-        }
-      );
-
-      console.log(response.data);
-
-      if (response.data.isEnrolled) {
-        //   navigate(`/course/${courseId}/learn`);
-        setIsEnrolled(true);
+      if (!res) {
+        alert("Failed to load Razorpay SDK");
+        return;
       }
-    } catch (error) {
-      console.error(error);
+
+      try {
+        const {
+          data: { data },
+        } = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}payment/create-order`,
+          {
+            amount: courseDetails.price,
+            courseId,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+          amount: data.amount,
+          currency: data.currency,
+          order_id: data.id,
+          name: "Study Sync",
+          description: `Purchase of ${courseDetails.title}`,
+          handler: async (response) => {
+            try {
+              const { data } = await axios.post(
+                `${import.meta.env.VITE_BACKEND_URL}payment/verify-payment`,
+                {
+                  courseId,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                },
+                {
+                  withCredentials: true,
+                }
+              );
+
+              console.log(data);
+              if (data.success) {
+                toast.success("Payment successful");
+                chechStudentEnrolled(courseId, setIsEnrolled);
+              }
+            } catch (error) {
+              console.log(error);
+              toast.error("Payment failed please try again");
+            }
+          },
+          prefill: {
+            name,
+            email,
+          },
+          theme: {
+            color: "#f5a623",
+          },
+        };
+
+        const paymentObject = new window.Razorpay(options);
+
+        paymentObject.open();
+      } catch (error) {
+        toast.error(
+          error.response.data.message ||
+            "Something went wrong. Please try again"
+        );
+      }
     }
   }
 
@@ -226,7 +232,7 @@ const CourseDetailsPage = () => {
     }
 
     fetchCourseDetails();
-    chechStudentEnrolled();
+    chechStudentEnrolled(courseId, setIsEnrolled);
   }, []);
 
   return (
@@ -285,14 +291,13 @@ const CourseDetailsPage = () => {
               <div className="flex flex-col border border-gray-400">
                 {courseDetails.lectures.map((lecture, index) => (
                   <CourseContent
-                    key={index} // This is only for React's internal tracking
-                    lectureIndex={index} // Pass it explicitly
+                    key={index} 
+                    lectureIndex={index} 
                     length={courseDetails.lectures.length}
                     lecture={lecture}
                   />
                 ))}
               </div>
-              {/* <CourseContent lectures={courseDetails.lectures} /> */}
             </section>
           </div>
         </div>
@@ -335,9 +340,11 @@ const CourseDetailsPage = () => {
                 </>
               )
             ) : (
-              <div className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
-                Go to course
-              </div>
+              <Link to={`/course/${courseId}/learn`}>
+                <div className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
+                  Go to course
+                </div>
+              </Link>
             )}
 
             <div className="space-y-4 capitalize">

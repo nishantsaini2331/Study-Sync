@@ -10,6 +10,7 @@ import {
   AuthenticateAdmin,
   AuthenticateInstructor,
   AuthenticateUser,
+  CheckStudentEnrollment,
 } from "./components/AuthenticateUser";
 import InstructorDashboard from "./components/InstructorDashboard";
 import CourseCreationForm from "./components/CourseCreationForm";
@@ -19,6 +20,7 @@ import CourseManagement from "./pages/CourseManagement";
 import FinalQuizComponent from "./components/FinalQuizComponent";
 import AdminDashboard from "./components/AdminDashboard";
 import CoursesPage from "./pages/CoursesPage";
+import CourseLearningPage from "./pages/CourseLearningPage";
 
 function App() {
   return (
@@ -71,6 +73,14 @@ function App() {
 
           <Route path="/courses" element={<CoursesPage />} />
           <Route path="/course/:courseId" element={<CourseDetailsPage />} />
+          <Route
+            path="/course/:courseId/learn"
+            element={
+              <CheckStudentEnrollment>
+                <CourseLearningPage />
+              </CheckStudentEnrollment>
+            }
+          />
         </Route>
 
         <Route
