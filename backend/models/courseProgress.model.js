@@ -35,6 +35,10 @@ const courseProgressSchema = new mongoose.Schema(
         },
       },
     ],
+    currentLecture: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Lecture",
+    },
     overallProgress: {
       type: Number,
       default: 0,
@@ -49,101 +53,55 @@ const courseProgressSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-
-// Method to update lecture progress
 courseProgressSchema.methods.updateLectureProgress = async function (
   lectureId,
   quizAttempt
 ) {
-  // Find or create lecture progress
-  let lectureProgressItem = this.lectureProgress.find(
+  const lectureProgress = this.lectureProgress.find(
     (progress) => progress.lecture.toString() === lectureId.toString()
   );
 
-  if (!lectureProgressItem) {
-    lectureProgressItem = {
-      lecture: lectureId,
-      quizAttempts: [],
-      isUnlocked: false,
-      isCompleted: false,
-    };
-    this.lectureProgress.push(lectureProgressItem);
+  if (!lectureProgress) {
+    return;
   }
 
-  // Add quiz attempt
-  lectureProgressItem.quizAttempts.push(quizAttempt._id);
-
-  // Check if quiz is passed
-  if (quizAttempt.isPassed) {
-    lectureProgressItem.isUnlocked = true;
-    lectureProgressItem.isCompleted = true;
-
-    // Add to completed lectures if not already there
-    if (
-      !this.completedLectures.some(
-        (id) => id.toString() === lectureId.toString()
-      )
-    ) {
-      this.completedLectures.push(lectureId);
-    }
+  if (quizAttempt) {
+    lectureProgress.quizAttempts.push(quizAttempt._id);
   }
 
-  // Recalculate overall progress
-  this.calculateOverallProgress();
+  lectureProgress.isCompleted = true;
 
   await this.save();
-  return this;
+
+  this.calculateOverallProgress();
 };
 
-// Method to calculate overall course progress
 courseProgressSchema.methods.calculateOverallProgress = function () {
-  if (this.lectureProgress.length === 0) return 0;
-
-  const completedLecturesCount = this.lectureProgress.filter(
+  const totalLectures = this.lectureProgress.length;
+  const completedLectures = this.lectureProgress.filter(
     (progress) => progress.isCompleted
   ).length;
 
-  this.overallProgress = Math.round(
-    (completedLecturesCount / this.lectureProgress.length) * 100
-  );
+  this.overallProgress = (completedLectures / totalLectures) * 100;
 
-  return this.overallProgress;
+  this.unlockNextLecture(this.currentLecture);
 };
 
-// Method to unlock next lecture
 courseProgressSchema.methods.unlockNextLecture = async function (
   currentLectureId
 ) {
-  const course = await mongoose
-    .model("Course")
-    .findById(this.course)
-    .populate("lectures");
-  const lectures = course.lectures.sort((a, b) => a.order - b.order);
-
-  const currentIndex = lectures.findIndex(
-    (lecture) => lecture._id.toString() === currentLectureId.toString()
+  const currentLectureIndex = this.lectureProgress.findIndex(
+    (progress) => progress.lecture.toString() === currentLectureId.toString()
   );
 
-  if (currentIndex !== -1 && currentIndex + 1 < lectures.length) {
-    const nextLecture = lectures[currentIndex + 1];
-
-    let nextLectureProgress = this.lectureProgress.find(
-      (progress) => progress.lecture.toString() === nextLecture._id.toString()
-    );
-
-    if (!nextLectureProgress) {
-      this.lectureProgress.push({
-        lecture: nextLecture._id,
-        isUnlocked: true,
-        quizAttempts: [],
-        isCompleted: false,
-      });
-    } else {
-      nextLectureProgress.isUnlocked = true;
-    }
-
-    await this.save();
+  if (currentLectureIndex === this.lectureProgress.length - 1) {
+    return;
   }
+
+  this.lectureProgress[currentLectureIndex + 1].isUnlocked = true;
+  this.currentLecture = this.lectureProgress[currentLectureIndex + 1].lecture;
+
+  await this.save();
 };
 
 const CourseProgress = mongoose.model("CourseProgress", courseProgressSchema);

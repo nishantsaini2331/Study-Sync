@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const quizAttemptSchema = new mongoose.Schema(
   {
-    user: {
+    student: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,

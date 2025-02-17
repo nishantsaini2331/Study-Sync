@@ -223,6 +223,7 @@ async function verifyPayment(req, res) {
         quizAttempts: [],
         isCompleted: false,
       })),
+      currentLecture: sortedLectures[0]._id,
     });
 
     try {
