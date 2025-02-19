@@ -6,76 +6,7 @@ import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 
 const InstructorDashboard = () => {
-  // Dummy course data
-  const [courses, setCourses] = useState([
-    {
-      _id: 1,
-      title: "Complete React Developer Course",
-      thumbnail: "/api/placeholder/400/300",
-      status: "Published",
-      students: 1250,
-      rating: 4.8,
-      revenue: 25000,
-      lastUpdated: "2024-03-15",
-      description: "Learn React from scratch with hooks, Redux, and more",
-    },
-    {
-      _id: 2,
-      title: "Advanced JavaScript Patterns",
-      thumbnail: "/api/placeholder/400/300",
-      status: "Published",
-      students: 850,
-      rating: 4.9,
-      revenue: 18500,
-      lastUpdated: "2024-03-10",
-      description: "Master JavaScript design patterns and advanced concepts",
-    },
-    {
-      _id: 3,
-      title: "Node.js Microservices",
-      thumbnail: "/api/placeholder/400/300",
-      status: "Draft",
-      students: 0,
-      rating: 0,
-      revenue: 0,
-      lastUpdated: "2024-03-20",
-      description:
-        "Build scalable applications with microservices architecture",
-    },
-    {
-      _id: 4,
-      title: "Python for Data Science",
-      thumbnail: "/api/placeholder/400/300",
-      status: "Published",
-      students: 2100,
-      rating: 4.7,
-      revenue: 42000,
-      lastUpdated: "2024-02-28",
-      description: "Learn Python for data analysis and machine learning",
-    },
-    {
-      _id: 5,
-      title: "AWS Cloud Practitioner",
-      thumbnail: "/api/placeholder/400/300",
-      status: "Published",
-      students: 1580,
-      rating: 4.6,
-      revenue: 31600,
-      lastUpdated: "2024-03-05",
-      description: "Complete guide to AWS fundamentals and certification",
-    },
-    {
-      _id: 6,
-      title: "UI/UX Design Fundamentals",
-      thumbnail: "/api/placeholder/400/300",
-      status: "Draft",
-      students: 0,
-      rating: 0,
-      revenue: 0,
-      lastUpdated: "2024-03-18",
-      description: "Master modern UI/UX design principles and tools",
-    },
-  ]);
+  const [courses, setCourses] = useState(null);
 
   const [notification, setNotification] = useState({
     show: false,
@@ -124,6 +55,14 @@ const InstructorDashboard = () => {
     fetchCourses();
   }, []);
 
+  if (!courses) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       {/* Notification */}
@@ -165,7 +104,6 @@ const InstructorDashboard = () => {
           </div>
         </div>
 
-        {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
             {
@@ -176,25 +114,28 @@ const InstructorDashboard = () => {
             {
               label: "Active Students",
               value: courses
-                .reduce((acc, course) => acc + course.enrolledStudents, 0)
+                .reduce(
+                  (acc, course) => acc + course.enrolledStudents.length,
+                  0
+                )
                 .toLocaleString(),
               color: "text-green-600",
             },
-            // {
-            //   label: "Total Revenue",
-            //   value: `$${courses
-            //     .reduce((acc, course) => acc + (course.revenue || 0), 0)
-            //     .toLocaleString()}`,
-            //   color: "text-purple-600",
-            // },
-            // {
-            //   label: "Average Rating",
-            //   value: (
-            //     courses.reduce((acc, course) => acc + (course.rating || 0), 0) /
-            //     courses.filter((c) => c.rating > 0).length
-            //   ).toFixed(1),
-            //   color: "text-yellow-600",
-            // },
+            {
+              label: "Total Revenue",
+              value: `$${courses
+                .reduce((acc, course) => acc + (course.revenue || 0), 0)
+                .toLocaleString()}`,
+              color: "text-purple-600",
+            },
+            {
+              label: "Average Rating",
+              value: (
+                courses.reduce((acc, course) => acc + (course.rating || 0), 0) /
+                courses.filter((c) => c.rating > 0).length
+              ).toFixed(1),
+              color: "text-yellow-600",
+            },
           ].map((stat, index) => (
             <div key={index} className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-gray-500 text-sm font-medium">

@@ -48,12 +48,19 @@ async function getStudentCourseById(req, res) {
           })
     );
 
-    console.log(lockedLectures, unlockedLectures);
-
     let currentLecture = unlockedLectures.find(
       (lec) =>
         lec.lecture._id.toString() === courseProgress.currentLecture.toString()
     );
+
+    let lectureWithoutMcqsCorrectOptions = await Lecture.findById(
+      currentLecture.lecture._id
+    ).populate({
+      path: "mcqs",
+      select: "-correctOption",
+    });
+
+    currentLecture.lecture = lectureWithoutMcqsCorrectOptions;
 
     return res.status(200).json({
       success: true,
@@ -130,43 +137,55 @@ async function unlockLecture(req, res) {
 
     const mcqs = lecture.mcqs;
 
-    const correctAnswers = mcqs.map((mcq) => mcq.correctOption);
-
-    let score = 0;
-
     for (let i = 0; i < mcqs.length; i++) {
-      if (userAnswers[i] === correctAnswers[i]) {
-        score += 1;
+      if (!Object.keys(userAnswers).includes(mcqs[i]._id.toString())) {
+        return res.status(400).json({
+          success: false,
+          message: "Please make sure you have answered all questions",
+        });
       }
     }
 
-    const totalQuestions = mcqs.length;
+    let correctAnswers = 0;
+    let totalQuestions = mcqs.length;
 
-    const passingScore = lecture.requiredPassPercentage;
+    for (let i = 0; i < mcqs.length; i++) {
+      for (let j = 0; j < Object.keys(userAnswers).length; j++) {
+        if (mcqs[i]._id.toString() === Object.keys(userAnswers)[j]) {
+          if (
+            mcqs[i].correctOption === userAnswers[Object.keys(userAnswers)[j]]
+          ) {
+            correctAnswers += 1;
+          }
+        }
+      }
+    }
 
-    const isPassed = (score / totalQuestions) * 100 >= passingScore;
+    const percentage = Math.round((correctAnswers / totalQuestions) * 100);
 
-    const quizAttempt = await QuizAttempt.create({
-      student: student.id,
-      lecture: lecture._id,
-      mcqResponses: mcqs.map((mcq, index) => ({
-        mcq: mcq._id,
-        selectedOption: {
-          text: mcq.options[userAnswers[index]],
-          isCorrect: userAnswers[index] === correctAnswers[index],
-        },
-      })),
-      score: Math.round((score / totalQuestions) * 100),
-      totalQuestions,
-      passingScore,
-      isPassed,
-    });
-
-    await courseProgress.updateLectureProgress(lecture._id, quizAttempt);
+    const isPassed = percentage >= lecture.requiredPassPercentage;
+    if (isPassed) {
+      const quizAttempt = await QuizAttempt.create({
+        student: student.id,
+        lecture: lecture._id,
+        mcqResponses: mcqs.map((mcq, index) => ({
+          mcq: mcq._id,
+          selectedOption: {
+            text: mcq.options[userAnswers[mcq._id]],
+            isCorrect: mcq.correctOption === userAnswers[mcq._id],
+          },
+        })),
+        score: Math.round((correctAnswers / totalQuestions) * 100),
+        totalQuestions,
+        passingScore: lecture.requiredPassPercentage,
+        isPassed,
+      });
+      await courseProgress.updateLectureProgress(lecture._id, quizAttempt);
+    }
 
     return res.status(200).json({
       success: true,
-      data: { score, totalQuestions, passingScore, isPassed },
+      data: { correctAnswers, totalQuestions, percentage, isPassed },
     });
   } catch (error) {
     console.error(error);

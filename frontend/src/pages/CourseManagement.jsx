@@ -403,7 +403,6 @@ function CourseManagement({ isVerify = false }) {
                   )}
                 </div>
 
-                {/* Lecture Preview Video */}
                 <div className="mt-4 bg-gray-100 rounded-lg p-4 flex items-center justify-center w-2/4 h-48">
                   <div className="text-gray-500 ">
                     {lecture.videoUrl ? (

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import QuizComponent from "../components/QuizComponent";
 
 function CourseLearningPage() {
   const { courseId } = useParams();
@@ -21,11 +22,18 @@ function CourseLearningPage() {
 
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [userAnswers, setUserAnswers] = useState({});
-  console.log(userAnswers);
+  const [isQuizCorrect, setIsQuizCorrect] = useState(false);
 
   const [showLectures, setShowLectures] = useState(false);
 
-  async function fetchCourseLearningData() {
+  const [score, setScore] = useState({
+    correctAnswers: "",
+    totalQuestions: "",
+    percentage: "",
+    isPassed: false,
+  });
+
+  async function fetchCourseLearningData(setPreviousLecture = false) {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}student/${courseId}/learn`,
@@ -46,7 +54,19 @@ function CourseLearningPage() {
       if (unlocked.length > 0 && !currentLecture) {
         setCurrentLecture(unlocked[0]);
       } else if (response.data.data.currentLecture) {
-        setCurrentLecture(response.data.data.currentLecture);
+        if (setPreviousLecture) {
+          const previousLecture = unlocked.find(
+            (lecture) =>
+              lecture.lecture.order === currentLecture.lecture.order - 1
+          );
+          if (previousLecture) {
+            setCurrentLecture(previousLecture);
+          } else {
+            setCurrentLecture(currentLecture);
+          }
+        } else {
+          setCurrentLecture(currentLecture);
+        }
       }
     } catch (error) {
       console.error("Error fetching course learning data:", error);
@@ -62,25 +82,7 @@ function CourseLearningPage() {
 
   function handleQuizSubmit() {
     setQuizSubmitted(true);
-  }
-
-  function calculateScore() {
-    if (!quizSubmitted || !currentLecture?.lecture.mcqs) return null;
-
-    const totalQuestions = currentLecture.lecture.mcqs.length;
-    let correctAnswers = 0;
-
-    for (let i = 0; i < totalQuestions; i++) {
-      if (userAnswers[i] === currentLecture.lecture.mcqs[i].correctOption) {
-        correctAnswers++;
-      }
-    }
-
-    return {
-      total: totalQuestions,
-      correct: correctAnswers,
-      percentage: Math.round((correctAnswers / totalQuestions) * 100),
-    };
+    unlockNextLecture();
   }
 
   async function unlockNextLecture() {
@@ -96,27 +98,17 @@ function CourseLearningPage() {
           withCredentials: true,
         }
       );
-      if (response.data.success) {
+
+      setScore(response.data.data);
+      if (response.data.data.isPassed) {
         setUserAnswers({});
         setQuizSubmitted(false);
-        fetchCourseLearningData();
+        fetchCourseLearningData(true);
       }
     } catch (error) {
       console.log(error);
     }
   }
-
-  const score = calculateScore();
-
-  useEffect(() => {
-    if (
-      score &&
-      currentLecture &&
-      score.percentage >= currentLecture.lecture.requiredPassPercentage
-    ) {
-      unlockNextLecture();
-    }
-  }, [score]);
 
   useEffect(() => {
     fetchCourseLearningData();
@@ -134,14 +126,14 @@ function CourseLearningPage() {
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
       <div
-        className={`md:w-1/4 bg-white shadow-md md:min-h-screen ${
+        className={`md:w-1/4  bg-white shadow-md md:min-h-screen ${
           showLectures ? "block" : "hidden md:block"
         }`}
       >
         <div className="p-4 border-b">
           <h2 className="text-xl font-semibold">Course Content</h2>
           <p className="text-sm text-gray-500">
-            {unlockedLectures.length} /{" "}
+            {unlockedLectures.length} /
             {unlockedLectures.length + lockedLectures.length} lectures unlocked
           </p>
         </div>
@@ -221,9 +213,7 @@ function CourseLearningPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Mobile Header with Toggle Button */}
         <div className="md:hidden bg-white p-4 flex justify-between items-center shadow-sm">
           <h1 className="text-lg font-semibold">Course Learning Page</h1>
           <button
@@ -234,11 +224,10 @@ function CourseLearningPage() {
           </button>
         </div>
 
-        {/* Video & Content Section */}
         <div className="flex-1 p-4 md:p-6 overflow-y-auto">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              {/* Video Player */}
+                
               <div className="aspect-video bg-black flex items-center justify-center">
                 <video
                   src={currentLecture.lecture.videoUrl}
@@ -247,7 +236,6 @@ function CourseLearningPage() {
                 />
               </div>
 
-              {/* Lecture Info & Quiz */}
               <div className="p-6">
                 <h1 className="text-2xl font-bold mb-2">
                   {currentLecture.lecture.title}
@@ -256,219 +244,16 @@ function CourseLearningPage() {
                   {currentLecture.lecture.description}
                 </p>
 
-                {/* Quiz Section */}
-                <div className="border rounded-lg p-6 mb-6">
-                  <div>
-                    <h2 className="text-xl font-semibold mb-4">
-                      Knowledge Check
-                    </h2>
-                    <p className="text-gray-600 mb-1">
-                      Take the quiz to test your understanding of the lecture.
-                    </p>
-                    <p className="text-gray-600 mb-4">
-                      You need to score at least{" "}
-                      <b>{currentLecture.lecture.requiredPassPercentage}%</b> to
-                      pass the quiz and unlock the next lecture.
-                    </p>
-                  </div>
-
-                  {!currentLecture.isCompleted ? (
-                    !quizSubmitted ? (
-                      <>
-                        <div className="space-y-6">
-                          {currentLecture.lecture.mcqs.map((mcq, qIndex) => (
-                            <div key={qIndex} className="border-b pb-4">
-                              <p className="font-medium mb-3 capitalize">
-                                {qIndex + 1}. {mcq.question}
-                              </p>
-                              <div className="space-y-2 pl-2">
-                                {mcq.options.map((option, oIndex) => (
-                                  <div
-                                    key={oIndex}
-                                    className="flex items-center"
-                                  >
-                                    <input
-                                      type="radio"
-                                      id={`q${qIndex}-o${oIndex}`}
-                                      name={`question-${qIndex}`}
-                                      className="mr-3 h-4 w-4 text-blue-600"
-                                      // checked={true}
-                                      // disabled={true}
-                                      // checked={userAnswers[qIndex] === oIndex}
-                                      onChange={() =>
-                                        handleAnswerSelection(qIndex, oIndex)
-                                      }
-                                    />
-                                    <label
-                                      htmlFor={`q${qIndex}-o${oIndex}`}
-                                      className="text-gray-700 flex-1 cursor-pointer"
-                                    >
-                                      {option}
-                                    </label>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {!currentLecture.isCompleted ? (
-                          <div className="mt-6">
-                            <button
-                              onClick={handleQuizSubmit}
-                              disabled={
-                                Object.keys(userAnswers).length !==
-                                currentLecture.lecture.mcqs.length
-                              }
-                              className={`px-6 py-2 rounded-md ${
-                                Object.keys(userAnswers).length ===
-                                currentLecture.lecture.mcqs.length
-                                  ? "bg-blue-600 hover:bg-blue-700 text-white"
-                                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                              }`}
-                            >
-                              Submit Answers
-                            </button>
-                          </div>
-                        ) : (
-                          ""
-                        )}
-                      </>
-                    ) : (
-                      <div className="space-y-6">
-                        {/* Quiz Results */}
-                        <div className="bg-blue-50 p-4 rounded-md border border-blue-100 mb-6">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-blue-700">
-                              Quiz Results
-                            </h3>
-                            <div className="flex items-center">
-                              <span className="text-3xl font-bold text-blue-700">
-                                {score.percentage}%
-                              </span>
-                            </div>
-                          </div>
-                          <p className="mt-2 text-blue-600">
-                            You answered {score.correct} out of {score.total}{" "}
-                            questions correctly.
-                          </p>
-                          <p className="text-blue-600">
-                            {score.percentage >=
-                            currentLecture.lecture.requiredPassPercentage
-                              ? "Congratulations! You passed the quiz."
-                              : "You did not pass the quiz. Try again to unlock the next lecture."}
-                          </p>
-                        </div>
-
-                        {/* Review Answers */}
-                        {currentLecture.lecture.mcqs.map((mcq, qIndex) => (
-                          <div key={qIndex} className="border-b pb-4">
-                            <p className="font-medium mb-3">
-                              {qIndex + 1}. {mcq.question}
-                            </p>
-                            <div className="space-y-2 pl-2">
-                              {mcq.options.map((option, oIndex) => (
-                                <div
-                                  key={oIndex}
-                                  className={`flex items-center p-2 rounded ${
-                                    oIndex === mcq.correctOption
-                                      ? "bg-green-50 border border-green-200"
-                                      : userAnswers[qIndex] === oIndex
-                                      ? "bg-red-50 border border-red-200"
-                                      : ""
-                                  }`}
-                                >
-                                  <div className="mr-3">
-                                    {oIndex === mcq.correctOption && (
-                                      <CheckCircle
-                                        size={18}
-                                        className="text-green-500"
-                                      />
-                                    )}
-                                    {userAnswers[qIndex] === oIndex &&
-                                      oIndex !== mcq.correctOption && (
-                                        <div className="h-4 w-4 rounded-full bg-red-500" />
-                                      )}
-                                  </div>
-                                  <label className="text-gray-700 flex-1">
-                                    {option}
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
-                            {userAnswers[qIndex] !== mcq.correctOption && (
-                              <p className="mt-2 text-sm text-blue-600 pl-2">
-                                <span className="font-medium">
-                                  Explanation:
-                                </span>{" "}
-                                The correct answer is "
-                                {mcq.options[mcq.correctOption]}".
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                        <div className="mt-6">
-                          <button
-                            onClick={() => {
-                              setQuizSubmitted(false);
-                              setUserAnswers({});
-                            }}
-                            className="px-6 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
-                          >
-                            Retake Quiz
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  ) : (
-                    <>
-                      {currentLecture.lecture.mcqs.map((mcq, qIndex) => (
-                        <div key={qIndex} className="border-b pb-4">
-                          <p className="font-medium mb-3">
-                            {qIndex + 1}. {mcq.question}
-                          </p>
-                          <div className="space-y-2 pl-2">
-                            {mcq.options.map((option, oIndex) => (
-                              <div
-                                key={oIndex}
-                                className={`flex items-center p-2 rounded ${
-                                  oIndex === mcq.correctOption
-                                    ? "bg-green-50 border border-green-200"
-                                    : userAnswers[qIndex] === oIndex
-                                    ? "bg-red-50 border border-red-200"
-                                    : ""
-                                }`}
-                              >
-                                <div className="mr-3">
-                                  {oIndex === mcq.correctOption && (
-                                    <CheckCircle
-                                      size={18}
-                                      className="text-green-500"
-                                    />
-                                  )}
-                                  {userAnswers[qIndex] === oIndex &&
-                                    oIndex !== mcq.correctOption && (
-                                      <div className="h-4 w-4 rounded-full bg-red-500" />
-                                    )}
-                                </div>
-                                <label className="text-gray-700 flex-1">
-                                  {option}
-                                </label>
-                              </div>
-                            ))}
-                          </div>
-                          {userAnswers[qIndex] !== mcq.correctOption && (
-                            <p className="mt-2 text-sm text-blue-600 pl-2">
-                              <span className="font-medium">Explanation:</span>{" "}
-                              The correct answer is "
-                              {mcq.options[mcq.correctOption]}".
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </div>
+                <QuizComponent
+                  currentLecture={currentLecture}
+                  quizSubmitted={quizSubmitted}
+                  userAnswers={userAnswers}
+                  handleAnswerSelection={handleAnswerSelection}
+                  handleQuizSubmit={handleQuizSubmit}
+                  score={score}
+                  setQuizSubmitted={setQuizSubmitted}
+                  setUserAnswers={setUserAnswers}
+                />
 
                 <div className="flex justify-between border-t pt-6">
                   <button
