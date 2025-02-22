@@ -53,7 +53,7 @@ async function deleteLecture(lectureId, navigate) {
 }
 
 function CourseManagement({ isVerify = false }) {
-  const { courseId } = useParams();
+  const { id: courseId } = useParams();
   const navigate = useNavigate();
   const [courseData, setCourseData] = useState({
     title: "Introduction to Web Development",

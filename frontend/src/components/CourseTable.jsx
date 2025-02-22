@@ -153,7 +153,9 @@ function CourseTable({ courses, handleAction }) {
                       <button
                         className="text-blue-600 hover:text-blue-900"
                         onClick={() =>
-                          console.log(`Reviewing course ${course.course.courseId}`)
+                          console.log(
+                            `Reviewing course ${course.course.courseId}`
+                          )
                         }
                       >
                         <Eye className="w-5 h-5 inline" />
@@ -161,13 +163,17 @@ function CourseTable({ courses, handleAction }) {
                     </Link>
                     <button
                       className="text-green-600 hover:text-green-900"
-                      onClick={() => handleAction("approved", course.course.courseId)}
+                      onClick={() =>
+                        handleAction("approved", course.course.courseId)
+                      }
                     >
                       <CheckCircle className="w-5 h-5 inline" />
                     </button>
                     <button
                       className="text-red-600 hover:text-red-900"
-                      onClick={() => handleAction("rejected", course.course.courseId)}
+                      onClick={() =>
+                        handleAction("rejected", course.course.courseId)
+                      }
                     >
                       <XCircle className="w-5 h-5 inline" />
                     </button>

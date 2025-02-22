@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 const InstructorDashboard = () => {
   const [courses, setCourses] = useState(null);
+  const [instructorStats, setInstructorStats] = useState(null);
 
   const [notification, setNotification] = useState({
     show: false,
@@ -38,13 +39,14 @@ const InstructorDashboard = () => {
     async function fetchCourses() {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}course`,
+          `${import.meta.env.VITE_BACKEND_URL}instructor/dashboard`,
           {
             withCredentials: true,
           }
         );
         console.log(res.data.courses);
         setCourses(res.data.courses);
+        setInstructorStats(res.data.instructor);
         // toast.success("Course created successfully");
       } catch (error) {
         console.error(error);
@@ -76,7 +78,6 @@ const InstructorDashboard = () => {
         </div>
       )}
 
-      {/* Header */}
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
@@ -108,34 +109,27 @@ const InstructorDashboard = () => {
           {[
             {
               label: "Total Courses",
-              value: courses.length,
+              value: instructorStats.totalCourses,
               color: "text-blue-600",
             },
             {
               label: "Active Students",
-              value: courses
-                .reduce(
-                  (acc, course) => acc + course.enrolledStudents.length,
-                  0
-                )
-                .toLocaleString(),
+              value: instructorStats.totalStudents,
               color: "text-green-600",
             },
             {
               label: "Total Revenue",
-              value: `$${courses
-                .reduce((acc, course) => acc + (course.revenue || 0), 0)
-                .toLocaleString()}`,
+              value: `₹ ${instructorStats.totalEarnings}`,
               color: "text-purple-600",
             },
-            {
-              label: "Average Rating",
-              value: (
-                courses.reduce((acc, course) => acc + (course.rating || 0), 0) /
-                courses.filter((c) => c.rating > 0).length
-              ).toFixed(1),
-              color: "text-yellow-600",
-            },
+            // {
+            //   label: "Average Rating",
+            //   value: (
+            //     courses.reduce((acc, course) => acc + (course.rating || 0), 0) /
+            //     courses.filter((c) => c.rating > 0).length
+            //   ).toFixed(1),
+            //   color: "text-yellow-600",
+            // },
           ].map((stat, index) => (
             <div key={index} className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-gray-500 text-sm font-medium">
@@ -151,7 +145,7 @@ const InstructorDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course, index) => (
             <div
-              key={course?._id}
+              key={course?.courseId}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
               <Link
@@ -170,7 +164,7 @@ const InstructorDashboard = () => {
                         className="p-2 rounded-full bg-white/90 hover:bg-white transition-colors"
                         onClick={() => {
                           const menu = document.getElementById(
-                            `menu-${course._id}`
+                            `menu-${course.courseId}`
                           );
                           menu.classList.toggle("hidden");
                         }}
@@ -178,18 +172,22 @@ const InstructorDashboard = () => {
                         <MoreVertical className="w-5 h-5 text-gray-600" />
                       </button>
                       <div
-                        id={`menu-${course._id}`}
+                        id={`menu-${course.courseId}`}
                         className="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-10"
                       >
                         <div className="py-1">
                           <button
-                            onClick={() => handleAction("edit", course._id)}
+                            onClick={() =>
+                              handleAction("edit", course.courseId)
+                            }
                             className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                           >
                             Edit
                           </button>
                           <button
-                            onClick={() => handleAction("delete", course._id)}
+                            onClick={() =>
+                              handleAction("delete", course.courseId)
+                            }
                             className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
                           >
                             Delete

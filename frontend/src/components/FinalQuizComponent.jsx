@@ -5,7 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
 const FinalQuizComponent = ({ edit = false }) => {
-  const { courseId } = useParams();
+  const { id: courseId } = useParams();
   console.log(edit);
 
   const [quizForm, setQuizForm] = useState({

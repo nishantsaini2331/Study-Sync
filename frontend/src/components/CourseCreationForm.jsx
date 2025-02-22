@@ -7,7 +7,7 @@ import axios from "axios";
 export default function CourseCreationForm({ edit = false }) {
   const navigate = useNavigate();
 
-  const { id } = useParams();
+  const { id: courseId } = useParams();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -167,7 +167,7 @@ export default function CourseCreationForm({ edit = false }) {
 
         if (edit) {
           res = await axios.patch(
-            `${import.meta.env.VITE_BACKEND_URL}course/${id}`,
+            `${import.meta.env.VITE_BACKEND_URL}course/${courseId}`,
             payload,
             {
               withCredentials: true,
@@ -221,11 +221,11 @@ export default function CourseCreationForm({ edit = false }) {
   }
 
   useEffect(() => {
-    if (id) {
+    if (courseId) {
       async function fetchCourseData() {
         try {
           const res = await axios.get(
-            `${import.meta.env.VITE_BACKEND_URL}course/${id}`,
+            `${import.meta.env.VITE_BACKEND_URL}course/${courseId}`,
             {
               withCredentials: true,
             }
@@ -267,7 +267,7 @@ export default function CourseCreationForm({ edit = false }) {
       }
     }
     fetchAllCategories();
-  }, [id]);
+  }, [courseId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 p-6">

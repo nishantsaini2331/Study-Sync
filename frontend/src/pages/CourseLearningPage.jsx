@@ -14,7 +14,7 @@ import axios from "axios";
 import QuizComponent from "../components/QuizComponent";
 
 function CourseLearningPage() {
-  const { courseId } = useParams();
+  const { id: courseId } = useParams();
 
   const [lockedLectures, setLockedLectures] = useState([]);
   const [unlockedLectures, setUnlockedLectures] = useState([]);
@@ -126,7 +126,7 @@ function CourseLearningPage() {
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
       <div
-        className={`md:w-1/4  bg-white shadow-md md:min-h-screen ${
+        className={`md:w-1/4 bg-white shadow-md md:min-h-screen ${
           showLectures ? "block" : "hidden md:block"
         }`}
       >
@@ -227,7 +227,6 @@ function CourseLearningPage() {
         <div className="flex-1 p-4 md:p-6 overflow-y-auto">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                
               <div className="aspect-video bg-black flex items-center justify-center">
                 <video
                   src={currentLecture.lecture.videoUrl}

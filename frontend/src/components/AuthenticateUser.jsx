@@ -10,7 +10,8 @@ async function verifyUser(
   navigate,
   protect = false,
   role = null,
-  courseId = null
+  id = null,
+  checkInstructor = false
 ) {
   try {
     const response = await axios.get(
@@ -18,9 +19,30 @@ async function verifyUser(
       { withCredentials: true }
     );
 
+    console.log(id);
+
     if (response.data.success) {
       const user = response.data.user;
       dispatch(setUser(user));
+
+      //   if (checkInstructor && !user.instructorProfile) {
+      //     navigate("/teaching/onbording");
+      //     return;
+      //   }
+
+      if (checkInstructor && role === "instructor") {
+        const response = await axios.get(
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }course/check-instructor/${id}`,
+          { withCredentials: true }
+        );
+
+        if (!response.data.isOwner) {
+          navigate("/instructor/dashboard");
+          return;
+        }
+      }
 
       if (role === "instructor" && user.roles.includes("admin")) {
         navigate("/admin/dashboard");
@@ -37,8 +59,8 @@ async function verifyUser(
         return;
       }
 
-      if (courseId && role === "student") {
-        const enrolled = await chechStudentEnrolled(courseId);
+      if (id && role === "student") {
+        const enrolled = await chechStudentEnrolled(id);
         if (!enrolled) {
           navigate("/courses");
           return;
@@ -57,7 +79,8 @@ function AuthenticationWrapper({
   children,
   protect = false,
   role = null,
-  courseId = null,
+  id = null,
+  checkInstructor = false,
 }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -65,12 +88,19 @@ function AuthenticationWrapper({
 
   useEffect(() => {
     const checkUser = async () => {
-      await verifyUser(dispatch, navigate, protect, role, courseId);
+      await verifyUser(
+        dispatch,
+        navigate,
+        protect,
+        role,
+        id,
+        checkInstructor
+      );
       setIsLoading(false);
     };
 
     checkUser();
-  }, [dispatch, navigate, protect, courseId]);
+  }, [dispatch, navigate, protect, id, checkInstructor]);
 
   if (isLoading) return <div>Loading...</div>;
 
@@ -83,19 +113,25 @@ function AuthenticateUser({ children, protect = false }) {
   );
 }
 
-function AuthenticateInstructor({ children }) {
+function AuthenticateInstructor({ children, checkInstructor = false }) {
+  const { id } = useParams();
   return (
-    <AuthenticationWrapper protect={true} role="instructor">
+    <AuthenticationWrapper
+      protect={true}
+      role="instructor"
+      checkInstructor={checkInstructor}
+      id={id}
+    >
       {children}
     </AuthenticationWrapper>
   );
 }
 
 function CheckStudentEnrollment({ children }) {
-  const { courseId } = useParams();
+  const { id } = useParams();
 
   return (
-    <AuthenticationWrapper protect={true} role="student" courseId={courseId}>
+    <AuthenticationWrapper protect={true} role="student" id={id}>
       {children}
     </AuthenticationWrapper>
   );

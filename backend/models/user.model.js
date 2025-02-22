@@ -131,7 +131,7 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
-    intructorProfile: {
+    instructorProfile: {
       totalStudents: {
         type: Number,
         default: 0,

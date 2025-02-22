@@ -37,7 +37,7 @@ export async function chechStudentEnrolled(courseId, setIsEnrolled = () => {}) {
 }
 
 const CourseDetailsPage = () => {
-  const { courseId } = useParams();
+  const { id: courseId } = useParams();
 
   const navigate = useNavigate();
 
@@ -291,8 +291,8 @@ const CourseDetailsPage = () => {
               <div className="flex flex-col border border-gray-400">
                 {courseDetails.lectures.map((lecture, index) => (
                   <CourseContent
-                    key={index} 
-                    lectureIndex={index} 
+                    key={index}
+                    lectureIndex={index}
                     length={courseDetails.lectures.length}
                     lecture={lecture}
                   />

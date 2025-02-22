@@ -115,6 +115,7 @@ async function createCourse(req, res) {
     });
     await User.findByIdAndUpdate(user.id, {
       $push: { createdCourses: course._id },
+      $inc: { "instructorProfile.totalCourses": 1 },
     });
 
     return res.status(201).json({ success: true, message: "Course created" });
@@ -483,6 +484,47 @@ async function checkStudentEnrollment(req, res) {
   }
 }
 
+async function checkInstructor(req, res) {
+  try {
+    const id = req.params.id;
+    const instructor = req.user;
+    if (!instructor) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const course = await Course.findOne({
+      courseId: id,
+      instructor: instructor.id,
+    });
+
+    if (course) {
+      return res.status(200).json({ success: true, isOwner: true });
+    }
+
+    const lecture = await Lecture.findOne({
+      lectureId: id,
+    })
+      .select("course")
+      .populate({
+        path: "course",
+        select: "instructor -_id",
+      });
+
+    if (
+      lecture?.course?.instructor?.toString() === instructor?.id?.toString()
+    ) {
+      return res.status(200).json({ success: true, isOwner: true });
+    }
+    return res
+      .status(403)
+      .json({ success: true, isOwner: false, message: "Unauthorised access" });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+}
+
 module.exports = {
   createCourse,
   getCourses,
@@ -492,4 +534,5 @@ module.exports = {
   getCoursesBySearchQuery,
   getCourseForStudent,
   checkStudentEnrollment,
+  checkInstructor,
 };

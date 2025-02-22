@@ -10,6 +10,7 @@ const courseVerifyRoute = require("./routes/courseVerify.route");
 const categoryRoute = require("./routes/category.route");
 const paymentRoute = require("./routes/payment.route");
 const studentRoute = require("./routes/student.route");
+const instructorRoute = require("./routes/instructor.route");
 const app = express();
 const cookieParser = require("cookie-parser");
 
@@ -32,6 +33,7 @@ app.use("/api/v1/course-verify", courseVerifyRoute);
 app.use("/api/v1/category", categoryRoute);
 app.use("/api/v1/payment", paymentRoute);
 app.use("/api/v1/student", studentRoute);
+app.use("/api/v1/instructor", instructorRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

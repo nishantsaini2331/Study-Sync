@@ -72,9 +72,9 @@ function App() {
           />
 
           <Route path="/courses" element={<CoursesPage />} />
-          <Route path="/course/:courseId" element={<CourseDetailsPage />} />
+          <Route path="/course/:id" element={<CourseDetailsPage />} />
           <Route
-            path="/course/:courseId/learn"
+            path="/course/:id/learn"
             element={
               <CheckStudentEnrollment>
                 <CourseLearningPage />
@@ -83,10 +83,6 @@ function App() {
           />
         </Route>
 
-        <Route
-          path="/course-preview/:courseId"
-          element={<CourseManagement />}
-        />
         <Route
           path="/verify-email/:verificationToken"
           element={<VerifyUser />}
@@ -109,44 +105,51 @@ function App() {
           }
         />
         <Route
-          path="/create-lecture/:id"
-          element={
-            <AuthenticateInstructor>
-              <CreateLecture />
-            </AuthenticateInstructor>
-          }
-        />
-        <Route
           path="/edit-course/:id"
           element={
-            <AuthenticateInstructor>
+            <AuthenticateInstructor checkInstructor={true}>
               <CourseCreationForm edit={true} />
             </AuthenticateInstructor>
           }
         />
         <Route
+          path="/course-preview/:id"
+          element={
+            <AuthenticateInstructor checkInstructor={true}>
+              <CourseManagement />
+            </AuthenticateInstructor>
+          }
+        />
+        <Route
+          path="/create-lecture/:id"
+          element={
+            <AuthenticateInstructor checkInstructor={true}>
+              <CreateLecture />
+            </AuthenticateInstructor>
+          }
+        />
+
+        <Route
           path="/edit-lecture/:id"
           element={
-            <AuthenticateInstructor>
+            <AuthenticateInstructor checkInstructor={true}>
               <CreateLecture edit={true} />
             </AuthenticateInstructor>
           }
         />
-
         <Route
-          path="/edit-final-quiz/:courseId"
+          path="/create-final-quiz/:id"
           element={
-            <AuthenticateInstructor>
-              <FinalQuizComponent edit={true} />
+            <AuthenticateInstructor checkInstructor={true}>
+              <FinalQuizComponent />
             </AuthenticateInstructor>
           }
         />
-
         <Route
-          path="/create-final-quiz/:courseId"
+          path="/edit-final-quiz/:id"
           element={
-            <AuthenticateInstructor>
-              <FinalQuizComponent />
+            <AuthenticateInstructor checkInstructor={true}>
+              <FinalQuizComponent edit={true} />
             </AuthenticateInstructor>
           }
         />
@@ -159,7 +162,7 @@ function App() {
           }
         />
         <Route
-          path="/admin/verify-course/:courseId"
+          path="/admin/verify-course/:id"
           element={
             <AuthenticateAdmin>
               <CourseManagement isVerify={true} />

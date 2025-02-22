@@ -9,6 +9,7 @@ const userSlice = createSlice({
       username: "",
       roles: [],
       photoUrl: "",
+      courses: [],
     },
     showProfileDropdown: false,
   },
@@ -16,7 +17,14 @@ const userSlice = createSlice({
     setUser: (state, action) => {
       state.user = action.payload
         ? action.payload
-        : { name: "", email: "", username: "", roles: [], photoUrl: "" };
+        : {
+            name: "",
+            email: "",
+            username: "",
+            roles: [],
+            photoUrl: "",
+            courses: [],
+          };
     },
     showProfileDropdown: (state, action) => {
       state.showProfileDropdown = action.payload;
