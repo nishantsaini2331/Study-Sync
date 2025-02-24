@@ -2,10 +2,46 @@ const Course = require("../models/course.model");
 const Payment = require("../models/payment.model");
 const User = require("../models/user.model");
 
+function instructorStats(instructor) {
+  const stats = {
+    totalCourses: 0,
+    totalStudents: 0,
+    totalEarnings: 0,
+  };
+
+  const courses = instructor.createdCourses;
+
+  if (courses && courses.length) {
+    stats.totalCourses = courses.length;
+
+    stats.totalEarnings = parseFloat(
+      (
+        courses.reduce((acc, course) => {
+          const enrolledCount = course.enrolledStudents?.length || 0;
+          return acc + course.price * enrolledCount;
+        }, 0) * 0.7
+      ).toFixed(2)
+    );
+
+    const uniqueStudentIds = new Set();
+
+    courses.forEach((course) => {
+      if (course.status === "published" && course.enrolledStudents) {
+        course.enrolledStudents.forEach((studentId) => {
+          uniqueStudentIds.add(studentId.toString());
+        });
+      }
+    });
+
+    stats.totalStudents = uniqueStudentIds.size;
+  }
+
+  return stats;
+}
 async function instructorDashboard(req, res) {
   try {
-    const instructor = await User.findById(req.user.id).select(
-      "instructorProfile"
+    const instructor = await User.findById(req.user.id).populate(
+      "createdCourses"
     );
     if (!instructor) {
       return res.status(401).json({
@@ -20,7 +56,6 @@ async function instructorDashboard(req, res) {
       )
       .populate("category", "name")
       .limit(5);
-
 
 
     const currentYear = new Date().getFullYear();
@@ -53,6 +88,11 @@ async function instructorDashboard(req, res) {
         $group: {
           _id: { $month: "$createdAt" },
           revenue: { $sum: { $multiply: ["$amount", 0.7] } },
+        },
+      },
+      {
+        $addFields: {
+          revenue: { $round: ["$revenue", 2] },
         },
       },
       {
@@ -303,11 +343,11 @@ async function instructorDashboard(req, res) {
         }))
       );
     }
-
+    instructorStats(instructor);
     return res.status(200).json({
       success: true,
       courses,
-      instructor: instructor.instructorProfile,
+      instructor: instructorStats(instructor),
       dashboardStats: {
         monthlyRevenue,
         monthlyEnrollments,
@@ -326,9 +366,7 @@ async function instructorDashboard(req, res) {
 
 async function instructorCourses(req, res) {
   try {
-    const instructor = await User.findById(req.user.id).select(
-      "instructorProfile"
-    );
+    const instructor = await User.findById(req.user.id);
     if (!instructor) {
       return res.status(401).json({
         success: false,
@@ -338,17 +376,13 @@ async function instructorCourses(req, res) {
 
     const courses = await Course.find({ instructor: instructor._id })
       .select(
-        "title description category price courseId thumbnail status updatedAt courseStats -_id"
+        "title description category price courseId thumbnail status updatedAt -_id"
       )
       .populate("category", "name");
-      
+
     return res.status(200).json({
       success: true,
       courses,
-      // instructor: {
-      //   ...instructor.instructorProfile,
-      //   ...totalStats,
-      // },
     });
   } catch (error) {
     console.log(error);
@@ -360,7 +394,175 @@ async function instructorCourses(req, res) {
   }
 }
 
+async function studentsDetails(req, res) {
+  try {
+    const instructor = await User.findById(req.user.id).select(
+      "instructorProfile"
+    );
+
+    if (!instructor) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    /**
+     * {
+     *  currentLearner: 1,
+     * completedCourseStudents: 1,
+     * totalLearner: 1,
+     * completedCourseWithCertificate: 1,
+     * notStartingLearning: 1,
+     *
+     * }
+     */
+
+    const studentsData = await Course.aggregate([
+      {
+        $match: {
+          instructor: instructor._id,
+          status: "published",
+        },
+      },
+      {
+        $lookup: {
+          from: "courseprogresses",
+          localField: "_id",
+          foreignField: "course",
+          as: "progress",
+        },
+      },
+      {
+        $unwind: {
+          path: "$progress",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "progress.student",
+          foreignField: "_id",
+          as: "student",
+        },
+      },
+      {
+        $unwind: {
+          path: "$student",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $facet: {
+          currentLearner: [
+            {
+              $match: {
+                "progress.overallProgress": { $gt: 0, $lt: 100 },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          completedCourseStudents: [
+            {
+              $match: {
+                "progress.overallProgress": 100,
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          totalLearner: [
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          completedCourseWithCertificate: [
+            {
+              $match: {
+                "progress.overallProgress": 100,
+                isCourseFinalQuizPassed: true,
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          notStartingLearning: [
+            {
+              $match: {
+                "progress.overallProgress": 0,
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          currentLearner: {
+            $ifNull: [{ $arrayElemAt: ["$currentLearner.count", 0] }, 0],
+          },
+          completedCourseStudents: {
+            $ifNull: [
+              { $arrayElemAt: ["$completedCourseStudents.count", 0] },
+              0,
+            ],
+          },
+          totalLearner: {
+            $ifNull: [{ $arrayElemAt: ["$totalLearner.count", 0] }, 0],
+          },
+          completedCourseWithCertificate: {
+            $ifNull: [
+              { $arrayElemAt: ["$completedCourseWithCertificate.count", 0] },
+              0,
+            ],
+          },
+          notStartingLearning: {
+            $ifNull: [{ $arrayElemAt: ["$notStartingLearning.count", 0] }, 0],
+          },
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      studentsData: studentsData[0],
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching student details",
+      error: error.message,
+    });
+  }
+}
+
+async function courseDetailStats(req, res) {}
+
 module.exports = {
   instructorDashboard,
   instructorCourses,
+  studentsDetails,
+  courseDetailStats,
 };

@@ -138,7 +138,7 @@ const courseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Method to check if a student can get course certificate
+
 courseSchema.methods.canGetCertificate = async function (userId) {
   const courseProgress = await mongoose.model("CourseProgress").findOne({
     user: userId,
@@ -160,6 +160,7 @@ courseSchema.methods.canGetCertificate = async function (userId) {
 
   return hasMetProgressRequirement && !!finalQuizAttempt;
 };
+
 
 const Course = mongoose.model("Course", courseSchema);
 module.exports = Course;

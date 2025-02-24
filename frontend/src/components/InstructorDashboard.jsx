@@ -30,29 +30,38 @@ import {
   YAxis,
 } from "recharts";
 import InstructorCourses from "./InstructorCourses";
+import InstructorStudentsData from "./InstructorStudentsData";
+import UpdateProfile from "../pages/UpdateProfile";
+import DetailCourseStats from "./DetailCourseStats";
 
 const InstructorDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [courses, setCourses] = useState(null);
   const [instructorStats, setInstructorStats] = useState(null);
+  const [detailCourseStats, setDetailCourseStats] = useState(null);
   const navigate = useNavigate();
 
   const [revenueData, setRevenueData] = useState([
     { month: "Jan", revenue: 2400 },
     { month: "Feb", revenue: 3600 },
-    // { month: "Mar", revenue: 600 },
-    // { month: "Apr", revenue: 4500 },
-    // { month: "May", revenue: 3800 },
+    { month: "Mar", revenue: 600 },
+    { month: "Apr", revenue: 4500 },
+    { month: "May", revenue: 3800 },
   ]);
 
   const [studentsEnrollments, setStudentsEnrollments] = useState([
     { month: "Jan", enrollments: 1 },
     { month: "Feb", enrollments: 2 },
+    { month: "Mar", enrollments: 3 },
+    { month: "Apr", enrollments: 4 },
+    { month: "May", enrollments: 5 },
   ]);
 
   const [courseStatusData, setCourseStatusData] = useState([
     { name: "published", value: 5 },
     { name: "draft", value: 2 },
+    { name: "pending", value: 1 },
+    { name: "rejected", value: 1 },
   ]);
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
@@ -63,7 +72,7 @@ const InstructorDashboard = () => {
     { id: "students", label: "Students", icon: Users },
     { id: "payments", label: "Payments", icon: DollarSign },
     { id: "reviews", label: "Reviews", icon: Star },
-    { id: "settings", label: "Settings", icon: Settings },
+    // { id: "settings", label: "Settings", icon: Settings },
     { id: "profile", label: "Profile", icon: User },
   ];
 
@@ -254,11 +263,19 @@ const InstructorDashboard = () => {
       case "courses":
         return (
           <div className="text-xl">
-            <InstructorCourses />
+            {detailCourseStats ? (
+              <DetailCourseStats detailCourseStats={detailCourseStats} />
+            ) : (
+              <InstructorCourses setDetailCourseStats={setDetailCourseStats} />
+            )}
           </div>
         );
       case "students":
-        return <div className="text-xl">Students Content</div>;
+        return (
+          <div className="text-xl">
+            <InstructorStudentsData />
+          </div>
+        );
       case "payments":
         return <div className="text-xl">Payments Content</div>;
       case "reviews":
@@ -266,7 +283,11 @@ const InstructorDashboard = () => {
       case "settings":
         return <div className="text-xl">Settings Content</div>;
       case "profile":
-        return <div className="text-xl">Profile Content</div>;
+        return (
+          <div className="text-xl">
+            <UpdateProfile />
+          </div>
+        );
       default:
         return <div className="text-xl">Dashboard Content</div>;
     }
@@ -282,30 +303,37 @@ const InstructorDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-        
       <div className="w-64 bg-white shadow-md">
         <div className="p-4 border-b">
           <h1 className="text-xl font-bold text-gray-800">Instructor Panel</h1>
         </div>
-        <nav className="p-4">
+        <nav className="py-4">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
             return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center space-x-2 p-3 rounded-lg transition-colors ${
-                  activeTab === item.id
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{item.label}</span>
-                {activeTab === item.id && (
-                  <ChevronRight className="w-4 h-4 ml-auto" />
-                )}
-              </button>
+              <div>
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    if (item.id === "courses") {
+                      setDetailCourseStats(null);
+                    }
+                  }}
+                  className={`w-full flex items-center space-x-2 p-3 rounded-lg transition-colors ${
+                    activeTab === item.id
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{item.label}</span>
+                  {activeTab === item.id && (
+                    <ChevronRight className="w-4 h-4 ml-auto" />
+                  )}
+                </button>
+                <div className="border-t border-gray-200 my-1"></div>
+              </div>
             );
           })}
         </nav>

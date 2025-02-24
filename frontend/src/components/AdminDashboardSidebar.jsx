@@ -1,6 +1,7 @@
 import {
   BookOpen,
   ChartBarBig,
+  ChevronRight,
   Home,
   LayoutDashboard,
   Settings,
@@ -26,15 +27,20 @@ function AdminDashboardSidebar({ activeTab, setActiveTab }) {
       <nav className="mt-4">
         {sidebarItems.map(({ key, label, icon: Icon }) => (
           <React.Fragment key={key}>
-            <div
+            <button
               onClick={() => setActiveTab(key)}
-              className={`flex items-center p-4 text-gray-700 hover:bg-gray-50 cursor-pointer ${
-                activeTab === key ? "bg-gray-50" : ""
+              className={`w-full flex items-center space-x-2 p-3 rounded-lg transition-colors ${
+                activeTab === key
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               <Icon className="w-5 h-5 mr-3" />
-              {label}
-            </div>
+              <span>{label}</span>
+              {activeTab === key && (
+                <ChevronRight className="w-4 h-4 ml-auto" />
+              )}
+            </button>
             <div className="border-t border-gray-200 my-1"></div>
           </React.Fragment>
         ))}

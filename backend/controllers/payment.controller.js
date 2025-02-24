@@ -168,7 +168,7 @@ async function verifyPayment(req, res) {
         $addToSet: { enrolledStudents: user._id },
         $inc: {
           "courseStats.totalStudents": 1,
-          "courseStats.totalRevenue": course.price,
+          "courseStats.totalRevenue": Math.round(course.price * 100) / 100,
         },
       },
       { session }
@@ -186,7 +186,7 @@ async function verifyPayment(req, res) {
 
     const instructorId = course.instructor;
 
-    const previousPurchase = await Payment.findOne({
+    const previousPurchase = await Payment.find({
       user: user._id,
       status: "successful",
       course: {
@@ -194,11 +194,13 @@ async function verifyPayment(req, res) {
       },
     }).session(session);
 
-    if (!previousPurchase) {
+    if (previousPurchase.length === 1) {
       await User.findByIdAndUpdate(
         instructorId,
         {
-          $inc: { "intructorProfile.totalStudents": 1 },
+          $inc: {
+            "instructorProfile.totalStudents": 1,
+          },
         },
         { session }
       );
@@ -207,11 +209,13 @@ async function verifyPayment(req, res) {
     await User.findByIdAndUpdate(
       instructorId,
       {
-        $inc: { "intructorProfile.totalEarnings": course.price * 0.7 },
+        $inc: {
+          "instructorProfile.totalEarnings":
+            Math.round(course.price * 0.7 * 100) / 100,
+        },
       },
       { session }
     );
-
     const sortedLectures = course.lectures.sort((a, b) => a.order - b.order);
 
     const newProgress = await CourseProgress.create({

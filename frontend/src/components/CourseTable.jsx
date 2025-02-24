@@ -45,12 +45,10 @@ function CourseTable({ courses, handleAction }) {
 
   return (
     <div>
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Course Management</h2>
       </div>
 
-      {/* Filters */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
@@ -79,7 +77,7 @@ function CourseTable({ courses, handleAction }) {
         </div>
       </div>
 
-      {/* Course Table */}
+
       <div className="bg-white rounded-lg shadow">
         <div className="overflow-x-auto">
           <table className="w-full">
