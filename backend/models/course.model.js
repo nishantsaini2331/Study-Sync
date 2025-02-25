@@ -112,6 +112,12 @@ const courseSchema = new mongoose.Schema(
       type: [String],
       required: true,
     },
+    reviewAndRating: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ReviewAndRating",
+      },
+    ],
     courseStats: {
       totalStudents: {
         type: Number,
@@ -138,7 +144,6 @@ const courseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-
 courseSchema.methods.canGetCertificate = async function (userId) {
   const courseProgress = await mongoose.model("CourseProgress").findOne({
     user: userId,
@@ -160,7 +165,6 @@ courseSchema.methods.canGetCertificate = async function (userId) {
 
   return hasMetProgressRequirement && !!finalQuizAttempt;
 };
-
 
 const Course = mongoose.model("Course", courseSchema);
 module.exports = Course;

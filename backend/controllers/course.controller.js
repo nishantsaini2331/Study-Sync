@@ -1,3 +1,6 @@
+const {
+  default: ReviewAndRating,
+} = require("../../frontend/src/components/ReviewAndRating");
 const Category = require("../models/category.model");
 const Course = require("../models/course.model");
 const CourseVerify = require("../models/courseVerify.model");
@@ -16,6 +19,31 @@ const ShortUniqueId = require("short-unique-id");
 
 const { randomUUID } = new ShortUniqueId({ length: 6 });
 
+function courseStats(courses) {
+  let stats = {
+    totalStudents: 0,
+    totalRevenue: 0,
+    totalReviews: 0,
+    averageRating: 0,
+    totalRatings: 0,
+  };
+
+  for (let course of courses) {
+    stats.totalStudents += course.enrolledStudents.length;
+    stats.totalRevenue += course.price * course.enrolledStudents.length;
+    stats.totalReviews += course.reviewAndRating.length;
+    stats.totalRatings += course.reviewAndRating.reduce(
+      (acc, curr) => acc + curr.rating,
+      0
+    );
+  }
+
+  if (stats.totalReviews > 0) {
+    stats.averageRating = stats.totalRatings / stats.totalReviews;
+  }
+
+  return stats;
+}
 
 async function createCourse(req, res) {
   try {
@@ -364,6 +392,8 @@ async function deleteCourse(req, res) {
 
     await FinalQuiz.findByIdAndDelete(course.finalQuiz._id);
 
+    await ReviewAndRating.deleteMany({ course: deletedCourse._id });
+
     return res.status(200).json({ success: true, message: "Course deleted" });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -434,6 +464,20 @@ async function getCourseForStudent(req, res) {
         path: "lectures",
         select: "title description duration -_id",
       })
+      .populate({
+        path: "reviewAndRating",
+        populate: [
+          {
+            path: "student",
+            select: "name photoUrl username -_id",
+          },
+          {
+            path: "course",
+            select: "title courseId -_id",
+          },
+        ],
+        select: "rating review createdAt -_id",
+      })
       .select(
         "title description price thumbnail language courseId previewVideo minimumSkill lectures language whatYouWillLearn -_id"
       );
@@ -442,6 +486,17 @@ async function getCourseForStudent(req, res) {
       return res
         .status(404)
         .json({ success: false, message: "Course not found" });
+    }
+
+    let averageRating = 0;
+
+    if (course.reviewAndRating.length > 0) {
+      let totalReviews = course.reviewAndRating.length;
+      let totalRatings = course.reviewAndRating.reduce(
+        (acc, curr) => acc + curr.rating,
+        0
+      );
+      averageRating = totalRatings / totalReviews;
     }
 
     // const totalDuration = course.lectures.reduce((acc, curr) => {
@@ -453,8 +508,11 @@ async function getCourseForStudent(req, res) {
     //   lectures: course.lectures.length,
     // };
 
-    return res.status(200).json({ success: true, course });
+    return res
+      .status(200)
+      .json({ success: true, course: { ...course.toObject(), averageRating } });
   } catch (error) {
+    console.log(error);
     return res.status(400).json({ success: false, message: error.message });
   }
 }

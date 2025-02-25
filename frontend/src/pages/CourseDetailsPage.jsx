@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from "react";
-import {
-  Clock,
-  Book,
-  Globe,
-  BarChart2,
-  Play,
-  ShoppingCart,
-  IndianRupee,
-  BadgeIndianRupee,
-  ChevronDown,
-  ChevronUp,
-  Edit,
-} from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
 import axios from "axios";
+import {
+  BadgeIndianRupee,
+  BarChart2,
+  Book,
+  Edit,
+  Globe,
+  IndianRupee,
+  MessageSquare,
+  ShoppingCart,
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import CourseContent from "../components/CourseContent";
+import RatingStars from "../components/RatingStars";
+import RelatedCourses from "../components/RelatedCourses";
+import ReviewAndRating from "../components/ReviewAndRating";
 
 export async function chechStudentEnrolled(courseId, setIsEnrolled = () => {}) {
   try {
@@ -44,6 +45,11 @@ const CourseDetailsPage = () => {
   const { username, name, email } = useSelector((state) => state?.user?.user);
 
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [userRating, setUserRating] = useState(0);
+  const [userReview, setUserReview] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [hasUserReviewed, setHasUserReviewed] = useState(false);
+  const [userReviewData, setUserReviewData] = useState(null);
 
   const [courseDetails, setCourseDetails] = useState({
     title: "Advanced Funnels with Google Analytics",
@@ -91,6 +97,38 @@ const CourseDetailsPage = () => {
       "Analyze user behavior",
       "Optimize your website",
     ],
+
+    reviewAndRating: [
+      {
+        rating: 4.5,
+        review:
+          "The course is very informative and the instructor is very knowledgeable",
+        student: {
+          name: "John Doe",
+          username: "johndoe",
+          photoUrl: "/api/placeholder/40/40",
+        },
+        course: {
+          title: "Advanced Funnels with Google Analytics",
+          courseId: "advanced-funnels-with-google-analytics",
+        },
+      },
+      {
+        rating: 4.5,
+        review:
+          "The course is very informative and the instructor is very knowledgeable",
+        student: {
+          name: "John Doe",
+          username: "johndoe",
+          photoUrl: "/api/placeholder/40/40",
+        },
+        course: {
+          title: "Advanced Funnels with Google Analytics",
+          courseId: "advanced-funnels-with-google-analytics",
+        },
+      },
+    ],
+    averageRating: 4.5,
   });
 
   const relatedCourses = [
@@ -218,6 +256,208 @@ const CourseDetailsPage = () => {
     }
   }
 
+  async function handleSubmitReview() {
+    if (!username) {
+      toast.error("Please login to submit a review");
+      navigate("/login");
+      return;
+    }
+
+    if (userRating === 0) {
+      toast.error("Please select a rating");
+      return;
+    }
+
+    if (!userReview) {
+      toast.error("Please write a review");
+      return;
+    }
+
+    setSubmittingReview(true);
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}review-and-rating/${courseId}`,
+        {
+          rating: userRating,
+          review: userReview,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Review submitted successfully");
+
+        const newReview = response.data.data;
+        setCourseDetails((prev) => {
+          const newTotalReviews = prev.reviewAndRating.length + 1;
+
+          const totalPoints =
+            prev.averageRating * prev.reviewAndRating.length + userRating;
+          const newAverageRating = totalPoints / newTotalReviews;
+
+          return {
+            ...prev,
+            reviewAndRating: [...prev.reviewAndRating, newReview],
+            averageRating: newAverageRating,
+          };
+        });
+        setHasUserReviewed(true);
+        setUserReviewData({
+          rating: userRating,
+          review: userReview,
+        });
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to submit review. Please try again."
+      );
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
+
+  async function handleEditReview() {
+    setSubmittingReview(true);
+
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}review-and-rating/${courseId}`,
+        {
+          rating: userRating,
+          review: userReview,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Review updated successfully");
+
+        const updatedReview = {
+          ...userReviewData,
+          rating: userRating,
+          review: userReview,
+          createdAt: new Date(),
+        };
+
+        setCourseDetails((prev) => {
+          const oldRating = userReviewData.rating;
+          const totalPoints =
+            prev.averageRating * prev.reviewAndRating.length -
+            oldRating +
+            userRating;
+          const newAverageRating = totalPoints / prev.reviewAndRating.length;
+
+          const updatedReviews = prev.reviewAndRating.map((review) =>
+            review.student.username === username ? updatedReview : review
+          );
+
+          return {
+            ...prev,
+            reviewAndRating: updatedReviews,
+            averageRating: newAverageRating,
+          };
+        });
+
+        // Update user review data
+        setUserReviewData({
+          rating: userRating,
+          review: userReview,
+        });
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to update review. Please try again."
+      );
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
+
+  async function checkUserReview() {
+    if (!username) return;
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}review-and-rating/${courseId}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.success) {
+        setHasUserReviewed(true);
+        setUserReviewData(response.data.data);
+        setUserRating(response.data.data.rating);
+        setUserReview(response.data.data.review);
+      }
+    } catch (error) {
+      console.error("Error checking user review:", error);
+    }
+  }
+
+  async function handleDeleteReview() {
+    if (!username) {
+      toast.error("Please login to delete a review");
+      navigate("/login");
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
+
+    try {
+      const response = await axios.delete(
+        `${import.meta.env.VITE_BACKEND_URL}review-and-rating/${courseId}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Review deleted successfully");
+
+        setCourseDetails((prev) => {
+          const totalReviews = prev.reviewAndRating.length - 1;
+
+          if (totalReviews === 0) {
+            return {
+              ...prev,
+              reviewAndRating: [],
+              averageRating: 0,
+            };
+          }
+
+          const totalPoints =
+            prev.averageRating * prev.reviewAndRating.length -
+            userReviewData.rating;
+          const newAverageRating = totalPoints / totalReviews;
+
+          return {
+            ...prev,
+            reviewAndRating: prev.reviewAndRating.filter(
+              (review) => review.student.username !== username
+            ),
+            averageRating: newAverageRating,
+          };
+        });
+
+        setHasUserReviewed(false);
+        setUserRating(0);
+        setUserReview("");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to delete review. Please try again."
+      );
+    }
+  }
+
   useEffect(() => {
     async function fetchCourseDetails() {
       try {
@@ -234,6 +474,26 @@ const CourseDetailsPage = () => {
     fetchCourseDetails();
     chechStudentEnrolled(courseId, setIsEnrolled);
   }, []);
+
+  useEffect(() => {
+    if (isEnrolled && username) {
+      checkUserReview();
+    }
+  }, [isEnrolled, username]);
+
+  useEffect(() => {
+    if (username && courseDetails.reviewAndRating) {
+      const userReview = courseDetails.reviewAndRating.find(
+        (review) => review.student.username === username
+      );
+      if (userReview) {
+        setHasUserReviewed(true);
+        setUserReviewData(userReview);
+        setUserRating(userReview.rating);
+        setUserReview(userReview.text);
+      }
+    }
+  }, [username, courseDetails.reviews]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -299,6 +559,27 @@ const CourseDetailsPage = () => {
                 ))}
               </div>
             </section>
+
+            <ReviewAndRating
+              courseDetails={courseDetails}
+              user={{
+                isEnrolled,
+                username: username,
+                hasReviewed: hasUserReviewed,
+              }}
+              userReviewData={{
+                rating: userRating,
+                review: userReview,
+                isSubmitting: submittingReview,
+              }}
+              reviewActions={{
+                setRating: setUserRating,
+                setReview: setUserReview,
+                submitReview: handleSubmitReview,
+                editReview: handleEditReview,
+                deleteReview: handleDeleteReview,
+              }}
+            />
           </div>
         </div>
 
@@ -347,6 +628,20 @@ const CourseDetailsPage = () => {
               </Link>
             )}
 
+            <div className="border-t border-gray-200 pt-4 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <MessageSquare className="w-5 h-5 text-gray-600" />
+                <span className="font-medium">Course Reviews</span>
+              </div>
+              <div className="flex items-center mb-2">
+                <RatingStars rating={courseDetails.averageRating} />
+                <span className="ml-2 text-gray-600 text-sm">
+                  {courseDetails.averageRating.toFixed(1)} (
+                  {courseDetails.reviewAndRating.length} reviews)
+                </span>
+              </div>
+            </div>
+
             <div className="space-y-4 capitalize">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-600">
@@ -381,82 +676,9 @@ const CourseDetailsPage = () => {
         </div>
       </div>
 
-      <section className="mt-16">
-        <h2 className="text-2xl font-bold mb-8">Related Courses</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {relatedCourses.map((course, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg shadow-lg overflow-hidden"
-            >
-              <div className="relative">
-                <img
-                  src="/api/placeholder/400/250"
-                  alt={course.title}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-sm">
-                  ${course.price}
-                </div>
-              </div>
-              <div className="p-4">
-                <div className="flex items-center gap-2 text-blue-600 mb-2">
-                  <Book className="w-4 h-4" />
-                  <span className="text-sm">{course.lessons} Lesson</span>
-                </div>
-                <h3 className="text-lg font-bold mb-2">{course.title}</h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  {course.description}
-                </p>
-                <div className="flex items-center gap-2">
-                  <img
-                    src="/api/placeholder/32/32"
-                    alt={course.instructor}
-                    className="rounded-full"
-                  />
-                  <span className="text-sm text-gray-600">
-                    by {course.instructor}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <RelatedCourses relatedCourses={relatedCourses} />
     </div>
   );
 };
-
-function CourseContent({ lectureIndex, lecture, length }) {
-  const [activeLecture, setActiveLecture] = useState(false);
-
-  return (
-    <>
-      <div
-        onClick={() => setActiveLecture(!activeLecture)}
-        className={`bg-gray-100 p-4 cursor-pointer border-gray-400 ${
-          lectureIndex === length - 1 ? "" : "border-b"
-        }`}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            {activeLecture ? <ChevronUp /> : <ChevronDown />}
-            <h3 className="text-lg font-bold">{lecture.title}</h3>
-          </div>
-          <span>Duration: {lecture.duration}</span>
-        </div>
-      </div>
-      {activeLecture && (
-        <p
-          className={`text-gray-600 p-3  border-gray-400 ${
-            lectureIndex === length - 1 ? "" : "border-b"
-          }`}
-        >
-          {lecture.description}
-        </p>
-      )}
-    </>
-  );
-}
 
 export default CourseDetailsPage;

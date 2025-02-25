@@ -57,6 +57,123 @@ async function instructorDashboard(req, res) {
       .populate("category", "name")
       .limit(5);
 
+    // Get monthly revenue data
+    // const monthlyRevenue = await Course.aggregate([
+    //   {
+    //     $match: {
+    //       instructor: instructor._id,
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "courseprogresses", // Adjust if your collection name is different
+    //       localField: "_id",
+    //       foreignField: "course",
+    //       as: "progress",
+    //     },
+    //   },
+    //   {
+    //     $unwind: "$progress",
+    //   },
+    //   {
+    //     $group: {
+    //       _id: {
+    //         month: { $month: "$progress.createdAt" },
+    //         year: { $year: "$progress.createdAt" },
+    //       },
+    //       revenue: { $push: "$courseStats.totalRevenue" },
+    //     },
+    //   },
+    //   {
+    //     $project: {
+    //       _id: 0,
+    //       month: {
+    //         $let: {
+    //           vars: {
+    //             monthsInString: [
+    //               "Jan",
+    //               "Feb",
+    //               "Mar",
+    //               "Apr",
+    //               "May",
+    //               "Jun",
+    //               "Jul",
+    //               "Aug",
+    //               "Sep",
+    //               "Oct",
+    //               "Nov",
+    //               "Dec",
+    //             ],
+    //           },
+    //           in: {
+    //             $arrayElemAt: [
+    //               "$$monthsInString",
+    //               { $subtract: ["$_id.month", 1] },
+    //             ],
+    //           },
+    //         },
+    //       },
+    //       revenue: 1,
+    //     },
+    //   },
+    //   { $sort: { "_id.year": 1, "_id.month": 1 } },
+    // ]);
+
+    // const monthlyRevenue = await Course.aggregate([
+    //   {
+    //     $match: {
+    //       instructor: instructor._id,
+    //       createdAt: {
+    //         $gte: new Date(`${currentYear}-01-01`),
+    //         $lte: new Date(`${currentYear}-12-31`),
+    //       },
+    //     },
+    //   },
+    //   {
+    //     $group: {
+    //       _id: {
+    //         month: { $month: "$createdAt" },
+    //         year: { $year: "$createdAt" },
+    //       },
+    //       revenue: { $sum: "$courseStats.totalRevenue" },
+    //     },
+    //   },
+    //   {
+    //     $project: {
+    //       _id: 0,
+    //       month: {
+    //         $let: {
+    //           vars: {
+    //             monthsInString: [
+    //               "Jan",
+    //               "Feb",
+    //               "Mar",
+    //               "Apr",
+    //               "May",
+    //               "Jun",
+    //               "Jul",
+    //               "Aug",
+    //               "Sep",
+    //               "Oct",
+    //               "Nov",
+    //               "Dec",
+    //             ],
+    //           },
+    //           in: {
+    //             $arrayElemAt: [
+    //               "$$monthsInString",
+    //               { $subtract: ["$_id.month", 1] },
+    //             ],
+    //           },
+    //         },
+    //       },
+    //       revenue: 1,
+    //     },
+    //   },
+    //   {
+    //     $sort: { "_id.year": 1, "_id.month": 1 },
+    //   },
+    // ]);
 
     const currentYear = new Date().getFullYear();
 
