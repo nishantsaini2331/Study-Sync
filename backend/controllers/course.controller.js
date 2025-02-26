@@ -1,12 +1,10 @@
-const {
-  default: ReviewAndRating,
-} = require("../../frontend/src/components/ReviewAndRating");
 const Category = require("../models/category.model");
 const Course = require("../models/course.model");
 const CourseVerify = require("../models/courseVerify.model");
 const FinalQuiz = require("../models/finalQuiz.model");
 const Lecture = require("../models/lecture.model");
 const MCQ = require("../models/mcq.model");
+const ReviewAndRating = require("../models/reviewAndRating.model");
 const User = require("../models/user.model");
 
 const {
