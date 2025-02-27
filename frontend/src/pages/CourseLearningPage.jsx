@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
-  Play,
-  Lock,
-  Clock,
-  FileText,
   CheckCircle,
-  List,
   ChevronDown,
   ChevronUp,
+  Clock,
+  FileText,
+  List,
+  Lock,
+  Play,
 } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import QuizComponent from "../components/QuizComponent";
+import Comment from "../components/Comment";
 
 function CourseLearningPage() {
   const { id: courseId } = useParams();
@@ -23,6 +24,8 @@ function CourseLearningPage() {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [userAnswers, setUserAnswers] = useState({});
   const [isQuizCorrect, setIsQuizCorrect] = useState(false);
+
+  const [activeTab, setActiveTab] = useState("quiz");
 
   const [showLectures, setShowLectures] = useState(false);
 
@@ -110,6 +113,48 @@ function CourseLearningPage() {
     }
   }
 
+  function renderContent() {
+    switch (activeTab) {
+      case "quiz":
+        return (
+          <div className="text-lg">
+            <QuizComponent
+              currentLecture={currentLecture}
+              quizSubmitted={quizSubmitted}
+              userAnswers={userAnswers}
+              handleAnswerSelection={handleAnswerSelection}
+              handleQuizSubmit={handleQuizSubmit}
+              score={score}
+              setQuizSubmitted={setQuizSubmitted}
+              setUserAnswers={setUserAnswers}
+            />
+          </div>
+        );
+      case "comments":
+        return (
+          <div className="text-lg">
+            <Comment lectureId={currentLecture?.lecture?.lectureId} />
+          </div>
+        );
+
+      default:
+        return (
+          <div className="text-lg">
+            <QuizComponent
+              currentLecture={currentLecture}
+              quizSubmitted={quizSubmitted}
+              userAnswers={userAnswers}
+              handleAnswerSelection={handleAnswerSelection}
+              handleQuizSubmit={handleQuizSubmit}
+              score={score}
+              setQuizSubmitted={setQuizSubmitted}
+              setUserAnswers={setUserAnswers}
+            />
+          </div>
+        );
+    }
+  }
+
   useEffect(() => {
     fetchCourseLearningData();
     document.title = "Course Learning Page";
@@ -154,6 +199,7 @@ function CourseLearningPage() {
                   setQuizSubmitted(false);
                   setUserAnswers({});
                   setShowLectures(false);
+                  setActiveTab("quiz");
                 }}
               >
                 <div className="mr-3">
@@ -243,16 +289,24 @@ function CourseLearningPage() {
                   {currentLecture.lecture.description}
                 </p>
 
-                <QuizComponent
-                  currentLecture={currentLecture}
-                  quizSubmitted={quizSubmitted}
-                  userAnswers={userAnswers}
-                  handleAnswerSelection={handleAnswerSelection}
-                  handleQuizSubmit={handleQuizSubmit}
-                  score={score}
-                  setQuizSubmitted={setQuizSubmitted}
-                  setUserAnswers={setUserAnswers}
-                />
+                <div>
+                  <div className="flex items-center mb-4">
+                    {["quiz", "comments"].map((tab) => (
+                      <button
+                        className={`px-4 py-2 rounded-md capitalize text-lg mx-2 text-gray-700 ${
+                          activeTab === tab
+                            ? "bg-blue-700 text-white"
+                            : "hover:bg-gray-50"
+                        }`}
+                        onClick={() => setActiveTab(tab)}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {renderContent()}
 
                 <div className="flex justify-between border-t pt-6">
                   <button

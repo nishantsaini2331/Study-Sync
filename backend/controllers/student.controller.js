@@ -1,3 +1,4 @@
+const Comment = require("../models/comment.model");
 const Course = require("../models/course.model");
 const CourseProgress = require("../models/courseProgress.model");
 const Lecture = require("../models/lecture.model");
@@ -9,6 +10,36 @@ async function getStudentCourseById(req, res) {
     const courseId = req.params.id;
 
     const course = await Course.findOne({ courseId }).populate("lectures");
+
+    // const lectures = course.lectures;
+
+    // for(let lecture of lectures) {
+    //   let mcqs = await Lecture.findById(lecture._id).populate("mcqs");
+    //   lecture.mcqs = mcqs.mcqs;
+    // }
+
+    // async function populateReplies(comments) {
+    //   for (const comment of comments) {
+    //     let populatedComment = await Comment.findById(comment._id)
+    //       .populate({
+    //         path: "replies",
+    //         populate: {
+    //           path: "user",
+    //           select: "name email username profilePic",
+    //         },
+    //       })
+    //       .lean();
+
+    //     comment.replies = populatedComment.replies;
+
+    //     if (comment.replies && comment.replies.length > 0) {
+    //       await populateReplies(comment.replies);
+    //     }
+    //   }
+    //   return comments;
+    // }
+
+    // lecture.comments = await populateReplies(lectures.comments);
 
     if (!course) {
       return res.status(404).json({
@@ -71,6 +102,7 @@ async function getStudentCourseById(req, res) {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
+
 
 async function unlockLecture(req, res) {
   try {

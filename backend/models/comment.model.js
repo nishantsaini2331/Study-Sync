@@ -8,7 +8,11 @@ const commentSchema = new mongoose.Schema(
     },
     lecture: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Blog",
+      ref: "Lecture",
+    },
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
     },
     student: {
       type: mongoose.Schema.Types.ObjectId,
@@ -30,6 +34,10 @@ const commentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Comment",
       default: null,
+    },
+    isPinComment: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

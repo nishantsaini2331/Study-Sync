@@ -12,6 +12,7 @@ const paymentRoute = require("./routes/payment.route");
 const studentRoute = require("./routes/student.route");
 const instructorRoute = require("./routes/instructor.route");
 const reviewAndRatingRoute = require("./routes/reviewAndRating.route");
+const commentRoute = require("./routes/comment.route");
 const app = express();
 const cookieParser = require("cookie-parser");
 
@@ -36,6 +37,7 @@ app.use("/api/v1/payment", paymentRoute);
 app.use("/api/v1/student", studentRoute);
 app.use("/api/v1/instructor", instructorRoute);
 app.use("/api/v1/review-and-rating", reviewAndRatingRoute);
+app.use("/api/v1/comment", commentRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
