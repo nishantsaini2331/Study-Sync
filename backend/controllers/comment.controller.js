@@ -29,13 +29,15 @@ async function addComment(req, res) {
       course: lecture.course,
     });
 
+    await newComment.populate("student", "name email username profilePic");
+
     lecture.comments.push(newComment._id);
     await lecture.save();
 
     return res.status(200).json({
       success: true,
       message: "Comment added successfully",
-      newComment,
+      comment: newComment,
     });
   } catch (error) {
     return res.status(500).json({
@@ -46,23 +48,21 @@ async function addComment(req, res) {
 
 async function deleteComment(req, res) {
   try {
-    const userId = req.user;
+    const student = req.user;
     const { id } = req.params;
 
-    const comment = await Comment.findById(id).populate({
-      path: "blog",
-      select: "creator",
-    });
+    const comment = await Comment.findById(id);
 
     if (!comment) {
       return res.status(500).json({
-        message: "Comment not found",
+        message: "Comment is not found",
       });
     }
 
-    if (comment.user != userId && comment.blog.creator != userId) {
-      return res.status(500).json({
-        message: "You are not authorized",
+    if (comment.student != student.id) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not valid user to delete this comment",
       });
     }
 
@@ -84,7 +84,7 @@ async function deleteComment(req, res) {
 
     await deleteCommentAndReplies(id);
 
-    await Blog.findByIdAndUpdate(comment.blog._id, {
+    await Lecture.findByIdAndUpdate(comment.lecture, {
       $pull: { comments: id },
     });
 
@@ -101,9 +101,9 @@ async function deleteComment(req, res) {
 
 async function editComment(req, res) {
   try {
-    const userId = req.user;
+    const student = req.user;
     const { id } = req.params;
-    const { updatedCommentContent } = req.body;
+    const { updatedCommentText } = req.body;
 
     const comment = await Comment.findById(id);
 
@@ -113,7 +113,7 @@ async function editComment(req, res) {
       });
     }
 
-    if (comment.user != userId) {
+    if (comment.student != student.id) {
       return res.status(400).json({
         success: false,
         message: "You are not valid user to edit this comment",
@@ -123,15 +123,10 @@ async function editComment(req, res) {
     const updatedComment = await Comment.findByIdAndUpdate(
       id,
       {
-        comment: updatedCommentContent,
+        comment: updatedCommentText,
       },
       { new: true }
-    ).then((comment) => {
-      return comment.populate({
-        path: "user",
-        select: "name email",
-      });
-    });
+    );
 
     return res.status(200).json({
       success: true,
@@ -145,30 +140,36 @@ async function editComment(req, res) {
   }
 }
 
-async function likeComment(req, res) {
+async function likeDislikeComment(req, res) {
   try {
-    const userId = req.user;
+    const student = req.user;
     const { id } = req.params;
 
     const comment = await Comment.findById(id);
 
     if (!comment) {
       return res.status(500).json({
-        message: "comment is not found",
+        message: "Comment is not found",
       });
     }
 
-    if (!comment.likes.includes(userId)) {
-      await Comment.findByIdAndUpdate(id, { $push: { likes: userId } });
+    if (comment.likes.includes(student.id)) {
+      await Comment.findByIdAndUpdate(id, {
+        $pull: { likes: student.id },
+      });
+
       return res.status(200).json({
         success: true,
-        message: "Comment Liked successfully",
+        message: "Comment unliked successfully",
       });
     } else {
-      await Comment.findByIdAndUpdate(id, { $pull: { likes: userId } });
+      await Comment.findByIdAndUpdate(id, {
+        $push: { likes: student.id },
+      });
+
       return res.status(200).json({
         success: true,
-        message: "Comment DisLiked successfully",
+        message: "Comment liked successfully",
       });
     }
   } catch (error) {
@@ -180,48 +181,49 @@ async function likeComment(req, res) {
 
 async function addNestedComment(req, res) {
   try {
-    const userId = req.user;
+    const student = req.user;
+    const { id } = req.params;
+    const { reply, lectureId } = req.body;
 
-    const { id: blogId, parentCommentId } = req.params;
-
-    const { reply } = req.body;
-
-    const comment = await Comment.findById(parentCommentId);
-
-    const blog = await Blog.findById(blogId);
-
-    if (!comment) {
+    if (!reply) {
       return res.status(500).json({
-        message: "parent comment is not found",
+        message: "Please enter the comment",
       });
     }
 
-    if (!blog) {
+    const lecture = await Lecture.findOne({ lectureId });
+
+    if (!lecture) {
       return res.status(500).json({
-        message: "Blog is not found",
+        message: "Lecture not found",
       });
     }
 
-    const newReply = await Comment.create({
-      blog: blogId,
+    const parentComment = await Comment.findById(id);
+
+    if (!parentComment) {
+      return res.status(500).json({
+        message: "Parent Comment not found",
+      });
+    }
+
+    const newComment = await Comment.create({
       comment: reply,
-      parentComment: parentCommentId,
-      user: userId,
-    }).then((reply) => {
-      return reply.populate({
-        path: "user",
-        select: "name email",
-      });
+      lecture: parentComment.lecture,
+      student: student.id,
+      course: parentComment.course,
+      parentComment: parentComment._id,
     });
 
-    await Comment.findByIdAndUpdate(parentCommentId, {
-      $push: { replies: newReply._id },
-    });
+    await newComment.populate("student", "name email username profilePic");
+
+    parentComment.replies.push(newComment._id);
+    await parentComment.save();
 
     return res.status(200).json({
       success: true,
-      message: "Reply added successfully",
-      newReply,
+      message: "Comment added successfully",
+      reply: newComment,
     });
   } catch (error) {
     return res.status(500).json({
@@ -234,6 +236,6 @@ module.exports = {
   addComment,
   deleteComment,
   editComment,
-  likeComment,
+  likeDislikeComment,
   addNestedComment,
 };

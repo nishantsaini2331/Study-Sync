@@ -13,9 +13,6 @@ const QuizDisplay = ({ mcqs, responses }) => {
         const response = formattedResponses[mcq._id];
         const isAnswered = !!response;
 
-        console.log(response);
-        console.log(mcq);
-
         return (
           <div key={mcq._id} className="border-b pb-4">
             <p className="font-medium mb-3">

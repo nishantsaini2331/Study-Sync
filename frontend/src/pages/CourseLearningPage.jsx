@@ -23,7 +23,8 @@ function CourseLearningPage() {
 
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [userAnswers, setUserAnswers] = useState({});
-  const [isQuizCorrect, setIsQuizCorrect] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const [activeTab, setActiveTab] = useState("quiz");
 
@@ -63,7 +64,7 @@ function CourseLearningPage() {
               lecture.lecture.order === currentLecture.lecture.order - 1
           );
           if (previousLecture) {
-            setCurrentLecture(previousLecture);
+            fetchCurrentLecture(previousLecture.lecture.lectureId);
           } else {
             setCurrentLecture(currentLecture);
           }
@@ -73,6 +74,25 @@ function CourseLearningPage() {
       }
     } catch (error) {
       console.error("Error fetching course learning data:", error);
+    }
+  }
+
+  async function fetchCurrentLecture(lectureId) {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }student/current-lecture/${courseId}/${lectureId}`,
+        {
+          withCredentials: true,
+        }
+      );
+      setCurrentLecture(response.data.data);
+    } catch (error) {
+      console.error("Error fetching current lecture:", error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -133,7 +153,10 @@ function CourseLearningPage() {
       case "comments":
         return (
           <div className="text-lg">
-            <Comment lectureId={currentLecture?.lecture?.lectureId} />
+            <Comment
+              lectureId={currentLecture?.lecture?.lectureId}
+              comments={currentLecture?.lecture?.comments}
+            />
           </div>
         );
 
@@ -160,7 +183,7 @@ function CourseLearningPage() {
     document.title = "Course Learning Page";
   }, [courseId]);
 
-  if (!currentLecture) {
+  if (!currentLecture || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <p>Loading course content...</p>
@@ -195,11 +218,11 @@ function CourseLearningPage() {
                     : "hover:bg-gray-50"
                 }`}
                 onClick={() => {
-                  setCurrentLecture(lecture);
                   setQuizSubmitted(false);
                   setUserAnswers({});
                   setShowLectures(false);
                   setActiveTab("quiz");
+                  fetchCurrentLecture(lecture.lecture.lectureId);
                 }}
               >
                 <div className="mr-3">

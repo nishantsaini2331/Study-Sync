@@ -41,6 +41,8 @@ const InstructorDashboard = () => {
   const [detailCourseStats, setDetailCourseStats] = useState(null);
   const navigate = useNavigate();
 
+  console.log(instructorStats);
+
   const [revenueData, setRevenueData] = useState([
     { month: "Jan", revenue: 2400 },
     { month: "Feb", revenue: 3600 },

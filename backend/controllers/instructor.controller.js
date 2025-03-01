@@ -7,6 +7,7 @@ function instructorStats(instructor) {
     totalCourses: 0,
     totalStudents: 0,
     totalEarnings: 0,
+    averageRating: 0,
   };
 
   const courses = instructor.createdCourses;
@@ -38,6 +39,8 @@ function instructorStats(instructor) {
 
   return stats;
 }
+
+
 async function instructorDashboard(req, res) {
   try {
     const instructor = await User.findById(req.user.id).populate(
