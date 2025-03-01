@@ -344,4 +344,5 @@ module.exports = {
   getStudentCourseById,
   unlockLecture,
   getCurrentLecture,
+  populateReplies
 };

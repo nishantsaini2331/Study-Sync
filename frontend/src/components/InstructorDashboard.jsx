@@ -1,38 +1,39 @@
 import axios from "axios";
 import {
-  BookOpen,
-  ChevronRight,
-  DollarSign,
-  IndianRupee,
-  LayoutDashboard,
-  Plus,
-  Settings,
-  Star,
-  User,
-  Users,
-  Users2,
+    BookOpen,
+    ChevronRight,
+    DollarSign,
+    IndianRupee,
+    LayoutDashboard,
+    MessageCircle,
+    Plus,
+    Star,
+    User,
+    Users,
+    Users2
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+    Area,
+    AreaChart,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from "recharts";
-import InstructorCourses from "./InstructorCourses";
-import InstructorStudentsData from "./InstructorStudentsData";
 import UpdateProfile from "../pages/UpdateProfile";
 import DetailCourseStats from "./DetailCourseStats";
+import InstructorCommentDashboard from "./InstructorCommentDashboard";
+import InstructorCourses from "./InstructorCourses";
+import InstructorStudentsData from "./InstructorStudentsData";
 
 const InstructorDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -40,8 +41,6 @@ const InstructorDashboard = () => {
   const [instructorStats, setInstructorStats] = useState(null);
   const [detailCourseStats, setDetailCourseStats] = useState(null);
   const navigate = useNavigate();
-
-  console.log(instructorStats);
 
   const [revenueData, setRevenueData] = useState([
     { month: "Jan", revenue: 2400 },
@@ -74,6 +73,7 @@ const InstructorDashboard = () => {
     { id: "students", label: "Students", icon: Users },
     { id: "payments", label: "Payments", icon: DollarSign },
     { id: "reviews", label: "Reviews", icon: Star },
+    { id: "comments", label: "Comments", icon: MessageCircle },
     // { id: "settings", label: "Settings", icon: Settings },
     { id: "profile", label: "Profile", icon: User },
   ];
@@ -290,6 +290,10 @@ const InstructorDashboard = () => {
             <UpdateProfile />
           </div>
         );
+
+      case "comments":
+        return <InstructorCommentDashboard />;
+
       default:
         return <div className="text-xl">Dashboard Content</div>;
     }

@@ -1,9 +1,10 @@
 const Comment = require("../models/comment.model");
+const Course = require("../models/course.model");
 const Lecture = require("../models/lecture.model");
 
 async function addComment(req, res) {
   try {
-    const student = req.user;
+    const user = req.user;
 
     const { lectureId } = req.params;
     const { comment } = req.body;
@@ -16,17 +17,36 @@ async function addComment(req, res) {
 
     const lecture = await Lecture.findOne({ lectureId });
 
+    const course = await Course.findById(lecture.course);
+
+    if (!course) {
+      return res.status(500).json({
+        message: "Course not found",
+      });
+    }
+
     if (!lecture) {
       return res.status(500).json({
         message: "Lecture not found",
       });
     }
 
+    if (
+      user.id !== course.instructor.toString() &&
+      !course.enrolledStudents.includes(user.id)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not valid user to add comment",
+      });
+    }
+
     const newComment = await Comment.create({
       comment,
       lecture: lecture._id,
-      student: student.id,
+      student: user.id,
       course: lecture.course,
+      isInstructor: user.id === course.instructor.toString(),
     });
 
     await newComment.populate("student", "name email username profilePic");
@@ -48,7 +68,7 @@ async function addComment(req, res) {
 
 async function deleteComment(req, res) {
   try {
-    const student = req.user;
+    const user = req.user;
     const { id } = req.params;
 
     const comment = await Comment.findById(id);
@@ -59,7 +79,18 @@ async function deleteComment(req, res) {
       });
     }
 
-    if (comment.student != student.id) {
+    const course = await Course.findById(comment.course);
+
+    if (!course) {
+      return res.status(500).json({
+        message: "Course is not found",
+      });
+    }
+
+    if (
+      comment.student != user.id &&
+      user.id !== course.instructor.toString()
+    ) {
       return res.status(400).json({
         success: false,
         message: "You are not valid user to delete this comment",
@@ -181,7 +212,7 @@ async function likeDislikeComment(req, res) {
 
 async function addNestedComment(req, res) {
   try {
-    const student = req.user;
+    const user = req.user;
     const { id } = req.params;
     const { reply, lectureId } = req.body;
 
@@ -192,10 +223,26 @@ async function addNestedComment(req, res) {
     }
 
     const lecture = await Lecture.findOne({ lectureId });
-
     if (!lecture) {
       return res.status(500).json({
         message: "Lecture not found",
+      });
+    }
+    const course = await Course.findById(lecture.course);
+
+    if (!course) {
+      return res.status(500).json({
+        message: "Course not found",
+      });
+    }
+
+    if (
+      user.id !== course.instructor.toString() &&
+      !course.enrolledStudents.includes(user.id)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not valid user to add comment",
       });
     }
 
@@ -210,9 +257,10 @@ async function addNestedComment(req, res) {
     const newComment = await Comment.create({
       comment: reply,
       lecture: parentComment.lecture,
-      student: student.id,
+      student: user.id,
       course: parentComment.course,
       parentComment: parentComment._id,
+      isInstructor: user.id === course.instructor.toString(),
     });
 
     await newComment.populate("student", "name email username profilePic");
@@ -232,10 +280,64 @@ async function addNestedComment(req, res) {
   }
 }
 
+async function pinComment(req, res) {
+  try {
+    const instructor = req.user;
+    const { id } = req.params;
+
+    const { isPinned } = req.body;
+
+    const comment = await Comment.findById(id).populate("lecture");
+
+    if (!comment) {
+      return res.status(500).json({
+        message: "Comment is not found",
+      });
+    }
+
+    const course = await Course.findById(comment.course);
+
+    if (!course) {
+      return res.status(500).json({
+        message: "Course is not found",
+      });
+    }
+
+    if (instructor.id !== course.instructor.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not valid user to pin this comment",
+      });
+    }
+    if (isPinned) {
+      await Comment.findByIdAndUpdate(id, {
+        isPinned: true,
+      });
+      return res.status(200).json({
+        success: true,
+        message: "Comment pinned successfully",
+      });
+    } else {
+      await Comment.findByIdAndUpdate(id, {
+        isPinned: false,
+      });
+      return res.status(200).json({
+        success: true,
+        message: "Comment unpinned successfully",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
 module.exports = {
   addComment,
   deleteComment,
   editComment,
   likeDislikeComment,
   addNestedComment,
+  pinComment,
 };

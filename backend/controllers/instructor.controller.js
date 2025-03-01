@@ -1,8 +1,11 @@
 const Course = require("../models/course.model");
+const Lecture = require("../models/lecture.model");
 const Payment = require("../models/payment.model");
+const ReviewAndRating = require("../models/reviewAndRating.model");
 const User = require("../models/user.model");
+const { populateReplies } = require("./student.controller");
 
-function instructorStats(instructor) {
+async function instructorStats(instructor) {
   const stats = {
     totalCourses: 0,
     totalStudents: 0,
@@ -24,6 +27,32 @@ function instructorStats(instructor) {
       ).toFixed(2)
     );
 
+    let totalRating = 0;
+    let totalNumberOfRating = 0;
+
+    for (const course of courses) {
+      if (course.status === "published") {
+        const ratings = await Promise.all(
+          course.reviewAndRating.map((ratingId) =>
+            ReviewAndRating.findById(ratingId)
+          )
+        );
+
+        ratings.forEach((rating) => {
+          if (rating) {
+            totalRating += rating.rating;
+            totalNumberOfRating++;
+          }
+        });
+      }
+    }
+
+    if (totalNumberOfRating > 0) {
+      stats.averageRating = parseFloat(
+        (totalRating / totalNumberOfRating).toFixed(2)
+      );
+    }
+
     const uniqueStudentIds = new Set();
 
     courses.forEach((course) => {
@@ -39,7 +68,6 @@ function instructorStats(instructor) {
 
   return stats;
 }
-
 
 async function instructorDashboard(req, res) {
   try {
@@ -60,7 +88,6 @@ async function instructorDashboard(req, res) {
       .populate("category", "name")
       .limit(5);
 
-    // Get monthly revenue data
     // const monthlyRevenue = await Course.aggregate([
     //   {
     //     $match: {
@@ -463,11 +490,11 @@ async function instructorDashboard(req, res) {
         }))
       );
     }
-    instructorStats(instructor);
+
     return res.status(200).json({
       success: true,
       courses,
-      instructor: instructorStats(instructor),
+      instructor: await instructorStats(instructor),
       dashboardStats: {
         monthlyRevenue,
         monthlyEnrollments,
@@ -678,6 +705,82 @@ async function studentsDetails(req, res) {
   }
 }
 
+async function getLectures(req, res) {
+  try {
+    const { courseId } = req.params;
+    const instructor = req.user;
+
+    const course = await Course.findOne({ courseId }).populate("lectures");
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    if (course.instructor.toString() !== instructor.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      lectures: course.lectures,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching lectures",
+      error: error.message,
+    });
+  }
+}
+
+async function getLectureComments(req, res) {
+  try {
+    const { lectureId } = req.params;
+    const instructor = req.user;
+
+    const lecture = await Lecture.findOne({ lectureId }).populate({
+      path: "comments",
+      populate: {
+        path: "student",
+        select: "name email username profilePic",
+      },
+    });
+    lecture.comments = await populateReplies(lecture.comments);
+    if (!lecture) {
+      return res.status(404).json({
+        success: false,
+        message: "Lecture not found",
+      });
+    }
+
+    const course = await Course.findById(lecture.course);
+
+    if (course.instructor.toString() !== instructor.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      comments: lecture.comments,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching comments",
+      error: error.message,
+    });
+  }
+}
+
 async function courseDetailStats(req, res) {}
 
 module.exports = {
@@ -685,4 +788,6 @@ module.exports = {
   instructorCourses,
   studentsDetails,
   courseDetailStats,
+  getLectures,
+  getLectureComments,
 };

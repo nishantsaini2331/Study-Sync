@@ -35,7 +35,11 @@ const commentSchema = new mongoose.Schema(
       ref: "Comment",
       default: null,
     },
-    isPinComment: {
+    isPinned: {
+      type: Boolean,
+      default: false,
+    },
+    isInstructor: {
       type: Boolean,
       default: false,
     },
