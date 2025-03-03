@@ -10,7 +10,10 @@ const quizAttemptSchema = new mongoose.Schema(
     lecture: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Lecture",
-      required: true,
+    },
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
     },
     mcqResponses: [
       {

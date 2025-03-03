@@ -49,6 +49,13 @@ const courseProgressSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    finalQuizAttempts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "QuizAttempt",
+      },
+    ],
   },
   { timestamps: true }
 );
@@ -76,15 +83,25 @@ courseProgressSchema.methods.updateLectureProgress = async function (
   this.calculateOverallProgress();
 };
 
-courseProgressSchema.methods.calculateOverallProgress = function () {
+courseProgressSchema.methods.calculateOverallProgress = async function () {
   const totalLectures = this.lectureProgress.length;
+
+  if (totalLectures === 0) {
+    this.overallProgress = 0;
+    return;
+  }
+
   const completedLectures = this.lectureProgress.filter(
     (progress) => progress.isCompleted
   ).length;
 
   this.overallProgress = (completedLectures / totalLectures) * 100;
 
-  this.unlockNextLecture(this.currentLecture);
+  if (this.overallProgress < 100) {
+    this.unlockNextLecture(this.currentLecture);
+  }
+
+  await this.save();
 };
 
 courseProgressSchema.methods.unlockNextLecture = async function (

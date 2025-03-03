@@ -7,6 +7,12 @@ const {
   getStudentCourseById,
   unlockLecture,
   getCurrentLecture,
+  submitFinalQuiz,
+  getEnrolledCourses,
+  getCartCourses,
+  getCertificates,
+  getPaymentDetails,
+  getProgress,
 } = require("../controllers/student.controller");
 
 router.route("/:id/learn").get(auth, student, getStudentCourseById);
@@ -21,5 +27,13 @@ router.get(
   student,
   getCurrentLecture
 );
+
+router.post("/:courseId/submit-final-quiz", auth, student, submitFinalQuiz);
+
+router.get("/enrolled-course", auth, student, getEnrolledCourses);
+router.get("/cart-courses", auth, student, getCartCourses);
+router.get("/certificates", auth, student, getCertificates);
+router.get("/payment-details", auth, student, getPaymentDetails);
+router.get("/progress", auth, student, getProgress);
 
 module.exports = router;

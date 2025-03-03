@@ -1,18 +1,19 @@
 import axios from "axios";
 import {
-  BadgeIndianRupee,
-  BarChart2,
-  Book,
-  Edit,
-  Globe,
-  IndianRupee,
-  MessageSquare,
-  ShoppingCart,
+    BadgeIndianRupee,
+    BarChart2,
+    Book,
+    Edit,
+    Globe,
+    IndianRupee,
+    MessageSquare,
+    ShoppingCart,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { LoadingSpinner } from "../components/CommentSystem";
 import CourseContent from "../components/CourseContent";
 import RatingStars from "../components/RatingStars";
 import RelatedCourses from "../components/RelatedCourses";
@@ -50,6 +51,8 @@ const CourseDetailsPage = () => {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [hasUserReviewed, setHasUserReviewed] = useState(false);
   const [userReviewData, setUserReviewData] = useState(null);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const [courseDetails, setCourseDetails] = useState({
     title: "Advanced Funnels with Google Analytics",
@@ -460,6 +463,7 @@ const CourseDetailsPage = () => {
 
   useEffect(() => {
     async function fetchCourseDetails() {
+      setIsLoading(true);
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}course/public/${courseId}`
@@ -467,7 +471,12 @@ const CourseDetailsPage = () => {
 
         setCourseDetails(response.data.course);
       } catch (error) {
-        console.error(error);
+        navigate("/courses");
+        toast.error(
+          error.response?.data?.message || "Failed to fetch course details"
+        );
+      } finally {
+        setIsLoading(false);
       }
     }
 
@@ -495,6 +504,13 @@ const CourseDetailsPage = () => {
     }
   }, [username, courseDetails.reviews]);
 
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <LoadingSpinner />
+      </div>
+    );
+  }
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="grid md:grid-cols-3 gap-8">

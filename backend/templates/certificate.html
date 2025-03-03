@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Course Completion Certificate</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@400;500;600&display=swap");
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Montserrat", sans-serif;
+        background-color: #f5f5f5;
+        color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .certificate-container {
+        width: 900px;
+        background: #fff;
+        padding: 40px;
+        border: 15px solid #1a237e;
+        position: relative;
+        text-align: center;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .certificate-title {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 40px;
+        color: #1a237e;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      .certificate-subtitle {
+        font-size: 18px;
+        font-weight: 500;
+        color: #555;
+        margin-bottom: 20px;
+      }
+
+      .student-name {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 36px;
+        font-weight: 700;
+        color: #1a237e;
+        margin: 20px 0;
+      }
+
+      .certificate-text {
+        font-size: 18px;
+        color: #555;
+        margin-bottom: 20px;
+      }
+
+      .course-name {
+        font-size: 28px;
+        font-weight: 600;
+        color: #0d47a1;
+        margin-bottom: 20px;
+      }
+
+      .score-container {
+        background: rgba(13, 71, 161, 0.06);
+        padding: 8px 15px;
+        border-radius: 50px;
+        display: inline-block;
+        font-size: 18px;
+        font-weight: 600;
+        color: #0d47a1;
+        margin-bottom: 20px;
+      }
+
+      .certificate-footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      .signature-container {
+        text-align: center;
+        width: 40%;
+      }
+
+      .signature-line {
+        width: 100%;
+        height: 1px;
+        background-color: #333;
+        margin-bottom: 5px;
+      }
+
+      .signature-name {
+        font-weight: 600;
+        color: #333;
+      }
+
+      .signature-title {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .certificate-data {
+        margin-top: 20px;
+        font-size: 14px;
+        color: #555;
+        text-align: center;
+      }
+
+      .seal {
+        position: absolute;
+        bottom: 30px;
+        right: 40px;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 2px solid #1a237e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        color: #1a237e;
+        text-transform: uppercase;
+        background: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="certificate-container">
+      <h1 class="certificate-title">Certificate of Achievement</h1>
+      <p class="certificate-subtitle">This is to certify that</p>
+
+      <div class="student-name">{{learnerName}}</div>
+
+      <p class="certificate-text">
+        has successfully completed all requirements and demonstrated proficiency
+        in
+      </p>
+
+      <div class="course-name">{{courseName}}</div>
+
+      <div class="score-container">Final Score: {{finalScore}}%</div>
+
+      <p class="certificate-text">Course completed on {{completionDate}}</p>
+
+      <div class="certificate-footer">
+        <div class="signature-container">
+          <div class="signature-line"></div>
+          <div class="signature-name">{{instructorName}}</div>
+          <div class="signature-title">Course Instructor</div>
+        </div>
+        <div class="signature-container">
+          <div class="signature-line"></div>
+          <div class="signature-name">Jane Smith</div>
+          <div class="signature-title">Director of Education</div>
+        </div>
+      </div>
+
+      <div class="certificate-data">
+        <div>Issue Date: {{issueDate}}</div>
+        <div>Certificate ID: {{certificateId}}</div>
+      </div>
+    </div>
+  </body>
+</html>

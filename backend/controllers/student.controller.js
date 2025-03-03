@@ -3,6 +3,9 @@ const Course = require("../models/course.model");
 const CourseProgress = require("../models/courseProgress.model");
 const Lecture = require("../models/lecture.model");
 const QuizAttempt = require("../models/quizAttempt.model");
+const FinalQuiz = require("../models/finalQuiz.model");
+const CourseCertification = require("../models/certificate.model");
+const User = require("../models/user.model");
 
 async function populateReplies(comments) {
   for (const comment of comments) {
@@ -56,7 +59,7 @@ async function getStudentCourseById(req, res) {
           },
         ],
       })
-      .populate("lectureProgress.quizAttempts");
+      .populate("lectureProgress.quizAttempts finalQuizAttempts");
 
     if (!courseProgress) {
       return res.status(404).json({
@@ -94,7 +97,6 @@ async function getStudentCourseById(req, res) {
     );
 
     if (!currentLecture.isCompleted) {
-      console.log("object");
       let lectureWithoutMcqsCorrectOptions = await Lecture.findById(
         currentLecture.lecture._id
       ).populate([
@@ -118,9 +120,31 @@ async function getStudentCourseById(req, res) {
       currentLecture.lecture.comments
     );
 
+    let finalQuiz;
+
+    if (courseProgress.overallProgress === 100) {
+      finalQuiz = await FinalQuiz.findOne({ course: course._id }).populate({
+        path: "mcqs",
+        select: courseProgress.isCourseFinalQuizPassed ? "" : "-correctOption",
+      });
+    }
+
     return res.status(200).json({
       success: true,
-      data: { lockedLectures, unlockedLectures, currentLecture },
+      data: {
+        lockedLectures,
+        unlockedLectures,
+        currentLecture,
+        overallProgress: courseProgress.overallProgress,
+        finalQuiz: finalQuiz
+          ? {
+              ...finalQuiz.toObject(),
+              requiredPassPercentage: course.requiredCompletionPercentage,
+              isCompleted: courseProgress.isCourseFinalQuizPassed,
+              quizAttempts: courseProgress.finalQuizAttempts,
+            }
+          : null,
+      },
     });
   } catch (error) {
     console.error(error);
@@ -340,9 +364,277 @@ async function getCurrentLecture(req, res) {
   }
 }
 
+async function submitFinalQuiz(req, res) {
+  try {
+    const student = req.user;
+    const { courseId } = req.params;
+    const { userAnswers } = req.body;
+
+    const course = await Course.findOne({ courseId }).populate(
+      "lectures instructor"
+    );
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    const courseProgress = await CourseProgress.findOne({
+      student: student.id,
+      course: course._id,
+    });
+
+    if (!courseProgress) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    if (courseProgress.overallProgress !== 100) {
+      return res.status(400).json({
+        success: false,
+        message: "You need to complete all lectures first",
+      });
+    }
+
+    const finalQuiz = await FinalQuiz.findOne({ course: course._id }).populate(
+      "mcqs"
+    );
+
+    if (!finalQuiz) {
+      return res.status(404).json({
+        success: false,
+        message: "Final quiz not found",
+      });
+    }
+
+    const mcqs = finalQuiz.mcqs;
+
+    for (let i = 0; i < mcqs.length; i++) {
+      if (!Object.keys(userAnswers).includes(mcqs[i]._id.toString())) {
+        return res.status(400).json({
+          success: false,
+          message: "Please make sure you have answered all questions",
+        });
+      }
+    }
+
+    let correctAnswers = 0;
+
+    for (let i = 0; i < mcqs.length; i++) {
+      for (let j = 0; j < Object.keys(userAnswers).length; j++) {
+        if (mcqs[i]._id.toString() === Object.keys(userAnswers)[j]) {
+          if (
+            mcqs[i].correctOption === userAnswers[Object.keys(userAnswers)[j]]
+          ) {
+            correctAnswers += 1;
+          }
+        }
+      }
+    }
+
+    const percentage = Math.round((correctAnswers / mcqs.length) * 100);
+
+    const isPassed = percentage >= course.requiredCompletionPercentage;
+    let certificateResult = null;
+    if (isPassed) {
+      const quizAttempt = await QuizAttempt.create({
+        student: student.id,
+        course: course._id,
+        mcqResponses: mcqs.map((mcq, index) => ({
+          mcq: mcq._id,
+          selectedOption: {
+            text: mcq.options[userAnswers[mcq._id]],
+            isCorrect: mcq.correctOption === userAnswers[mcq._id],
+          },
+        })),
+        score: Math.round((correctAnswers / mcqs.length) * 100),
+        totalQuestions: mcqs.length,
+        passingScore: course.requiredCompletionPercentage,
+        isPassed,
+      });
+
+      await CourseProgress.findOneAndUpdate(
+        { _id: courseProgress._id },
+        {
+          isCourseFinalQuizPassed: true,
+          $push: { finalQuizAttempts: quizAttempt._id },
+        }
+      );
+
+      certificateResult = await CourseCertification.generateCertificate(
+        student,
+        course,
+        quizAttempt
+      );
+    }
+
+    const response = {
+      success: true,
+      data: {
+        correctAnswers,
+        totalQuestions: mcqs.length,
+        percentage,
+        isPassed,
+      },
+    };
+
+    if (certificateResult && certificateResult.success) {
+      response.data.certificate = {
+        certificateId: certificateResult.certificateId,
+        message: certificateResult.message,
+      };
+    }
+
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+async function getEnrolledCourses(req, res) {
+  try {
+    const student = req.user;
+
+    const courses = await User.findById(student.id)
+      .select("purchasedCourses")
+      .populate({
+        path: "purchasedCourses",
+        populate: {
+          path: "instructor",
+          select: "name email username profilePic",
+        },
+        select:
+          "title description language instructor minimumSkill thumbnail courseId -_id",
+      });
+
+    return res.status(200).json({
+      success: true,
+      data: courses.purchasedCourses,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+async function getCartCourses(req, res) {
+  try {
+    const student = req.user;
+
+    const courses = await User.findById(student.id)
+      .select("cart")
+      .populate({
+        path: "cart",
+        populate: {
+          path: "instructor",
+
+          select: "name email username profilePic",
+        },
+        select:
+          "title description language price instructor minimumSkill thumbnail courseId -_id",
+      });
+
+    return res.status(200).json({
+      success: true,
+      data: courses.cart,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+async function getCertificates(req, res) {
+  try {
+    const student = req.user;
+
+    const certificates = await CourseCertification.find({
+      user: student.id,
+    })
+      .select("course status certificateId createdAt -_id")
+      .populate({
+        path: "course",
+        select: "title courseId thumbnail -_id",
+      });
+
+    return res.status(200).json({
+      success: true,
+      data: certificates,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+async function getPaymentDetails(req, res) {
+  try {
+    const student = req.user;
+
+    const paymentDetails = await User.findById(student.id)
+      .select("paymentHistory -_id")
+      .populate({
+        path: "paymentHistory",
+        populate: {
+          path: "course",
+          select: "title courseId thumbnail -_id",
+        },
+        select:
+          "amount status createdAt paymentMethod  razorpay_payment_id -_id",
+      });
+
+    return res.status(200).json({
+      success: true,
+      data: paymentDetails.paymentHistory,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+async function getProgress(req, res) {
+  try {
+    const student = req.user;
+
+    const courseProgress = await CourseProgress.find({
+      student: student.id,
+    })
+      .select(
+        "overallProgress isCourseFinalQuizPassed lectureProgress createdAt updatedAt"
+      )
+      .populate({
+        path: "course",
+        select: "title courseId",
+      })
+      .populate({
+        path: "lectureProgress.lecture",
+        select: "title lectureId isCompleted isUnlocked quizAttempts",
+      });
+
+    return res.status(200).json({
+      success: true,
+      data: courseProgress,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
 module.exports = {
   getStudentCourseById,
   unlockLecture,
   getCurrentLecture,
-  populateReplies
+  populateReplies,
+  submitFinalQuiz,
+  getEnrolledCourses,
+  getCartCourses,
+  getCertificates,
+  getPaymentDetails,
+  getProgress,
 };

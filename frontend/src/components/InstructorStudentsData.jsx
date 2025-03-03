@@ -11,6 +11,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Users, GraduationCap, UserCheck, BookOpen, UserX } from "lucide-react";
+import DashboardHeader from "./DashboardHeader";
 
 function InstructorStudentsData() {
   const [studentsData, setStudentsData] = useState({
@@ -90,44 +91,53 @@ function InstructorStudentsData() {
   ];
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold mb-8">Students Overview</h1>
+    <div className="bg-white shadow rounded-lg mx-auto overflow-hidden">
+      <DashboardHeader
+        title={"Students Overview"}
+        description={"Students data overview"}
+        role="instructor"
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        {statsCards.map((stat, index) => (
-          <div key={index} className="p-4 rounded-lg border bg-white shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-semibold mt-1">{stat.value}</p>
-              </div>
-              <div className={`p-3 rounded-full ${stat.color}`}>
-                <stat.icon size={24} />
+      <div className="px-4 py-5 sm:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          {statsCards.map((stat, index) => (
+            <div
+              key={index}
+              className="p-4 rounded-lg border bg-white shadow-sm"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">{stat.title}</p>
+                  <p className="text-2xl font-semibold mt-1">{stat.value}</p>
+                </div>
+                <div className={`p-3 rounded-full ${stat.color}`}>
+                  <stat.icon size={24} />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <div className="bg-white p-6 rounded-lg border shadow-sm">
-        <h2 className="text-lg font-semibold mb-4">
-          Students Progress Distribution
-        </h2>
-        <div className="h-80 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Bar
-                dataKey="value"
-                name={"students"}
-                radius={[4, 4, 0, 0]}
-                onClick={(e) => console.log(e.payload)}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="bg-white p-6 rounded-lg border shadow-sm">
+          <h2 className="text-lg font-semibold mb-4">
+            Students Progress Distribution
+          </h2>
+          <div className="h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar
+                  dataKey="value"
+                  name={"students"}
+                  radius={[4, 4, 0, 0]}
+                  onClick={(e) => console.log(e.payload)}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>

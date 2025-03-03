@@ -32,9 +32,7 @@ async function verifyUser(
 
       if (checkInstructor && role === "instructor") {
         const response = await axios.get(
-          `${
-            import.meta.env.VITE_BACKEND_URL
-          }course/check-instructor/${id}`,
+          `${import.meta.env.VITE_BACKEND_URL}course/check-instructor/${id}`,
           { withCredentials: true }
         );
 
@@ -88,14 +86,7 @@ function AuthenticationWrapper({
 
   useEffect(() => {
     const checkUser = async () => {
-      await verifyUser(
-        dispatch,
-        navigate,
-        protect,
-        role,
-        id,
-        checkInstructor
-      );
+      await verifyUser(dispatch, navigate, protect, role, id, checkInstructor);
       setIsLoading(false);
     };
 

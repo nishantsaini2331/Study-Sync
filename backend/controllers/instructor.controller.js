@@ -640,7 +640,7 @@ async function studentsDetails(req, res) {
             {
               $match: {
                 "progress.overallProgress": 100,
-                isCourseFinalQuizPassed: true,
+                "progress.isCourseFinalQuizPassed": true,
               },
             },
             {

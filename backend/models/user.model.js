@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
       default: ["student"],
     },
 
-    purchasedCourse: [
+    purchasedCourses: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Course",

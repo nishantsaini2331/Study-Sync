@@ -7,7 +7,7 @@ const { RAZORPAY_SECRET } = require("../config/dotenv");
 const { default: mongoose } = require("mongoose");
 const CourseProgress = require("../models/courseProgress.model");
 const transporter = require("../utils/transporter");
-const paymentSuccessfullTemplate = require("../mail/paymentSuccessfullTemplate");
+const paymentSuccessfullTemplate = require("../templates/paymentSuccessfullTemplate");
 
 async function createOrder(req, res) {
   try {

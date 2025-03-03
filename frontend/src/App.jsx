@@ -21,6 +21,7 @@ import FinalQuizComponent from "./components/FinalQuizComponent";
 import AdminDashboard from "./components/AdminDashboard";
 import CoursesPage from "./pages/CoursesPage";
 import CourseLearningPage from "./pages/CourseLearningPage";
+import StudentDashboard from "./components/StudentDashboard";
 
 function App() {
   return (
@@ -79,6 +80,15 @@ function App() {
               <CheckStudentEnrollment>
                 <CourseLearningPage />
               </CheckStudentEnrollment>
+            }
+          />
+
+          <Route
+            path="/dashboard"
+            element={
+              <AuthenticateUser protect={true}>
+              <StudentDashboard />
+             </AuthenticateUser>
             }
           />
         </Route>

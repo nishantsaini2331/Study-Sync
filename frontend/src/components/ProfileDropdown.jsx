@@ -71,7 +71,14 @@ function ProfileDropdown() {
       {!user?.roles?.includes("admin") ? (
         <ul className="py-2">
           {/* Section 1 */}
-          <li className="p-2 hover:bg-gray-100 cursor-pointer">My learning</li>
+          <Link
+            to={"/dashboard"}
+            onClick={() => handleProfileDropDown(dispatch)}
+          >
+            <li className="p-2 hover:bg-gray-100 cursor-pointer">
+              My learning
+            </li>
+          </Link>
           {/* <li className="p-2 hover:bg-gray-100 cursor-pointer">My cart</li>
         <li className="p-2 hover:bg-gray-100 cursor-pointer">Wishlist</li> */}
 

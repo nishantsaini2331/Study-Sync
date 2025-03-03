@@ -1,4 +1,5 @@
 import React from "react";
+import { CheckCircle, Award } from "lucide-react";
 import QuizDisplay from "./QuizDisplay";
 
 function QuizComponent({
@@ -10,33 +11,57 @@ function QuizComponent({
   score,
   setQuizSubmitted,
   setUserAnswers,
+  isFinalQuiz = false,
 }) {
+  const quizData = isFinalQuiz ? currentLecture : currentLecture?.lecture;
+  const mcqs = isFinalQuiz
+    ? currentLecture?.mcqs
+    : currentLecture?.lecture?.mcqs;
+  const isCompleted = currentLecture?.isCompleted;
+  const requiredPassPercentage = isFinalQuiz
+    ? currentLecture?.requiredPassPercentage
+    : currentLecture?.lecture?.requiredPassPercentage;
+
+  const quizAttempts = currentLecture?.quizAttempts || [];
+
+  if (!currentLecture || !mcqs) {
+    return <div>Loading quiz data...</div>;
+  }
+
   return (
     <div className="border rounded-lg p-6 mb-6">
-      {!currentLecture.isCompleted ? (
+      {!isCompleted ? (
         <div>
-          <h2 className="text-xl font-semibold mb-4">Knowledge Check</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            {isFinalQuiz ? "Final Assessment" : "Knowledge Check"}
+          </h2>
           <p className="text-gray-600 mb-1">
-            Take the quiz to test your understanding of the lecture.
+            {isFinalQuiz
+              ? "Take this final quiz to complete the course and receive your certificate."
+              : "Take the quiz to test your understanding of the lecture."}
           </p>
           <p className="text-gray-600 mb-4">
-            You need to score at least{" "}
-            <b>{currentLecture.lecture.requiredPassPercentage}%</b> to pass the
-            quiz and unlock the next lecture.
+            You need to score at least <b>{requiredPassPercentage}%</b> to
+            {isFinalQuiz
+              ? " pass the course."
+              : " pass the quiz and unlock the next lecture."}
           </p>
         </div>
       ) : (
-        <div className="mb-4 bg-green-200 p-4 text-xl rounded">
-          You passed the quiz with the score of{" "}
-          {currentLecture.quizAttempts[0].score} %
+        <div className="mb-4 bg-green-200 p-4 text-xl rounded flex items-center">
+          {isFinalQuiz && <Award className="text-green-700 mr-2" size={24} />}
+          <span>
+            You passed the {isFinalQuiz ? "final quiz" : "quiz"} with the score
+            of {quizAttempts[0]?.score || 0}%
+          </span>
         </div>
       )}
 
-      {!currentLecture.isCompleted ? (
+      {!isCompleted ? (
         !quizSubmitted ? (
           <>
             <div className="space-y-6">
-              {currentLecture.lecture.mcqs.map((mcq, qIndex) => (
+              {mcqs.map((mcq, qIndex) => (
                 <div key={qIndex} className="border-b pb-4">
                   <p className="font-medium mb-3 capitalize">
                     {qIndex + 1}. {mcq.question}
@@ -49,8 +74,6 @@ function QuizComponent({
                           id={`q${mcq._id}-o${oIndex}`}
                           name={`question-${mcq._id}`}
                           className="mr-3 h-4 w-4 text-blue-600"
-                          // checked={true}
-                          // disabled={true}
                           checked={userAnswers[mcq._id] === oIndex}
                           onChange={() =>
                             handleAnswerSelection(mcq._id, oIndex)
@@ -69,27 +92,19 @@ function QuizComponent({
               ))}
             </div>
 
-            {!currentLecture.isCompleted ? (
-              <div className="mt-6">
-                <button
-                  onClick={handleQuizSubmit}
-                  disabled={
-                    Object.keys(userAnswers).length !==
-                    currentLecture.lecture.mcqs.length
-                  }
-                  className={`px-6 py-2 rounded-md ${
-                    Object.keys(userAnswers).length ===
-                    currentLecture.lecture.mcqs.length
-                      ? "bg-blue-600 hover:bg-blue-700 text-white"
-                      : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  }`}
-                >
-                  Submit Answers
-                </button>
-              </div>
-            ) : (
-              ""
-            )}
+            <div className="mt-6">
+              <button
+                onClick={handleQuizSubmit}
+                disabled={Object.keys(userAnswers).length !== mcqs.length}
+                className={`px-6 py-2 rounded-md ${
+                  Object.keys(userAnswers).length === mcqs.length
+                    ? "bg-blue-600 hover:bg-blue-700 text-white"
+                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                }`}
+              >
+                Submit Answers
+              </button>
+            </div>
           </>
         ) : (
           <div className="space-y-6">
@@ -106,7 +121,7 @@ function QuizComponent({
                     score.isPassed ? " text-green-700 " : " text-red-700 "
                   }`}
                 >
-                  Quiz Results
+                  {isFinalQuiz ? "Final Quiz Results" : "Quiz Results"}
                 </h3>
                 <div className="flex items-center">
                   <span
@@ -131,15 +146,18 @@ function QuizComponent({
                   score.isPassed ? " text-green-600 " : "  text-red-600 "
                 }
               >
-                {score.percentage >=
-                currentLecture.lecture.requiredPassPercentage
-                  ? "Congratulations! You passed the quiz."
+                {score.percentage >= requiredPassPercentage
+                  ? isFinalQuiz
+                    ? "Congratulations! You have successfully completed the course."
+                    : "Congratulations! You passed the quiz."
+                  : isFinalQuiz
+                  ? "You did not pass the final quiz. Try again to complete the course."
                   : "You did not pass the quiz. Try again to unlock the next lecture."}
               </p>
             </div>
 
             {score.isPassed &&
-              currentLecture.lecture.mcqs.map((mcq, qIndex) => (
+              mcqs.map((mcq, qIndex) => (
                 <div key={qIndex} className="border-b pb-4">
                   <p className="font-medium mb-3">
                     {qIndex + 1}. {mcq.question}
@@ -169,7 +187,7 @@ function QuizComponent({
                       </div>
                     ))}
                   </div>
-                  {userAnswers[qIndex] !== mcq.correctOption && (
+                  {userAnswers[mcq._id] !== mcq.correctOption && (
                     <p className="mt-2 text-sm text-blue-600 pl-2">
                       <span className="font-medium">Explanation:</span> The
                       correct answer is "{mcq.options[mcq.correctOption]}".
@@ -194,9 +212,22 @@ function QuizComponent({
       ) : (
         <>
           <QuizDisplay
-            mcqs={currentLecture.lecture.mcqs}
-            responses={currentLecture.quizAttempts[0]}
+            mcqs={mcqs}
+            responses={quizAttempts[0]}
+            isFinalQuiz={isFinalQuiz}
           />
+          {isFinalQuiz && isCompleted && (
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+              <h3 className="font-semibold text-blue-800 flex items-center">
+                <Award className="mr-2" size={20} />
+                Course Completion
+              </h3>
+              <p className="mt-2 text-gray-700">
+                Congratulations on completing this course! You've successfully
+                finished all lectures and passed the final quiz.
+              </p>
+            </div>
+          )}
         </>
       )}
     </div>
