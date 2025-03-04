@@ -72,7 +72,7 @@ const InstructorDashboard = () => {
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "courses", label: "Courses", icon: BookOpen },
     { id: "students", label: "Students", icon: Users },
-    { id: "payments", label: "Payments", icon: DollarSign },
+    // { id: "payments", label: "Payments", icon: DollarSign },
     // { id: "reviews", label: "Reviews", icon: Star },
     { id: "comments", label: "Comments", icon: MessageCircle },
     // { id: "settings", label: "Settings", icon: Settings },

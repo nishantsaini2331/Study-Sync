@@ -381,7 +381,8 @@ function CourseManagement({ isVerify = false }) {
                     <p className="text-gray-600">{lecture.description}</p>
                   </div>
                   {isVerify ? (
-                    <div>Check lecture</div>
+                    // <div>Check lecture</div>
+                    ""
                   ) : (
                     <div className="flex gap-2">
                       <Link to={`/edit-lecture/${lecture.lectureId}`}>

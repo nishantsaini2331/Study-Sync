@@ -184,7 +184,7 @@ export const CommentFilters = ({
 };
 
 export const LoadingSpinner = () => (
-  <div className="flex justify-center py-8">
+  <div className="flex justify-center items-center h-1">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
   </div>
 );
@@ -329,6 +329,9 @@ export const commentApi = {
     try {
       const res = await axios.get(`${BACKEND_URL}instructor/courses`, {
         withCredentials: true,
+        params: {
+          publishedCourses: true,
+        },
       });
       return res.data.courses;
     } catch (error) {

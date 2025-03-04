@@ -177,7 +177,7 @@ async function verifyPayment(req, res) {
     await User.findByIdAndUpdate(
       user._id,
       {
-        $addToSet: { purchasedCourse: course._id },
+        $addToSet: { purchasedCourses: course._id },
         $push: { paymentHistory: payment[0]._id },
         $pull: { cart: course._id },
       },

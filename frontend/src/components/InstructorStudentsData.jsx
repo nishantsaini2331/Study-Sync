@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { Users, GraduationCap, UserCheck, BookOpen, UserX } from "lucide-react";
 import DashboardHeader from "./DashboardHeader";
+import { commentApi, LoadingSpinner } from "./CommentSystem";
 
 function InstructorStudentsData() {
   const [studentsData, setStudentsData] = useState({
@@ -22,12 +23,17 @@ function InstructorStudentsData() {
     notStartingLearning: 0,
   });
 
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const [selectedCourse, setSelectedCourse] = useState("all");
+
   useEffect(() => {
     async function fetchStudentsData() {
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}instructor/students-details`,
-          { withCredentials: true }
+          { withCredentials: true, params: { courseId: selectedCourse } }
         );
         setStudentsData(res.data.studentsData);
       } catch (error) {
@@ -37,6 +43,22 @@ function InstructorStudentsData() {
     }
     fetchStudentsData();
     document.title = "Instructor Students Data";
+  }, [selectedCourse]);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        const courses = await commentApi.fetchInstructorCourses();
+        setCourses(courses);
+        setLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch courses:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
   }, []);
 
   const statsCards = [
@@ -71,6 +93,7 @@ function InstructorStudentsData() {
       color: "bg-red-100 text-red-600",
     },
   ];
+
   const chartData = [
     { name: "Current", value: studentsData.currentLearner, fill: "#4F46E5" },
     {
@@ -90,6 +113,10 @@ function InstructorStudentsData() {
     },
   ];
 
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <div className="bg-white shadow rounded-lg mx-auto overflow-hidden">
       <DashboardHeader
@@ -99,6 +126,19 @@ function InstructorStudentsData() {
       />
 
       <div className="px-4 py-5 sm:px-6">
+        <select
+          className="w-1/4 p-2 border rounded-lg mb-3"
+          onChange={(e) => setSelectedCourse(e.target.value)}
+          value={selectedCourse}
+        >
+          <option value="all">All Courses</option>
+          {courses.map((course) => (
+            <option key={course.id} value={course.courseId}>
+              {course.title}
+            </option>
+          ))}
+        </select>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {statsCards.map((stat, index) => (
             <div

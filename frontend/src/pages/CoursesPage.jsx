@@ -199,7 +199,7 @@ const CoursesPage = () => {
               ))}
             </select>
 
-            <select
+            {/* <select
               name="rating"
               value={filters.rating}
               onChange={handleFilterChange}
@@ -211,7 +211,7 @@ const CoursesPage = () => {
                   {rating}
                 </option>
               ))}
-            </select>
+            </select> */}
 
             <select
               name="language"

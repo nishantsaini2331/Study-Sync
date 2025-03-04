@@ -87,8 +87,8 @@ function App() {
             path="/dashboard"
             element={
               <AuthenticateUser protect={true}>
-              <StudentDashboard />
-             </AuthenticateUser>
+                <StudentDashboard />
+              </AuthenticateUser>
             }
           />
         </Route>
@@ -179,6 +179,15 @@ function App() {
             </AuthenticateAdmin>
           }
         />
+
+        {/* <Route
+          path="/admin/verify-lecture/:id"
+          element={
+            <AuthenticateAdmin>
+              <CourseManagement isVerify={true} />
+            </AuthenticateAdmin>
+          }
+        /> */}
 
         <Route path="/contact" element={<h1>Contact</h1>} />
       </Routes>

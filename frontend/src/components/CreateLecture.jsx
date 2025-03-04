@@ -3,10 +3,13 @@ import { Plus, Video, Trash2, Info, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { LoadingSpinner } from "./CommentSystem";
 
 const CreateLecture = ({ edit = false }) => {
   const navigate = useNavigate();
   const { id } = useParams();
+
+  const [loading, setLoading] = useState(false);
 
   const [lectureForm, setLectureForm] = useState({
     title: "",
@@ -121,6 +124,7 @@ const CreateLecture = ({ edit = false }) => {
     e.preventDefault();
     try {
       // Validation checks
+      setLoading(true);
       if (!lectureForm.title.trim()) {
         toast.error("Please enter a lecture title");
         return;
@@ -195,6 +199,8 @@ const CreateLecture = ({ edit = false }) => {
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Failed to save lecture");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -453,7 +459,7 @@ const CreateLecture = ({ edit = false }) => {
                 type="submit"
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
               >
-                {edit ? "Update Lecture" : "Create Lecture"}
+                {loading ? <LoadingSpinner /> : "Save"}
               </button>
             </div>
           </form>

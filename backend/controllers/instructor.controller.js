@@ -81,132 +81,17 @@ async function instructorDashboard(req, res) {
       });
     }
 
-    const courses = await Course.find({ instructor: instructor._id })
+    const courses = await Course.find({
+      instructor: instructor._id,
+      status: "published",
+    })
       .select(
         "title description category price courseId thumbnail status updatedAt courseStats -_id"
       )
       .populate("category", "name")
       .limit(5);
 
-    // const monthlyRevenue = await Course.aggregate([
-    //   {
-    //     $match: {
-    //       instructor: instructor._id,
-    //     },
-    //   },
-    //   {
-    //     $lookup: {
-    //       from: "courseprogresses", // Adjust if your collection name is different
-    //       localField: "_id",
-    //       foreignField: "course",
-    //       as: "progress",
-    //     },
-    //   },
-    //   {
-    //     $unwind: "$progress",
-    //   },
-    //   {
-    //     $group: {
-    //       _id: {
-    //         month: { $month: "$progress.createdAt" },
-    //         year: { $year: "$progress.createdAt" },
-    //       },
-    //       revenue: { $push: "$courseStats.totalRevenue" },
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 0,
-    //       month: {
-    //         $let: {
-    //           vars: {
-    //             monthsInString: [
-    //               "Jan",
-    //               "Feb",
-    //               "Mar",
-    //               "Apr",
-    //               "May",
-    //               "Jun",
-    //               "Jul",
-    //               "Aug",
-    //               "Sep",
-    //               "Oct",
-    //               "Nov",
-    //               "Dec",
-    //             ],
-    //           },
-    //           in: {
-    //             $arrayElemAt: [
-    //               "$$monthsInString",
-    //               { $subtract: ["$_id.month", 1] },
-    //             ],
-    //           },
-    //         },
-    //       },
-    //       revenue: 1,
-    //     },
-    //   },
-    //   { $sort: { "_id.year": 1, "_id.month": 1 } },
-    // ]);
-
-    // const monthlyRevenue = await Course.aggregate([
-    //   {
-    //     $match: {
-    //       instructor: instructor._id,
-    //       createdAt: {
-    //         $gte: new Date(`${currentYear}-01-01`),
-    //         $lte: new Date(`${currentYear}-12-31`),
-    //       },
-    //     },
-    //   },
-    //   {
-    //     $group: {
-    //       _id: {
-    //         month: { $month: "$createdAt" },
-    //         year: { $year: "$createdAt" },
-    //       },
-    //       revenue: { $sum: "$courseStats.totalRevenue" },
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 0,
-    //       month: {
-    //         $let: {
-    //           vars: {
-    //             monthsInString: [
-    //               "Jan",
-    //               "Feb",
-    //               "Mar",
-    //               "Apr",
-    //               "May",
-    //               "Jun",
-    //               "Jul",
-    //               "Aug",
-    //               "Sep",
-    //               "Oct",
-    //               "Nov",
-    //               "Dec",
-    //             ],
-    //           },
-    //           in: {
-    //             $arrayElemAt: [
-    //               "$$monthsInString",
-    //               { $subtract: ["$_id.month", 1] },
-    //             ],
-    //           },
-    //         },
-    //       },
-    //       revenue: 1,
-    //     },
-    //   },
-    //   {
-    //     $sort: { "_id.year": 1, "_id.month": 1 },
-    //   },
-    // ]);
-
     const currentYear = new Date().getFullYear();
-
     const currentMonth = new Date().getMonth() + 1;
 
     const monthlyRevenue = await Payment.aggregate([
@@ -233,8 +118,17 @@ async function instructorDashboard(req, res) {
       },
       {
         $group: {
-          _id: { $month: "$createdAt" },
-          revenue: { $sum: { $multiply: ["$amount", 0.7] } },
+          _id: {
+            month: { $month: "$createdAt" },
+            courseId: "$course",
+          },
+          monthlyRevenue: { $sum: { $multiply: ["$amount", 0.7] } },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id.month",
+          revenue: { $sum: "$monthlyRevenue" },
         },
       },
       {
@@ -243,22 +137,7 @@ async function instructorDashboard(req, res) {
         },
       },
       {
-        $facet: {
-          revenue: [{ $project: { _id: 1, revenue: 1 } }],
-          allMonths: [
-            {
-              $project: {
-                month: { $range: [1, currentMonth + 1] },
-              },
-            },
-            { $unwind: "$month" },
-          ],
-        },
-      },
-      { $unwind: "$allMonths" },
-      {
         $project: {
-          numericMonth: "$allMonths.month",
           month: {
             $let: {
               vars: {
@@ -278,45 +157,15 @@ async function instructorDashboard(req, res) {
                 ],
               },
               in: {
-                $arrayElemAt: [
-                  "$$monthsInString",
-                  { $subtract: ["$allMonths.month", 1] },
-                ],
+                $arrayElemAt: ["$$monthsInString", { $subtract: ["$_id", 1] }],
               },
             },
           },
-          revenue: {
-            $let: {
-              vars: {
-                monthRevenue: {
-                  $filter: {
-                    input: "$revenue",
-                    as: "r",
-                    cond: { $eq: ["$$r._id", "$allMonths.month"] },
-                  },
-                },
-              },
-              in: {
-                $ifNull: [{ $arrayElemAt: ["$$monthRevenue.revenue", 0] }, 0],
-              },
-            },
-          },
+          revenue: 1,
         },
       },
-      { $sort: { numericMonth: 1 } },
-      { $project: { numericMonth: 0 } },
+      { $sort: { _id: 1 } },
     ]);
-
-    if (!monthlyRevenue.length) {
-      monthlyRevenue.push(
-        ...Array.from({ length: currentMonth }, (_, i) => ({
-          month: new Date(currentYear, i).toLocaleString("default", {
-            month: "short",
-          }),
-          revenue: 0,
-        }))
-      );
-    }
 
     const courseStatusData = await Course.aggregate([
       {
@@ -390,7 +239,7 @@ async function instructorDashboard(req, res) {
     const monthlyEnrollments = await Payment.aggregate([
       {
         $lookup: {
-          from: "courses", // Collection name for Course model
+          from: "courses",
           localField: "course",
           foreignField: "_id",
           as: "courseDetails",
@@ -399,39 +248,33 @@ async function instructorDashboard(req, res) {
       { $unwind: "$courseDetails" },
       {
         $match: {
-          "courseDetails.instructor": instructor._id, // Filter by instructor
+          "courseDetails.instructor": instructor._id,
           createdAt: {
             $gte: new Date(`${currentYear}-01-01`),
             $lte: new Date(
               `${currentYear}-${String(currentMonth).padStart(2, "0")}-31`
             ),
           },
-          status: "successful", // Only count successful enrollments
+          status: "successful",
         },
       },
       {
         $group: {
-          _id: { $month: "$createdAt" }, // Group enrollments by month
-          count: { $sum: 1 }, // Count enrollments per month
+          _id: {
+            month: { $month: "$createdAt" },
+            courseId: "$course",
+          },
+          monthlyEnrollments: { $sum: 1 },
         },
       },
       {
-        $facet: {
-          enrollments: [{ $project: { _id: 1, count: 1 } }], // Store actual enrollment data
-          allMonths: [
-            {
-              $project: {
-                month: { $range: [1, currentMonth + 1] }, // Generate months from 1 to currentMonth
-              },
-            },
-            { $unwind: "$month" },
-          ],
+        $group: {
+          _id: "$_id.month",
+          enrollments: { $sum: "$monthlyEnrollments" },
         },
       },
-      { $unwind: "$allMonths" },
       {
         $project: {
-          numericMonth: "$allMonths.month", // Store numeric month for correct sorting
           month: {
             $let: {
               vars: {
@@ -451,53 +294,61 @@ async function instructorDashboard(req, res) {
                 ],
               },
               in: {
-                $arrayElemAt: [
-                  "$$monthsInString",
-                  { $subtract: ["$allMonths.month", 1] },
-                ],
+                $arrayElemAt: ["$$monthsInString", { $subtract: ["$_id", 1] }],
               },
             },
           },
-          enrollments: {
-            $let: {
-              vars: {
-                monthEnrollments: {
-                  $filter: {
-                    input: "$enrollments",
-                    as: "e",
-                    cond: { $eq: ["$$e._id", "$allMonths.month"] },
-                  },
-                },
-              },
-              in: {
-                $ifNull: [{ $arrayElemAt: ["$$monthEnrollments.count", 0] }, 0], // Set 0 if no data
-              },
-            },
-          },
+          enrollments: 1,
         },
       },
-      { $sort: { numericMonth: 1 } }, // Correct sorting based on numeric month
-      { $project: { numericMonth: 0 } }, // Remove numeric month after sorting
+      { $sort: { _id: 1 } },
     ]);
 
-    if (!monthlyEnrollments.length) {
-      monthlyEnrollments.push(
-        ...Array.from({ length: currentMonth }, (_, i) => ({
-          month: new Date(currentYear, i).toLocaleString("default", {
-            month: "short",
-          }),
-          enrollments: 0,
-        }))
+    const ensureAllMonths = (data, currentMonth) => {
+      const monthNames = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      const existingMonths = new Set(data.map((item) => item.month));
+
+      monthNames.slice(0, currentMonth).forEach((month) => {
+        if (!existingMonths.has(month)) {
+          data.push({ month, revenue: 0, enrollments: 0 });
+        }
+      });
+
+      return data.sort(
+        (a, b) => monthNames.indexOf(a.month) - monthNames.indexOf(b.month)
       );
-    }
+    };
+
+    const processedMonthlyRevenue = ensureAllMonths(
+      monthlyRevenue,
+      currentMonth
+    );
+    const processedMonthlyEnrollments = ensureAllMonths(
+      monthlyEnrollments,
+      currentMonth
+    );
 
     return res.status(200).json({
       success: true,
       courses,
       instructor: await instructorStats(instructor),
       dashboardStats: {
-        monthlyRevenue,
-        monthlyEnrollments,
+        monthlyRevenue: processedMonthlyRevenue,
+        monthlyEnrollments: processedMonthlyEnrollments,
         courseStatusData,
       },
     });
@@ -510,9 +361,9 @@ async function instructorDashboard(req, res) {
     });
   }
 }
-
 async function instructorCourses(req, res) {
   try {
+    const { publishedCourses } = req.query;
     const instructor = await User.findById(req.user.id);
     if (!instructor) {
       return res.status(401).json({
@@ -521,7 +372,13 @@ async function instructorCourses(req, res) {
       });
     }
 
-    const courses = await Course.find({ instructor: instructor._id })
+    const courses = await Course.find({
+      instructor: instructor._id,
+      status:
+        publishedCourses === "true"
+          ? "published"
+          : { $in: ["draft", "under review", "rejected", "published"] },
+    })
       .select(
         "title description category price courseId thumbnail status updatedAt -_id"
       )
@@ -554,24 +411,18 @@ async function studentsDetails(req, res) {
       });
     }
 
-    /**
-     * {
-     *  currentLearner: 1,
-     * completedCourseStudents: 1,
-     * totalLearner: 1,
-     * completedCourseWithCertificate: 1,
-     * notStartingLearning: 1,
-     *
-     * }
-     */
+    const { courseId } = req.query;
+    const matchStage = {
+      instructor: instructor._id,
+      status: "published",
+    };
+
+    if (courseId && courseId !== "all") {
+      matchStage.courseId = courseId;
+    }
 
     const studentsData = await Course.aggregate([
-      {
-        $match: {
-          instructor: instructor._id,
-          status: "published",
-        },
-      },
+      { $match: matchStage },
       {
         $lookup: {
           from: "courseprogresses",
@@ -629,6 +480,11 @@ async function studentsDetails(req, res) {
             },
           ],
           totalLearner: [
+            {
+              $match: {
+                "progress.student": { $exists: true, $ne: null },
+              },
+            },
             {
               $group: {
                 _id: null,
