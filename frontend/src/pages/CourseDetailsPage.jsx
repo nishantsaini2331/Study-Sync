@@ -1,23 +1,24 @@
 import axios from "axios";
 import {
-    BadgeIndianRupee,
-    BarChart2,
-    Book,
-    Edit,
-    Globe,
-    IndianRupee,
-    MessageSquare,
-    ShoppingCart,
+  BadgeIndianRupee,
+  BarChart2,
+  Book,
+  Edit,
+  Globe,
+  IndianRupee,
+  MessageSquare,
+  ShoppingCart,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { LoadingSpinner } from "../components/CommentSystem";
 import CourseContent from "../components/CourseContent";
 import RatingStars from "../components/RatingStars";
 import RelatedCourses from "../components/RelatedCourses";
 import ReviewAndRating from "../components/ReviewAndRating";
+import { addToCart, removeFromCart } from "../store/userSlice";
 
 export async function chechStudentEnrolled(courseId, setIsEnrolled = () => {}) {
   try {
@@ -38,12 +39,41 @@ export async function chechStudentEnrolled(courseId, setIsEnrolled = () => {}) {
   }
 }
 
+export async function handleRemoveFromCart(username, dispatch, courseId) {
+  if (!username) {
+    toast.error("Please login to remove from cart");
+    navigate("/login"); 
+    return;
+  }
+
+  try {
+    const response = await axios.delete(
+      `${import.meta.env.VITE_BACKEND_URL}cart/${courseId}`,
+      {
+        withCredentials: true,
+      }
+    );
+
+    if (response.data.success) {
+      dispatch(removeFromCart(courseId));
+      toast.success("Course removed from cart");
+    }
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message || "Failed to remove course from cart"
+    );
+  }
+}
+
 const CourseDetailsPage = () => {
   const { id: courseId } = useParams();
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const { username, name, email } = useSelector((state) => state?.user?.user);
+  const { username, name, email, cart } = useSelector(
+    (state) => state?.user?.user
+  );
 
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [userRating, setUserRating] = useState(0);
@@ -461,6 +491,33 @@ const CourseDetailsPage = () => {
     }
   }
 
+  async function handleAddToCart() {
+    if (!username) {
+      toast.error("Please login to add to cart");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}cart/${courseId}`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.success) {
+        dispatch(addToCart(courseId));
+        toast.success("Course added to cart");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to add course to cart"
+      );
+    }
+  }
+
   useEffect(() => {
     async function fetchCourseDetails() {
       setIsLoading(true);
@@ -622,9 +679,19 @@ const CourseDetailsPage = () => {
                 </Link>
               ) : (
                 <>
-                  <button className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
+                  <button
+                    onClick={
+                      cart.includes(courseId)
+                        ? () =>
+                            handleRemoveFromCart(username, dispatch, courseId)
+                        : () => handleAddToCart()
+                    }
+                    className="w-full bg-black text-white py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2"
+                  >
                     <ShoppingCart className="w-5 h-5" />
-                    Add to Cart
+                    {cart.includes(courseId)
+                      ? "Remove from cart"
+                      : "Add to cart"}
                   </button>
 
                   <button

@@ -14,6 +14,7 @@ const instructorRoute = require("./routes/instructor.route");
 const reviewAndRatingRoute = require("./routes/reviewAndRating.route");
 const commentRoute = require("./routes/comment.route");
 const certificateRoute = require("./routes/certificate.route");
+const cartRoute = require("./routes/cart.route");
 const app = express();
 const cookieParser = require("cookie-parser");
 
@@ -40,6 +41,7 @@ app.use("/api/v1/instructor", instructorRoute);
 app.use("/api/v1/review-and-rating", reviewAndRatingRoute);
 app.use("/api/v1/comment", commentRoute);
 app.use("/api/v1/certificate", certificateRoute);
+app.use("/api/v1/cart", cartRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

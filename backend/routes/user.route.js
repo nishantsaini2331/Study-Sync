@@ -25,11 +25,17 @@ router.get("/verify-email/:verificationToken", verifyEmail);
 router.post("/instructor/onboard", auth, onboard);
 
 router.get("/auth", auth, async (req, res) => {
-  const user = await User.findById(req.user.id).select(
-    "name photoUrl username roles email"
-  );
+  const user = await User.findById(req.user.id)
+    .select("name photoUrl username roles email cart")
+    .populate({ path: "cart", select: "courseId -_id" });
+
+  const courseIds = user.cart.map((course) => course.courseId);
+
   res.json({
-    user,
+    user: {
+      ...user.toObject(),
+      cart: courseIds,
+    },
     success: true,
     message: "Authorized access",
   });

@@ -10,6 +10,7 @@ const userSlice = createSlice({
       roles: [],
       photoUrl: "",
       courses: [],
+      cart: [],
     },
     showProfileDropdown: false,
   },
@@ -24,13 +25,24 @@ const userSlice = createSlice({
             roles: [],
             photoUrl: "",
             courses: [],
+            cart: [],
           };
     },
     showProfileDropdown: (state, action) => {
       state.showProfileDropdown = action.payload;
     },
+
+    addToCart: (state, action) => {
+      state.user.cart.push(action.payload);
+    },
+    removeFromCart: (state, action) => {
+      state.user.cart = state.user.cart.filter(
+        (courseId) => courseId !== action.payload
+      );
+    },
   },
 });
 
-export const { setUser, showProfileDropdown } = userSlice.actions;
+export const { setUser, showProfileDropdown, removeFromCart, addToCart } =
+  userSlice.actions;
 export default userSlice.reducer;
