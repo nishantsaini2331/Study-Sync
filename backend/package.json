@@ -23,6 +23,7 @@
         "cors": "^2.8.5",
         "crypto": "^1.0.1",
         "dotenv": "^16.4.7",
+        "email-existence": "^0.1.6",
         "express": "^4.21.1",
         "firebase-admin": "^13.0.1",
         "handlebars": "^4.7.8",

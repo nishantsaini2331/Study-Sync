@@ -6,6 +6,7 @@ const transporter = require("../utils/transporter");
 const { NODEMAILER_USER, JWT_SECRET } = require("../config/dotenv");
 const { randomUUID } = new ShortUniqueId({ length: 6 });
 const jwt = require("jsonwebtoken");
+const emailExistence = require("email-existence");
 
 const admin = require("firebase-admin");
 const { getAuth } = require("firebase-admin/auth");
@@ -44,7 +45,20 @@ async function sendVerificationEmail(user) {
     subject: "Account Verification",
     text: `Click this link to verify your account: ${url}`,
   };
+
   const response = await transporter.sendMail(message);
+}
+
+function checkEmailExistence(email) {
+  return new Promise((resolve) => {
+    emailExistence.check(email, (err, result) => {
+      if (err) {
+        resolve(false);
+      } else {
+        resolve(result);
+      }
+    });
+  });
 }
 
 async function verifyEmail(req, res) {
@@ -122,6 +136,15 @@ async function register(req, res) {
         success: false,
         message:
           "Password must be at least 8 characters long, contain at least one number, one uppercase letter, one lowercase letter, and one special character",
+      });
+    }
+
+    const isValid = await checkEmailExistence(email);
+
+    if (!isValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is invalid or does not exist",
       });
     }
 

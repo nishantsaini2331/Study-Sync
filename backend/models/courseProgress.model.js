@@ -49,13 +49,19 @@ const courseProgressSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-
     finalQuizAttempts: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "QuizAttempt",
       },
     ],
+
+    // finalQuizAttemptLimit: {
+    //   type: Number,
+    //   default: 3,
+    // },
+
+    
   },
   { timestamps: true }
 );
