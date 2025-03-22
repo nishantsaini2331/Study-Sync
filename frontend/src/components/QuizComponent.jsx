@@ -11,6 +11,7 @@ function QuizComponent({
   score,
   setQuizSubmitted,
   setUserAnswers,
+  finalQuizAttemptLeft,
   isFinalQuiz = false,
 }) {
   const quizData = isFinalQuiz ? currentLecture : currentLecture?.lecture;

@@ -132,6 +132,7 @@ async function getStudentCourseById(req, res) {
     return res.status(200).json({
       success: true,
       data: {
+        finalQuizAttemptLeft: courseProgress.finalQuizAttemptLeft,
         lockedLectures,
         unlockedLectures,
         currentLecture,
@@ -393,6 +394,13 @@ async function submitFinalQuiz(req, res) {
       });
     }
 
+    if (courseProgress.finalQuizAttemptLeft <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "You have exhausted all attempts for the final quiz",
+      });
+    }
+
     if (courseProgress.overallProgress !== 100) {
       return res.status(400).json({
         success: false,
@@ -471,6 +479,9 @@ async function submitFinalQuiz(req, res) {
         quizAttempt
       );
     }
+
+    courseProgress.finalQuizAttemptLeft -= 1;
+    await courseProgress.save();
 
     const response = {
       success: true,

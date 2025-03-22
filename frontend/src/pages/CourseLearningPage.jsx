@@ -1,21 +1,22 @@
 import axios from "axios";
 import confetti from "canvas-confetti";
 import {
-    Award,
-    CheckCircle,
-    ChevronDown,
-    ChevronUp,
-    Clock,
-    FileText,
-    List,
-    Lock,
-    Play,
+  Award,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  FileText,
+  List,
+  Lock,
+  Play,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import Comment from "../components/Comment";
 import QuizComponent from "../components/QuizComponent";
+import FinalQuizAttemptsOver from "../components/FinalQuizAttemptsOver";
 
 function CourseLearningPage() {
   const { id: courseId } = useParams();
@@ -26,6 +27,7 @@ function CourseLearningPage() {
   const [overallProgress, setOverallProgress] = useState(0);
   const [finalQuiz, setFinalQuiz] = useState(null);
   const [showingFinalQuiz, setShowingFinalQuiz] = useState(false);
+  const [finalQuizAttemptLeft, setFinalQuizAttemptLeft] = useState(3);
 
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [userAnswers, setUserAnswers] = useState({});
@@ -61,12 +63,14 @@ function CourseLearningPage() {
         currentLecture,
         overallProgress,
         finalQuiz,
+        finalQuizAttemptLeft,
       } = response.data.data;
 
       setLockedLectures(locked);
       setUnlockedLectures(unlocked);
       setOverallProgress(overallProgress);
       setFinalQuiz(finalQuiz);
+      setFinalQuizAttemptLeft(finalQuizAttemptLeft);
 
       if (isForFinalQuiz) {
         setShowingFinalQuiz(true);
@@ -232,8 +236,16 @@ function CourseLearningPage() {
         fetchCourseLearningData(false, true);
         // fetchFinalQuiz();
         triggerConfetti();
+      } else {
+        toast.error("You have failed the final quiz.");
+        setFinalQuizAttemptLeft(finalQuizAttemptLeft - 1);
+        if (finalQuizAttemptLeft === 0) {
+          toast.error("You have exhausted all your attempts.");
+          fetchCourseLearningData();
+        }
       }
     } catch (error) {
+      toast.error(error.response.data.message);
       console.log(error);
     }
   }
@@ -243,17 +255,24 @@ function CourseLearningPage() {
       case "quiz":
         return (
           <div className="text-lg">
-            <QuizComponent
-              currentLecture={showingFinalQuiz ? finalQuiz : currentLecture}
-              quizSubmitted={quizSubmitted}
-              userAnswers={userAnswers}
-              handleAnswerSelection={handleAnswerSelection}
-              handleQuizSubmit={handleQuizSubmit}
-              score={score}
-              setQuizSubmitted={setQuizSubmitted}
-              setUserAnswers={setUserAnswers}
-              isFinalQuiz={showingFinalQuiz}
-            />
+            {showingFinalQuiz && finalQuizAttemptLeft <= 0 ? (
+              <div className="text-lg">
+                <FinalQuizAttemptsOver />
+              </div>
+            ) : (
+              <QuizComponent
+                currentLecture={showingFinalQuiz ? finalQuiz : currentLecture}
+                quizSubmitted={quizSubmitted}
+                userAnswers={userAnswers}
+                handleAnswerSelection={handleAnswerSelection}
+                handleQuizSubmit={handleQuizSubmit}
+                score={score}
+                setQuizSubmitted={setQuizSubmitted}
+                setUserAnswers={setUserAnswers}
+                isFinalQuiz={showingFinalQuiz}
+                finalQuizAttemptLeft={finalQuizAttemptLeft}
+              />
+            )}
           </div>
         );
       case "comments":
@@ -269,17 +288,24 @@ function CourseLearningPage() {
       default:
         return (
           <div className="text-lg">
-            <QuizComponent
-              currentLecture={showingFinalQuiz ? finalQuiz : currentLecture}
-              quizSubmitted={quizSubmitted}
-              userAnswers={userAnswers}
-              handleAnswerSelection={handleAnswerSelection}
-              handleQuizSubmit={handleQuizSubmit}
-              score={score}
-              setQuizSubmitted={setQuizSubmitted}
-              setUserAnswers={setUserAnswers}
-              isFinalQuiz={showingFinalQuiz}
-            />
+            {showingFinalQuiz && finalQuizAttemptLeft <= 0 ? (
+              <div className="text-lg">
+                <FinalQuizAttemptsOver />
+              </div>
+            ) : (
+              <QuizComponent
+                currentLecture={showingFinalQuiz ? finalQuiz : currentLecture}
+                quizSubmitted={quizSubmitted}
+                userAnswers={userAnswers}
+                handleAnswerSelection={handleAnswerSelection}
+                handleQuizSubmit={handleQuizSubmit}
+                score={score}
+                setQuizSubmitted={setQuizSubmitted}
+                setUserAnswers={setUserAnswers}
+                isFinalQuiz={showingFinalQuiz}
+                finalQuizAttemptLeft={finalQuizAttemptLeft}
+              />
+            )}
           </div>
         );
     }
@@ -475,26 +501,38 @@ function CourseLearningPage() {
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               {showingFinalQuiz ? (
-                <div className="p-6 bg-blue-50 border-b border-blue-100">
-                  <div className="flex items-center mb-2">
-                    <Award size={24} className="text-blue-600 mr-2" />
-                    <h1 className="text-2xl font-bold text-blue-800">
-                      Final Quiz
-                    </h1>
+                <div className="p-6 bg-blue-50 border-b flex justify-between border-blue-100">
+                  <div>
+                    <div className="flex items-center mb-2">
+                      <Award size={24} className="text-blue-600 mr-2" />
+                      <h1 className="text-2xl font-bold text-blue-800">
+                        Final Quiz
+                      </h1>
+                    </div>
+                    <p className="text-gray-700">
+                      {finalQuiz.isCompleted ? (
+                        <>
+                          You have completed the final quiz with a score of{" "}
+                          <span className="font-semibold">
+                            {finalQuiz.quizAttempts[0]?.score}%
+                          </span>
+                          <p>
+                            Please check your dashboard for your certificate.
+                          </p>
+                        </>
+                      ) : (
+                        "Complete the final quiz to get your certificate."
+                      )}
+                    </p>
                   </div>
-                  <p className="text-gray-700">
-                    {finalQuiz.isCompleted ? (
-                      <>
-                        You have completed the final quiz with a score of{" "}
-                        <span className="font-semibold">
-                          {finalQuiz.quizAttempts[0]?.score}%
-                        </span>
-                        <p>Please check your dashboard for your certificate.</p>
-                      </>
-                    ) : (
-                      "Complete the final quiz to get your certificate."
-                    )}
-                  </p>
+                  <div>
+                    <p className="text-gray-700">
+                      Attempts Left :
+                      <span className="font-semibold">
+                        {finalQuizAttemptLeft}
+                      </span>
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <div className="aspect-video bg-black flex items-center justify-center">

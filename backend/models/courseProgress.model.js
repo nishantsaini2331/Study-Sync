@@ -56,12 +56,10 @@ const courseProgressSchema = new mongoose.Schema(
       },
     ],
 
-    // finalQuizAttemptLimit: {
-    //   type: Number,
-    //   default: 3,
-    // },
-
-    
+    finalQuizAttemptLeft: {
+      type: Number,
+      default: 3,
+    },
   },
   { timestamps: true }
 );

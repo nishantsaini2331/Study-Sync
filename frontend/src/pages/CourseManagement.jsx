@@ -224,13 +224,21 @@ function CourseManagement({ isVerify = false }) {
                     Edit
                   </button>
                 </Link>
-                <button
-                  onClick={() => deleteCourse(courseId, navigate)}
-                  className="flex-1 md:flex-none w-full md:w-auto flex items-center justify-center px-4 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors duration-200"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </button>
+                {courseData?.status == "published" ? (
+                  <button
+                    // onClick={() => deleteCourse(courseId, navigate)}
+                    className="flex-1 md:flex-none w-full md:w-auto flex items-center justify-center px-4 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors duration-200"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" /> Request
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => deleteCourse(courseId, navigate)}
+                    className="flex-1 md:flex-none w-full md:w-auto flex items-center justify-center px-4 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors duration-200"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" /> Delete
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -435,7 +443,7 @@ function CourseManagement({ isVerify = false }) {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <div className="text-xl font-semibold text-gray-800 flex gap-3">
-            Final Quiz
+            Final Quiz 
             <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
               <Info size={14} className="mr-2" />
               Add atleast 5 MCQs to publish course
