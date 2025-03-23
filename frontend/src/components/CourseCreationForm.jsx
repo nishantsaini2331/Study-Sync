@@ -6,10 +6,11 @@ import axios from "axios";
 
 export default function CourseCreationForm({ edit = false }) {
   const navigate = useNavigate();
-
   const { id: courseId } = useParams();
+  const fileInputRef = useRef(null);
+  const videoInputRef = useRef(null);
 
-  const [formData, setFormData] = useState({
+  const initialFormState = {
     title: "",
     description: "",
     price: "",
@@ -21,18 +22,19 @@ export default function CourseCreationForm({ edit = false }) {
     requiredCompletionPercentage: 50,
     category: "Programming",
     whatYouWillLearn: [],
-  });
+  };
 
+  const [formData, setFormData] = useState(initialFormState);
+  const [initialData, setInitialData] = useState(initialFormState);
   const [categories, setCategories] = useState([]);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [videoPreview, setVideoPreview] = useState("");
   const [currentTag, setCurrentTag] = useState("");
+  const [currentPoint, setCurrentPoint] = useState("");
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fileInputRef = useRef(null);
-  const videoInputRef = useRef(null);
-
-  const validateForm = () => {
+  function validateForm() {
     const newErrors = {};
     if (!formData.title.trim()) newErrors.title = "Title is required";
     if (!formData.description.trim())
@@ -55,13 +57,51 @@ export default function CourseCreationForm({ edit = false }) {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }
+
+  function handleInputChange(field, value) {
+    setFormData({ ...formData, [field]: value });
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: undefined });
+    }
+    checkForModifications();
+  }
+
+  function checkForModifications() {
+    const hasChanges = Object.keys(formData).some(
+      (key) =>
+        JSON.stringify(formData[key]) !== JSON.stringify(initialData[key])
+    );
+    console.log("Has changes:", hasChanges);
+    return hasChanges;
+  }
+
+  function handlePointAdd(e) {
+    e.preventDefault();
+    if (!currentPoint.trim()) return;
+
+    if (formData.whatYouWillLearn.length + 1 > 7) {
+      toast.error("What you will learn should not be more than 7 points");
+      setErrors({
+        ...errors,
+        whatYouWillLearn: "Maximum 7 points are allowed",
+      });
+    } else {
+      setFormData({
+        ...formData,
+        whatYouWillLearn: [...formData.whatYouWillLearn, currentPoint.trim()],
+      });
+      setCurrentPoint("");
+      setErrors({ ...errors, whatYouWillLearn: undefined });
+    }
+  }
 
   function removeWhatYouWillLearn(index) {
     const newWhatYouWillLearn = formData.whatYouWillLearn.filter(
-      (_, i) => i !== index
+      (_, i) => i !== indexconst
     );
     setFormData({ ...formData, whatYouWillLearn: newWhatYouWillLearn });
+    checkForModifications();
   }
 
   function handleThumbnailChange(e) {
@@ -81,6 +121,7 @@ export default function CourseCreationForm({ edit = false }) {
       };
       reader.readAsDataURL(file);
       setErrors({ ...errors, thumbnail: undefined });
+      checkForModifications();
     }
   }
 
@@ -98,19 +139,24 @@ export default function CourseCreationForm({ edit = false }) {
       const url = URL.createObjectURL(file);
       setVideoPreview(url);
       setErrors({ ...errors, previewVideo: undefined });
+      checkForModifications();
     }
   }
 
-  function removeThumbnail() {
+  function removeThumbnail(e) {
+    e.stopPropagation();
     setFormData({ ...formData, thumbnail: null });
     setThumbnailPreview("");
-    fileInputRef.current.value = "";
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    checkForModifications();
   }
 
-  function removeVideo() {
+  function removeVideo(e) {
+    e.stopPropagation();
     setFormData({ ...formData, previewVideo: null });
     setVideoPreview("");
-    videoInputRef.current.value = "";
+    if (videoInputRef.current) videoInputRef.current.value = "";
+    checkForModifications();
   }
 
   function handleTagInput(e) {
@@ -130,6 +176,7 @@ export default function CourseCreationForm({ edit = false }) {
       setErrors({ ...errors, tags: undefined });
     }
     setCurrentTag("");
+    checkForModifications();
   }
 
   function removeTag(tagToRemove) {
@@ -137,82 +184,61 @@ export default function CourseCreationForm({ edit = false }) {
       ...formData,
       tags: formData.tags.filter((tag) => tag !== tagToRemove),
     });
+    checkForModifications();
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (validateForm()) {
-      const payload = new FormData();
-      payload.append("title", formData.title);
-      payload.append("description", formData.description);
-      payload.append("price", formData.price);
-      payload.append("language", formData.language);
-      payload.append("minimumSkill", formData.minimumSkill);
-      payload.append("thumbnail", formData.thumbnail);
-      payload.append("previewVideo", formData.previewVideo);
-      payload.append("category", formData.category);
-      payload.append(
-        "whatYouWillLearn",
-        JSON.stringify(formData.whatYouWillLearn)
+    if (!validateForm()) {
+      const firstErrorField = Object.keys(errors)[0];
+      const errorElement = document.querySelector(
+        `[name="${firstErrorField}"]`
       );
-      payload.append(
-        "requiredCompletionPercentage",
-        formData.requiredCompletionPercentage
-      );
-      payload.append("tags", JSON.stringify(formData.tags));
-
-      try {
-        let res;
-
-        if (edit) {
-          res = await axios.patch(
-            `${import.meta.env.VITE_BACKEND_URL}course/${courseId}`,
-            payload,
-            {
-              withCredentials: true,
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
-        } else {
-          res = await axios.post(
-            `${import.meta.env.VITE_BACKEND_URL}course`,
-            payload,
-            {
-              withCredentials: true,
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
-        }
-
-        toast.success(res.data.message || "successful");
-      } catch (error) {
-        console.error(error);
-        toast.error(error.response.data.message || "Failed to create course");
-      } finally {
-        setFormData({
-          title: "",
-          description: "",
-          price: "",
-          thumbnail: null,
-          previewVideo: null,
-          tags: [],
-          minimumSkill: "beginner",
-          language: "english",
-          requiredCompletionPercentage: 50,
-          category: "",
-          whatYouWillLearn: [],
-        });
-        navigate(-1);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
       }
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const payload = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === "tags" || key === "whatYouWillLearn") {
+        payload.append(key, JSON.stringify(value));
+      } else if (value !== null) {
+        payload.append(key, value);
+      }
+    });
+
+    try {
+      const endpoint = edit
+        ? `${import.meta.env.VITE_BACKEND_URL}course/${courseId}`
+        : `${import.meta.env.VITE_BACKEND_URL}course`;
+
+      const method = edit ? axios.patch : axios.post;
+
+      const res = await method(endpoint, payload, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast.success(
+        res.data.message ||
+          `Course ${edit ? "updated" : "created"} successfully!`
+      );
+      navigate(-1);
+    } catch (error) {
+      console.error("Course submission error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          `Failed to ${edit ? "update" : "create"} course`
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   }
-
-  console.log(errors);
 
   function renderError(field) {
     return errors[field] ? (
@@ -221,66 +247,70 @@ export default function CourseCreationForm({ edit = false }) {
   }
 
   useEffect(() => {
-    if (courseId) {
+    if (courseId && edit) {
+      checkForModifications();
       async function fetchCourseData() {
         try {
           const res = await axios.get(
             `${import.meta.env.VITE_BACKEND_URL}course/${courseId}`,
-            {
-              withCredentials: true,
-            }
+            { withCredentials: true }
           );
           const course = res.data.course;
-          setFormData({
-            title: course?.title,
-            description: course?.description,
-            price: course?.price,
-            thumbnail: course?.thumbnail,
-            previewVideo: course?.previewVideo,
-            tags: course?.tags,
-            minimumSkill: course?.minimumSkill,
-            language: course?.language,
-            requiredCompletionPercentage: course?.requiredCompletionPercentage,
-            category: course?.category?.name.toLowerCase(),
-            whatYouWillLearn: course?.whatYouWillLearn,
-          });
-          setThumbnailPreview(course?.thumbnail);
-          setVideoPreview(course?.previewVideo);
+
+          let data = {
+            title: course?.title || "",
+            description: course?.description || "",
+            price: course?.price || "",
+            thumbnail: course?.thumbnail || null,
+            previewVideo: course?.previewVideo || null,
+            tags: course?.tags || [],
+            minimumSkill: course?.minimumSkill || "beginner",
+            language: course?.language || "english",
+            requiredCompletionPercentage:
+              course?.requiredCompletionPercentage || 50,
+            category: course?.category?.name.toLowerCase() || "",
+            whatYouWillLearn: course?.whatYouWillLearn || [],
+          };
+
+          setFormData(data);
+          setInitialData(data);
+          setThumbnailPreview(course?.thumbnail || "");
+          setVideoPreview(course?.previewVideo || "");
         } catch (error) {
-          console.error(error);
+          console.error("Error fetching course data:", error);
+          toast.error("Failed to load course data");
         }
       }
 
       fetchCourseData();
     }
+
     async function fetchAllCategories() {
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}category`,
-          {
-            withCredentials: true,
-          }
+          { withCredentials: true }
         );
-        setCategories(res?.data?.categories);
+        setCategories(res?.data?.categories || []);
       } catch (error) {
-        toast.error("Please try again");
+        console.error("Error fetching categories:", error);
+        toast.error("Failed to load categories");
       }
     }
+
     fetchAllCategories();
-  }, [courseId]);
+  }, [courseId, edit]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 p-6">
       <form
-        // onSubmit={handleSubmit}
+        onSubmit={handleSubmit}
         className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8"
       >
         <button
+          type="button"
           className="rounded-full text-white bg-black px-7 py-2 my-5"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate(-1);
-          }}
+          onClick={() => navigate(-1)}
         >
           Back
         </button>
@@ -289,18 +319,19 @@ export default function CourseCreationForm({ edit = false }) {
         </h1>
 
         <div className="space-y-6">
-          {/* Title Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              className="block text-sm font-medium text-gray-700 mb-2"
+              htmlFor="title"
+            >
               Course Title <span className="text-red-500">*</span>
             </label>
             <input
+              id="title"
+              name="title"
               type="text"
               value={formData.title}
-              onChange={(e) => {
-                setFormData({ ...formData, title: e.target.value });
-                setErrors({ ...errors, title: undefined });
-              }}
+              onChange={(e) => handleInputChange("title", e.target.value)}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
                 errors.title ? "border-red-500" : "border-gray-300"
               }`}
@@ -309,17 +340,18 @@ export default function CourseCreationForm({ edit = false }) {
             {renderError("title")}
           </div>
 
-          {/* Description Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              className="block text-sm font-medium text-gray-700 mb-2"
+              htmlFor="description"
+            >
               Course Description <span className="text-red-500">*</span>
             </label>
             <textarea
+              id="description"
+              name="description"
               value={formData.description}
-              onChange={(e) => {
-                setFormData({ ...formData, description: e.target.value });
-                setErrors({ ...errors, description: undefined });
-              }}
+              onChange={(e) => handleInputChange("description", e.target.value)}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent h-32 ${
                 errors.description ? "border-red-500" : "border-gray-300"
               }`}
@@ -327,56 +359,55 @@ export default function CourseCreationForm({ edit = false }) {
             />
             {renderError("description")}
           </div>
-
-          {/* What will You Learn Input */}
           <div>
-            <label className=" flex  items-center text-sm font-medium text-gray-700 mb-2">
+            <label
+              className="flex items-center text-sm font-medium text-gray-700 mb-2"
+              htmlFor="whatYouWillLearn"
+            >
               What Will You Learn <span className="text-red-500">*</span>
-              <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+              <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full ml-2">
                 <Info size={14} className="mr-2" />
-                click enter to add & try to keep it short
+                Maximum 7 points
               </div>
             </label>
-            <input
-              type="text"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.keyCode === 13) {
-                  e.preventDefault();
-                  if (formData.whatYouWillLearn.length + 1 > 7) {
-                    toast.error(
-                      "What you will learn should not be more than 7"
-                    );
-                    setErrors({ ...errors, whatYouWillLearn: true });
-                  } else {
-                    setFormData({
-                      ...formData,
-                      whatYouWillLearn: [
-                        ...formData.whatYouWillLearn,
-                        e.target.value,
-                      ],
-                    });
-                    e.target.value = "";
-                    setErrors({ ...errors, whatYouWillLearn: undefined });
-                  }
-                }
-              }}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.whatYouWillLearn ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="Enter Points"
-            />
 
-            <div className="gap-2 mt-2">
+            <div className="flex gap-2">
+              <input
+                id="whatYouWillLearn"
+                name="whatYouWillLearn"
+                type="text"
+                value={currentPoint}
+                onChange={(e) => setCurrentPoint(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handlePointAdd(e);
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                  errors.whatYouWillLearn ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="Enter a learning point and press Enter"
+              />
+              <button
+                type="button"
+                onClick={handlePointAdd}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+              >
+                Add
+              </button>
+            </div>
+
+            <div className="mt-2 space-y-2">
               {formData.whatYouWillLearn.map((point, index) => (
                 <div
                   key={index}
-                  className="bg-indigo-100 text-indigo-800 px-3 py-1 my-1 rounded-full text-lg flex items-center gap-1 justify-between"
+                  className="bg-indigo-100 text-indigo-800 px-3 py-2 rounded-lg flex items-center justify-between"
                 >
                   <span>{point}</span>
                   <button
                     type="button"
                     onClick={() => removeWhatYouWillLearn(index)}
-                    className=" bg-red-500 rounded-full text-white p-1 hover:bg-red-600"
+                    className="bg-red-500 rounded-full text-white p-1 hover:bg-red-600"
                   >
                     <X size={14} />
                   </button>
@@ -387,117 +418,131 @@ export default function CourseCreationForm({ edit = false }) {
             {renderError("whatYouWillLearn")}
           </div>
 
-          {/* Minimum Skill Input */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="minimumSkill"
+              >
+                Minimum Skill <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="minimumSkill"
+                name="minimumSkill"
+                value={formData.minimumSkill}
+                onChange={(e) =>
+                  handleInputChange("minimumSkill", e.target.value)
+                }
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                  errors.minimumSkill ? "border-red-500" : "border-gray-300"
+                }`}
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+              {renderError("minimumSkill")}
+            </div>
+
+            <div>
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="language"
+              >
+                Language <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="language"
+                name="language"
+                value={formData.language}
+                onChange={(e) => handleInputChange("language", e.target.value)}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                  errors.language ? "border-red-500" : "border-gray-300"
+                }`}
+              >
+                <option value="english">English</option>
+                <option value="hindi">Hindi</option>
+              </select>
+              {renderError("language")}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="category"
+              >
+                Category <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={(e) => handleInputChange("category", e.target.value)}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                  errors.category ? "border-red-500" : "border-gray-300"
+                }`}
+              >
+                {categories.length > 0 ? (
+                  categories.map((cat) => (
+                    <option key={cat} value={cat.toLowerCase()}>
+                      {cat}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Loading categories...</option>
+                )}
+              </select>
+              {renderError("category")}
+            </div>
+
+            <div>
+              <label
+                className="block text-sm font-medium text-gray-700 mb-2"
+                htmlFor="requiredCompletionPercentage"
+              >
+                Required Pass Percentage <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="requiredCompletionPercentage"
+                name="requiredCompletionPercentage"
+                type="number"
+                value={formData.requiredCompletionPercentage}
+                onChange={(e) =>
+                  handleInputChange(
+                    "requiredCompletionPercentage",
+                    e.target.value
+                  )
+                }
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                  errors.requiredCompletionPercentage
+                    ? "border-red-500"
+                    : "border-gray-300"
+                }`}
+                placeholder="Enter required pass percentage"
+                max="100"
+                min="0"
+              />
+              {renderError("requiredCompletionPercentage")}
+            </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Minimum Skill <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={formData.minimumSkill}
-              onChange={(e) => {
-                setFormData({ ...formData, minimumSkill: e.target.value });
-                setErrors({ ...errors, minimumSkill: undefined });
-              }}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.minimumSkill ? "border-red-500" : "border-gray-300"
-              }`}
+            <label
+              className="block text-sm font-medium text-gray-700 mb-2"
+              htmlFor="price"
             >
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </select>
-            {renderError("minimumSkill")}
-          </div>
-
-          {/* Language Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Language <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={formData.language}
-              onChange={(e) => {
-                setFormData({ ...formData, language: e.target.value });
-                setErrors({ ...errors, language: undefined });
-              }}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.language ? "border-red-500" : "border-gray-300"
-              }`}
-            >
-              <option value="english">English</option>
-              <option value="hindi">Hindi</option>
-            </select>
-            {renderError("language")}
-          </div>
-
-          {/* Category Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={formData.category}
-              onChange={(e) => {
-                console.log(e.target.value);
-                setFormData({ ...formData, category: e.target.value });
-                setErrors({ ...errors, category: undefined });
-              }}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.category ? "border-red-500" : "border-gray-300"
-              }`}
-            >
-              {categories?.map((cat) => (
-                <option key={cat} value={cat.toLowerCase()}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-            {renderError("category")}
-          </div>
-
-          {/* Required pass percentage field */}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Required Pass Percentage <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              value={formData.requiredCompletionPercentage}
-              onChange={(e) => {
-                setFormData({
-                  ...formData,
-                  requiredCompletionPercentage: e.target.value,
-                });
-                setErrors({
-                  ...errors,
-                  requiredCompletionPercentage: undefined,
-                });
-              }}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.language ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="Enter required pass percentage"
-              required
-              max={100}
-              min={0}
-            />
-          </div>
-
-          {/* Price Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
               Course Price <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <span className="absolute left-3 top-2 text-gray-500">₹</span>
               <input
+                id="price"
+                name="price"
                 type="number"
                 value={formData.price}
-                onChange={(e) => {
-                  setFormData({ ...formData, price: e.target.value });
-                  setErrors({ ...errors, price: undefined });
-                }}
+                onChange={(e) => handleInputChange("price", e.target.value)}
                 className={`w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
                   errors.price ? "border-red-500" : "border-gray-300"
                 }`}
@@ -508,9 +553,11 @@ export default function CourseCreationForm({ edit = false }) {
             {renderError("price")}
           </div>
 
-          {/* Thumbnail Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              className="block text-sm font-medium text-gray-700 mb-2"
+              htmlFor="thumbnail"
+            >
               Course Thumbnail <span className="text-red-500">*</span>
             </label>
             <div
@@ -528,10 +575,7 @@ export default function CourseCreationForm({ edit = false }) {
                   />
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeThumbnail();
-                    }}
+                    onClick={removeThumbnail}
                     className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
                   >
                     <Trash2 size={16} />
@@ -547,6 +591,8 @@ export default function CourseCreationForm({ edit = false }) {
                 </div>
               )}
               <input
+                id="thumbnail"
+                name="thumbnail"
                 type="file"
                 ref={fileInputRef}
                 onChange={handleThumbnailChange}
@@ -557,9 +603,11 @@ export default function CourseCreationForm({ edit = false }) {
             {renderError("thumbnail")}
           </div>
 
-          {/* Video Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              className="block text-sm font-medium text-gray-700 mb-2"
+              htmlFor="previewVideo"
+            >
               Preview Video <span className="text-red-500">*</span>
             </label>
             <div
@@ -579,10 +627,7 @@ export default function CourseCreationForm({ edit = false }) {
                   />
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeVideo();
-                    }}
+                    onClick={removeVideo}
                     className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
                   >
                     <Trash2 size={16} />
@@ -590,11 +635,7 @@ export default function CourseCreationForm({ edit = false }) {
                 </div>
               ) : (
                 <div className="py-8">
-                  <Video
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    controlsList="nodownload"
-                    disablePictureInPicture
-                  />
+                  <Video className="mx-auto h-12 w-12 text-gray-400" />
                   <p className="mt-2 text-sm text-gray-600">
                     Click to upload preview video
                   </p>
@@ -602,6 +643,8 @@ export default function CourseCreationForm({ edit = false }) {
                 </div>
               )}
               <input
+                id="previewVideo"
+                name="previewVideo"
                 type="file"
                 ref={videoInputRef}
                 onChange={handleVideoChange}
@@ -612,9 +655,11 @@ export default function CourseCreationForm({ edit = false }) {
             {renderError("previewVideo")}
           </div>
 
-          {/* Tags Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              className="block text-sm font-medium text-gray-700 mb-2"
+              htmlFor="tags"
+            >
               Course Tags <span className="text-red-500">*</span>
             </label>
             <div className="flex flex-wrap gap-2 mb-2">
@@ -634,28 +679,46 @@ export default function CourseCreationForm({ edit = false }) {
                 </span>
               ))}
             </div>
-            <input
-              type="text"
-              value={currentTag}
-              onChange={(e) => setCurrentTag(e.target.value)}
-              onKeyDown={handleTagInput}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.tags ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="Type and press Space or Enter to add tags"
-            />
+            <div className="flex gap-2">
+              <input
+                id="tags"
+                name="tags"
+                type="text"
+                value={currentTag}
+                onChange={(e) => setCurrentTag(e.target.value)}
+                onKeyDown={handleTagInput}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                  errors.tags ? "border-red-500" : "border-gray-300"
+                }`}
+                placeholder="Type a tag and press Space or Enter"
+              />
+              <button
+                type="button"
+                onClick={addTag}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+              >
+                Add
+              </button>
+            </div>
             {renderError("tags")}
           </div>
         </div>
 
-        {/* Submit Button */}
         <div className="mt-8">
           <button
-            // type="submit"
-            onClick={handleSubmit}
-            className="w-full bg-gradient-to-r from-indigo-600 to-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:from-indigo-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform transition-all hover:scale-[1.02]"
+            type="submit"
+            disabled={!checkForModifications() || isSubmitting}
+            className={`w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 ${
+              !checkForModifications() || isSubmitting
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+            }`}
           >
-            {edit ? "Update Course" : "Create Course"}
+            {isSubmitting
+              ? "Processing..."
+              : edit
+              ? "Update Course"
+              : "Create Course"}
           </button>
         </div>
       </form>
