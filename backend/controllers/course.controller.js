@@ -429,6 +429,10 @@ async function getCoursesBySearchQuery(req, res) {
         path: "category",
         select: "name -_id",
       })
+      .populate({
+        path: "reviewAndRating",
+        select: "rating -_id",
+      })
       .select(
         "title description price thumbnail language courseId enrolledStudents -_id"
       );
@@ -437,6 +441,14 @@ async function getCoursesBySearchQuery(req, res) {
       return {
         ...course.toObject(),
         enrolledStudents: course.enrolledStudents.length,
+        rating:
+          course.reviewAndRating.length > 0
+            ? course.reviewAndRating.reduce(
+                (acc, curr) => acc + curr.rating,
+                0
+              ) / course.reviewAndRating.length
+            : 0,
+        reviewAndRating: course.reviewAndRating.length,
       };
     });
 
