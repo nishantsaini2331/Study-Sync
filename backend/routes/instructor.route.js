@@ -6,9 +6,8 @@ const {
   studentsDetails,
   courseDetailStats,
   getLectures,
-  getLectureComments
+  getLectureComments,
 } = require("../controllers/instructor.controller");
-const { addComment } = require("../controllers/comment.controller");
 
 const router = express.Router();
 
@@ -17,6 +16,11 @@ router.get("/courses", auth, instructor, instructorCourses);
 router.get("/students-details", auth, instructor, studentsDetails);
 router.get("/course-detail-stats/:id", auth, instructor, courseDetailStats);
 router.get("/lectures/:courseId", auth, instructor, getLectures);
-router.get("/lecture-comments/:lectureId", auth, instructor, getLectureComments);
+router.get(
+  "/lecture-comments/:lectureId",
+  auth,
+  instructor,
+  getLectureComments
+);
 
 module.exports = router;

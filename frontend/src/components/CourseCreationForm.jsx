@@ -25,6 +25,7 @@ export default function CourseCreationForm({ edit = false }) {
   };
 
   const [formData, setFormData] = useState(initialFormState);
+  const [course, setCourse] = useState({});
   const [initialData, setInitialData] = useState(initialFormState);
   const [categories, setCategories] = useState([]);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
@@ -54,7 +55,6 @@ export default function CourseCreationForm({ edit = false }) {
       newErrors.whatYouWillLearn = "At least one point is required";
     if (formData.whatYouWillLearn.length > 7)
       newErrors.whatYouWillLearn = "Maximum 7 points are allowed";
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -212,31 +212,36 @@ export default function CourseCreationForm({ edit = false }) {
       }
     });
 
-    try {
-      const endpoint = edit
-        ? `${import.meta.env.VITE_BACKEND_URL}course/${courseId}`
-        : `${import.meta.env.VITE_BACKEND_URL}course`;
-
-      const method = edit ? axios.patch : axios.post;
-
-      const res = await method(endpoint, payload, {
-        withCredentials: true,
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      toast.success(
-        res.data.message ||
-          `Course ${edit ? "updated" : "created"} successfully!`
-      );
-      navigate(-1);
-    } catch (error) {
-      console.error("Course submission error:", error);
-      toast.error(
-        error.response?.data?.message ||
-          `Failed to ${edit ? "update" : "create"} course`
-      );
-    } finally {
+    if (course?.status === "published") {
+      alert("You can't edit a published course");
       setIsSubmitting(false);
+    } else {
+      try {
+        const endpoint = edit
+          ? `${import.meta.env.VITE_BACKEND_URL}course/${courseId}`
+          : `${import.meta.env.VITE_BACKEND_URL}course`;
+
+        const method = edit ? axios.patch : axios.post;
+
+        const res = await method(endpoint, payload, {
+          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        toast.success(
+          res.data.message ||
+            `Course ${edit ? "updated" : "created"} successfully!`
+        );
+        navigate(-1);
+      } catch (error) {
+        console.error("Course submission error:", error);
+        toast.error(
+          error.response?.data?.message ||
+            `Failed to ${edit ? "update" : "create"} course`
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   }
 
@@ -272,6 +277,7 @@ export default function CourseCreationForm({ edit = false }) {
             whatYouWillLearn: course?.whatYouWillLearn || [],
           };
 
+          setCourse(course);
           setFormData(data);
           setInitialData(data);
           setThumbnailPreview(course?.thumbnail || "");

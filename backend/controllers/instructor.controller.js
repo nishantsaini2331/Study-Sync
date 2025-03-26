@@ -1,6 +1,7 @@
 const Course = require("../models/course.model");
 const Lecture = require("../models/lecture.model");
 const Payment = require("../models/payment.model");
+const { Request } = require("../models/request.model");
 const ReviewAndRating = require("../models/reviewAndRating.model");
 const User = require("../models/user.model");
 const { populateReplies } = require("./student.controller");

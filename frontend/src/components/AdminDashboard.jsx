@@ -6,6 +6,7 @@ import CourseVerifyModal from "./CourseVerifyModal";
 import Category from "./Category";
 import axios from "axios";
 import toast from "react-hot-toast";
+import Request from "./Request";
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("courses");
@@ -153,6 +154,7 @@ function AdminDashboard() {
           {activeTab === "settings" && <div>Settings</div>}
           {activeTab === "dashboard" && <div>Dashboard</div>}
           {activeTab === "category" && <Category />}
+          {activeTab === "Request" && <Request role={"admin"} />}
         </main>
       </div>
 

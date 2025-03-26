@@ -20,4 +20,6 @@ module.exports = {
 
   RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID,
   RAZORPAY_SECRET: process.env.RAZORPAY_SECRET,
+
+  ADMIN_USER_ID: process.env.ADMIN_USER_ID,
 };

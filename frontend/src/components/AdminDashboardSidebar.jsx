@@ -16,6 +16,7 @@ const sidebarItems = [
   { key: "users", label: "Users", icon: Users },
   { key: "settings", label: "Settings", icon: Settings },
   { key: "category", label: "Category", icon: ChartBarBig },
+  { key: "Request", label: "Request", icon: Users },
 ];
 
 function AdminDashboardSidebar({ activeTab, setActiveTab }) {

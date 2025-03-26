@@ -1,18 +1,24 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const { v4: uuidv4 } = require("uuid");
+const { ADMIN_USER_ID } = require("../config/dotenv");
 
 const RequestType = {
-  EDIT_COURSE: "EDIT_COURSE",
-  DELETE_COURSE: "DELETE_COURSE",
-  ADD_MODULE: "ADD_MODULE",
-  EDIT_MODULE: "EDIT_MODULE",
-  DELETE_MODULE: "DELETE_MODULE",
-  EDIT_FINAL_QUIZ: "EDIT_FINAL_QUIZ",
-
-  RESET_QUIZ_ATTEMPTS: "RESET_QUIZ_ATTEMPTS",
-  EXTENSION_REQUEST: "EXTENSION_REQUEST",
-  REFUND_REQUEST: "REFUND_REQUEST",
-  CERTIFICATE_ISSUE: "CERTIFICATE_ISSUE",
+  instructorRequest: {
+    CREATE_COURSE: "CREATE_COURSE",
+    EDIT_COURSE: "EDIT_COURSE",
+    DELETE_COURSE: "DELETE_COURSE",
+    ADD_MODULE: "ADD_MODULE",
+    EDIT_MODULE: "EDIT_MODULE",
+    DELETE_MODULE: "DELETE_MODULE",
+    EDIT_FINAL_QUIZ: "EDIT_FINAL_QUIZ",
+  },
+  studentRequest: {
+    RESET_QUIZ_ATTEMPTS: "RESET_QUIZ_ATTEMPTS",
+    EXTENSION_REQUEST: "EXTENSION_REQUEST",
+    REFUND_REQUEST: "REFUND_REQUEST",
+    CERTIFICATE_ISSUE: "CERTIFICATE_ISSUE",
+  },
 };
 
 const RequestStatus = {
@@ -30,17 +36,16 @@ const RequestSchema = new Schema(
       type: String,
       required: true,
       unique: true,
-      default: () =>
-        "REQ-" +
-        Math.floor(Math.random() * 1000000)
-          .toString()
-          .padStart(6, "0"),
+      default: () => `REQ-${uuidv4().split("-")[0].toUpperCase()}`,
     },
 
     requestType: {
       type: String,
       required: true,
-      enum: Object.values(RequestType),
+      enum: [
+        ...Object.values(RequestType.instructorRequest),
+        ...Object.values(RequestType.studentRequest),
+      ],
     },
 
     status: {
@@ -53,7 +58,7 @@ const RequestSchema = new Schema(
     requestedBy: {
       type: Schema.Types.ObjectId,
       required: true,
-      refPath: "requesterRole",
+      ref: "User",
     },
 
     requesterRole: {
@@ -73,18 +78,18 @@ const RequestSchema = new Schema(
       required: true,
     },
 
-    relatedEntities: [
-      {
-        entityType: {
-          type: String,
-          enum: ["Course", "Lecture", "Quiz", "User"],
-        },
-        entityId: {
-          type: Schema.Types.ObjectId,
-          refPath: "relatedEntities.entityType",
-        },
+    relatedEntities: {
+      entityType: {
+        type: String,
+        enum: ["Course", "Lecture", "Quiz", "User"],
+        required: true,
       },
-    ],
+      entityId: {
+        type: Schema.Types.ObjectId,
+        refPath: "relatedEntities.entityType",
+        required: true,
+      },
+    },
 
     attachments: [
       {
@@ -106,16 +111,7 @@ const RequestSchema = new Schema(
     assignedTo: {
       type: Schema.Types.ObjectId,
       ref: "User",
-    },
-
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-
-    updatedAt: {
-      type: Date,
-      default: Date.now,
+      default: ADMIN_USER_ID,
     },
 
     resolvedAt: {
@@ -124,10 +120,10 @@ const RequestSchema = new Schema(
 
     comments: [
       {
-        text: String,
+        comment: String,
         commentedBy: {
           type: Schema.Types.ObjectId,
-          refPath: "comments.commenterRole",
+          ref: "User",
         },
         commenterRole: {
           type: String,
@@ -140,7 +136,7 @@ const RequestSchema = new Schema(
       },
     ],
 
-    adminNotes: {
+    adminNote: {
       type: String,
     },
 
@@ -163,6 +159,11 @@ RequestSchema.index({ status: 1 });
 RequestSchema.index({ requestedBy: 1 });
 RequestSchema.index({ courseId: 1 });
 RequestSchema.index({ requestType: 1 });
+RequestSchema.index({ assignedTo: 1 });
+RequestSchema.index({
+  "relatedEntities.entityType": 1,
+  "relatedEntities.entityId": 1,
+});
 
 RequestSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
@@ -170,7 +171,10 @@ RequestSchema.pre("save", function (next) {
 });
 
 RequestSchema.statics.findByCourse = function (courseId) {
-  return this.find({ courseId: courseId });
+  return this.find({
+    "relatedEntities.entityType": "Course",
+    "relatedEntities.entityId": courseId,
+  });
 };
 
 RequestSchema.methods.approve = function (adminId, notes) {

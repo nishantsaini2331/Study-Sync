@@ -3,6 +3,8 @@ import {
   BookOpen,
   ChevronRight,
   DollarSign,
+  GitPullRequest,
+  GitPullRequestArrow,
   IndianRupee,
   LayoutDashboard,
   MessageCircle,
@@ -35,6 +37,7 @@ import InstructorCommentDashboard from "./InstructorCommentDashboard";
 import InstructorCourses from "./InstructorCourses";
 import InstructorStudentsData from "./InstructorStudentsData";
 import DashboardHeader from "./DashboardHeader";
+import Request from "./Request";
 
 const InstructorDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -72,6 +75,16 @@ const InstructorDashboard = () => {
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "courses", label: "Courses", icon: BookOpen },
     { id: "students", label: "Students", icon: Users },
+    {
+      id: "my-requests",
+      label: "My Requests",
+      icon: GitPullRequest,
+    },
+    // {
+    //   id: "student-requests",
+    //   label: "Student Requests",
+    //   icon: GitPullRequestArrow,
+    // },
     // { id: "payments", label: "Payments", icon: DollarSign },
     // { id: "reviews", label: "Reviews", icon: Star },
     { id: "comments", label: "Comments", icon: MessageCircle },
@@ -308,7 +321,18 @@ const InstructorDashboard = () => {
 
       case "comments":
         return <InstructorCommentDashboard />;
-
+      case "my-requests":
+        return (
+          <div className="text-xl">
+            <Request role={"instructor"} />
+          </div>
+        );
+      case "student-requests":
+        return (
+          <div className="text-xl">
+            <Request />
+          </div>
+        );
       default:
         return <div className="text-xl">Dashboard Content</div>;
     }

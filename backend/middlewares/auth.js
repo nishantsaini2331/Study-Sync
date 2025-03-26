@@ -104,6 +104,18 @@ function isInstructorOrStudent(req, res, next) {
   }
 }
 
+function isInstructorOrAdminOrStudent(req, res, next) {
+  if (
+    req.user.roles.includes("instructor") ||
+    req.user.roles.includes("admin") ||
+    req.user.roles.includes("student")
+  ) {
+    next();
+  } else {
+    res.status(403).json({ message: "Access denied. Not authorized." });
+  }
+}
+
 module.exports = {
   auth,
   admin,
@@ -111,4 +123,5 @@ module.exports = {
   student,
   isInstructorOrAdmin,
   isInstructorOrStudent,
+  isInstructorOrAdminOrStudent,
 };
