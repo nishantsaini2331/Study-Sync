@@ -81,10 +81,9 @@ courseProgressSchema.methods.updateLectureProgress = async function (
   }
 
   lectureProgress.isCompleted = true;
-
   await this.save();
 
-  this.calculateOverallProgress();
+  await this.calculateOverallProgress();
 };
 
 courseProgressSchema.methods.calculateOverallProgress = async function () {
@@ -92,6 +91,7 @@ courseProgressSchema.methods.calculateOverallProgress = async function () {
 
   if (totalLectures === 0) {
     this.overallProgress = 0;
+    await this.save(); 
     return;
   }
 
@@ -102,7 +102,7 @@ courseProgressSchema.methods.calculateOverallProgress = async function () {
   this.overallProgress = (completedLectures / totalLectures) * 100;
 
   if (this.overallProgress < 100) {
-    this.unlockNextLecture(this.currentLecture);
+    await this.unlockNextLecture(this.currentLecture);
   }
 
   await this.save();
