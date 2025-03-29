@@ -40,6 +40,14 @@ const Header = () => {
             <Link to={"/"} className="text-gray-700 hover:text-blue-600">
               Home
             </Link>
+
+            <Link
+              to="/verify-certificate/your-certificate-id"
+              className="text-gray-700 hover:text-blue-600"
+            >
+              Verify Certificate
+            </Link>
+
             <Link to="/about" className="text-gray-700 hover:text-blue-600">
               About
             </Link>

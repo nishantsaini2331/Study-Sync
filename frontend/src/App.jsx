@@ -22,6 +22,7 @@ import AdminDashboard from "./components/AdminDashboard";
 import CoursesPage from "./pages/CoursesPage";
 import CourseLearningPage from "./pages/CourseLearningPage";
 import StudentDashboard from "./components/StudentDashboard";
+import CertificateVerification from "./pages/CertificationVerification";
 
 function App() {
   return (
@@ -90,6 +91,11 @@ function App() {
                 <StudentDashboard />
               </AuthenticateUser>
             }
+          />
+
+          <Route
+            path="/verify-certificate/:id"
+            element={<CertificateVerification />}
           />
         </Route>
 

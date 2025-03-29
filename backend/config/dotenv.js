@@ -22,4 +22,6 @@ module.exports = {
   RAZORPAY_SECRET: process.env.RAZORPAY_SECRET,
 
   ADMIN_USER_ID: process.env.ADMIN_USER_ID,
+
+  FRONTEND_URL: process.env.FRONTEND_URL,
 };

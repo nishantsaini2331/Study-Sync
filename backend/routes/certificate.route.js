@@ -5,6 +5,7 @@ const router = express.Router();
 const { auth, student } = require("../middlewares/auth");
 const {
   downloadCertificate,
+  verifyCertificate
 } = require("../controllers/certificate.controller");
 
 router.get(
@@ -12,6 +13,11 @@ router.get(
   auth,
   student,
   downloadCertificate
+);
+
+router.get(
+  "/verify-certificate/:certificateId",
+  verifyCertificate
 );
 
 module.exports = router;

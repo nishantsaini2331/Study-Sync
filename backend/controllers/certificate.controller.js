@@ -3,8 +3,9 @@ const fs = require("fs");
 const path = require("path");
 const Handlebars = require("handlebars");
 const CourseCertification = require("../models/certificate.model");
-const Course = require("../models/course.model");
 const CourseProgress = require("../models/courseProgress.model");
+const QRCode = require("qrcode");
+const { FRONTEND_URL } = require("../config/dotenv");
 
 async function downloadCertificate(req, res) {
   let browser = null;
@@ -46,6 +47,10 @@ async function downloadCertificate(req, res) {
     const templateHtml = fs.readFileSync(templatePath, "utf-8");
     const template = Handlebars.compile(templateHtml);
 
+    const logoPath = path.join(__dirname, "..", "templates", "logo.svg");
+    const logoBuffer = fs.readFileSync(logoPath);
+    const base64Logo = logoBuffer.toString("base64");
+
     const issueDate = new Date(certificate.issueDate).toLocaleDateString(
       "en-US",
       {
@@ -63,6 +68,18 @@ async function downloadCertificate(req, res) {
       day: "numeric",
     });
 
+    const verificationUrl = `${FRONTEND_URL}/verify-certificate/${certificateId}`;
+    const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, {
+      errorCorrectionLevel: "M",
+      type: "image/png",
+      width: 150,
+      margin: 1,
+      color: {
+        dark: "#1a237e",
+        light: "#ffffff",
+      },
+    });
+
     const certificateData = {
       learnerName: certificate.learnerName,
       courseName: certificate.courseName,
@@ -71,6 +88,8 @@ async function downloadCertificate(req, res) {
       issueDate,
       completionDate,
       finalScore: certificate.finalQuizScore,
+      qrCodeDataUrl: qrCodeDataUrl,
+      logoDataUrl: `data:image/svg+xml;base64,${base64Logo}`,
     };
 
     const html = template(certificateData);
@@ -87,7 +106,6 @@ async function downloadCertificate(req, res) {
 
     await page.evaluate(() => document.fonts.ready);
 
-    // Generate PDF with standard settings
     const pdfBuffer = await page.pdf({
       format: "A4",
       landscape: true,
@@ -100,19 +118,16 @@ async function downloadCertificate(req, res) {
     await browser.close();
     browser = null;
 
-    // Set proper headers
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="certificate-${certificateId}.pdf"`
     );
 
-    // Send buffer directly
     return res.end(pdfBuffer);
   } catch (error) {
     console.error("Certificate generation error:", error);
 
-    // Always close browser if it exists
     if (browser) {
       await browser.close().catch(console.error);
     }
@@ -124,6 +139,37 @@ async function downloadCertificate(req, res) {
   }
 }
 
+async function verifyCertificate(req, res) {
+  try {
+    const { certificateId } = req.params;
+
+    const certificate = await CourseCertification.findOne({
+      certificateId,
+    }).select(
+      "learnerName courseName instructorName issueDate courseCompletionDate finalQuizScore certificateId -_id"
+    );
+
+    if (!certificate) {
+      return res.status(404).json({
+        success: false,
+        message: "Certificate not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: certificate,
+    });
+  } catch (error) {
+    console.error("Certificate verification error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify certificate: " + error.message,
+    });
+  }
+}
+
 module.exports = {
   downloadCertificate,
+  verifyCertificate,
 };
