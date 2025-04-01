@@ -16,8 +16,11 @@ const commentRoute = require("./routes/comment.route");
 const certificateRoute = require("./routes/certificate.route");
 const cartRoute = require("./routes/cart.route");
 const requestRoute = require("./routes/request.route");
-const app = express();
+const adminRoute = require("./routes/admin.route");
 const cookieParser = require("cookie-parser");
+
+
+const app = express();
 
 app.use(
   cors({
@@ -44,6 +47,8 @@ app.use("/api/v1/comment", commentRoute);
 app.use("/api/v1/certificate", certificateRoute);
 app.use("/api/v1/cart", cartRoute);
 app.use("/api/v1/request", requestRoute);
+app.use("/api/v1/admin", adminRoute);
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });

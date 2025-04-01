@@ -362,6 +362,7 @@ async function instructorDashboard(req, res) {
     });
   }
 }
+
 async function instructorCourses(req, res) {
   try {
     const { publishedCourses } = req.query;

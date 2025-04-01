@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Check, Search } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import DashboardHeader from "./DashboardHeader";
 
 function Category() {
   const [categories, setCategories] = useState([]);
@@ -112,21 +113,21 @@ function Category() {
   }, []);
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Category Management
-        </h1>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          <Plus size={20} />
-          Add Category
-        </button>
-      </div>
+    <div className="bg-white shadow rounded-lg mx-auto  overflow-hidden">
+      <DashboardHeader
+        title={"Courses for Review"}
+        description={"Review and manage course submissions from instructors."}
+        role="admin"
+      />
+      <button
+        onClick={() => setIsAddModalOpen(true)}
+        className="flex my-3 items-center gap-2 mx-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+      >
+        <Plus size={20} />
+        Add Category
+      </button>
 
-      <div className="mb-6 relative">
+      <div className="mb-6 mx-4 relative">
         <input
           type="text"
           placeholder="Search categories..."
