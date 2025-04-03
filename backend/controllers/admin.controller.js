@@ -475,4 +475,118 @@ async function adminDashboard(req, res) {
   }
 }
 
-module.exports = { adminDashboard };
+async function searchForStudentOrInstructor(req, res) {
+  try {
+    const { searchTerm } = req.query;
+
+    if (!searchTerm) {
+      return res.status(400).json({
+        success: false,
+        message: "Search term is required",
+      });
+    }
+
+    const regex = new RegExp(searchTerm, "i");
+
+    const users = await User.find({
+      $or: [{ name: regex }, { email: regex }, { username: regex }],
+    }).select("name email username photoUrl roles createdAt updatedAt -_id");
+
+    return res.status(200).json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error searching for users",
+      error: error.message,
+    });
+  }
+}
+
+async function getUserData(req, res) {
+  try {
+    const { username } = req.params;
+
+    if (!username) {
+      return res.status(400).json({
+        success: false,
+        message: "username is required",
+      });
+    }
+
+    const user = await User.findOne({ username }).select(
+      "name email username photoUrl roles createdAt qualification createdCourses isVerified purchasedCourses updatedAt -_id"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error searching for users",
+      error: error.message,
+    });
+  }
+}
+
+async function userVerification(req, res) {
+  try {
+    const { username } = req.params;
+    const { isVerified } = req.body;
+
+    console.log(isVerified);
+
+    if (!username) {
+      return res.status(400).json({
+        success: false,
+        message: "Username is required",
+      });
+    }
+
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    user.isVerified = isVerified;
+    await user.save();
+    return res.status(200).json({
+      success: true,
+      message: `User verification status updated to ${isVerified}`,
+      user: {
+        isVerified: user.isVerified,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating user verification status",
+      error: error.message,
+    });
+  }
+}
+
+module.exports = {
+  adminDashboard,
+  searchForStudentOrInstructor,
+  getUserData,
+  userVerification,
+};

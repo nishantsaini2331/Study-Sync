@@ -72,9 +72,22 @@ async function instructorStats(instructor) {
 
 async function instructorDashboard(req, res) {
   try {
-    const instructor = await User.findById(req.user.id).populate(
-      "createdCourses"
-    );
+    const user = req.user;
+    const { username } = req.params;
+    let userId = user.id;
+
+    if (username !== "me") {
+      let user = await User.findOne({ username });
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+      userId = user._id;
+    }
+
+    const instructor = await User.findById(userId).populate("createdCourses");
     if (!instructor) {
       return res.status(401).json({
         success: false,

@@ -611,9 +611,22 @@ async function getPaymentDetails(req, res) {
 async function getProgress(req, res) {
   try {
     const student = req.user;
+    const { username } = req.params;
+    let userId = student.id;
+
+    if (username !== "me") {
+      let user = await User.findOne({ username }).select("purchasedCourses");
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+      userId = user._id;
+    }
 
     const courseProgress = await CourseProgress.find({
-      student: student.id,
+      student: userId.toString(),
     })
       .select(
         "overallProgress isCourseFinalQuizPassed lectureProgress createdAt updatedAt"

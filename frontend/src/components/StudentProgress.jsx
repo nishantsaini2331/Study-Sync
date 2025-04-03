@@ -1,13 +1,13 @@
 import axios from "axios";
 import {
-    AlertCircle,
-    Award,
-    BookMarked,
-    CheckCircle,
-    ChevronDown,
-    ChevronUp,
-    Clock,
-    PlayCircle
+  AlertCircle,
+  Award,
+  BookMarked,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  PlayCircle,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -15,7 +15,7 @@ import { formatDate } from "../utils/formatDate";
 import { LoadingSpinner } from "./CommentSystem";
 import DashboardHeader from "./DashboardHeader";
 
-function CourseProgressTracker() {
+function StudentProgress({ isAdmin, username }) {
   const [progressData, setProgressData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedCourses, setExpandedCourses] = useState({});
@@ -25,14 +25,14 @@ function CourseProgressTracker() {
       try {
         setLoading(true);
         const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}student/progress`,
+          `${import.meta.env.VITE_BACKEND_URL}student/progress/${
+            isAdmin ? username : "me"
+          }`,
           {
             withCredentials: true,
           }
         );
         setProgressData(res.data.data);
-        console.log(res.data.data);
-
         const initialExpandedState = {};
         res.data.data.forEach((course, index) => {
           initialExpandedState[index] = false;
@@ -77,10 +77,12 @@ function CourseProgressTracker() {
 
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
-      <DashboardHeader
-        title={"My Course Progress"}
-        description={"Track your progress across all courses"}
-      />
+      {!isAdmin && (
+        <DashboardHeader
+          title={"My Course Progress"}
+          description={"Track your progress across all courses"}
+        />
+      )}
 
       <div className="p-4 sm:p-6">
         <div className="space-y-4">
@@ -262,4 +264,4 @@ function CourseProgressTracker() {
   );
 }
 
-export default CourseProgressTracker;
+export default StudentProgress;

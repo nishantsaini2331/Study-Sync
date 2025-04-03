@@ -34,6 +34,6 @@ router.get("/enrolled-course", auth, student, getEnrolledCourses);
 router.get("/cart-courses", auth, student, getCartCourses);
 router.get("/certificates", auth, student, getCertificates);
 router.get("/payment-details", auth, student, getPaymentDetails);
-router.get("/progress", auth, student, getProgress);
+router.get("/progress/:username", auth, student, getProgress);
 
 module.exports = router;

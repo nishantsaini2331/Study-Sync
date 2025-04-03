@@ -5,7 +5,6 @@ import {
   GitPullRequest,
   IndianRupee,
   LayoutDashboard,
-  Settings,
   Tag,
   User,
   Users,
@@ -32,13 +31,16 @@ import UpdateProfile from "../pages/UpdateProfile";
 import Category from "./Category";
 import CoursesForReview from "./CoursesForReview";
 import DashboardHeader from "./DashboardHeader";
+import DetailUserProfile from "./DetailUserProfile";
 import Request from "./Request";
+import UsersAdminDashboard from "./UsersAdminDashboard";
 
 const AdminDetailDash = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState("all");
+  const [detailUser, setDetailUser] = useState(null);
   const navigate = useNavigate();
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
@@ -49,7 +51,7 @@ const AdminDetailDash = () => {
     { id: "users", label: "Users", icon: Users },
     { id: "categories", label: "Categories", icon: Tag },
     { id: "requests", label: "Requests", icon: GitPullRequest },
-    { id: "settings", label: "Settings", icon: Settings },
+    // { id: "settings", label: "Settings", icon: Settings },
     { id: "profile", label: "Profile", icon: User },
   ];
 
@@ -57,7 +59,7 @@ const AdminDetailDash = () => {
     fetchDashboardData();
   }, [timeFilter]);
 
-  const fetchDashboardData = async () => {
+  async function fetchDashboardData() {
     setLoading(true);
     try {
       const res = await axios.get(
@@ -75,7 +77,7 @@ const AdminDetailDash = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   function renderDashboardContent() {
     return (
@@ -331,7 +333,6 @@ const AdminDetailDash = () => {
               </div>
             </div>
 
-            {/* Top Instructors */}
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold mb-4">Top Instructors</h3>
@@ -377,9 +378,10 @@ const AdminDetailDash = () => {
                         </div>
                       </div>
                       <button
-                        onClick={() =>
-                          navigate(`/instructor/${instructor.username}`)
-                        }
+                        onClick={() => {
+                          setDetailUser(instructor.username);
+                          setActiveTab("users");
+                        }}
                         className="text-blue-600 hover:text-blue-700"
                       >
                         View
@@ -390,7 +392,6 @@ const AdminDetailDash = () => {
             </div>
           </div>
 
-          {/* Financial summary */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold mb-4">Financial Summary</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -425,14 +426,21 @@ const AdminDetailDash = () => {
     );
   }
 
-  const renderContent = () => {
+  function renderContent() {
     switch (activeTab) {
       case "dashboard":
         return renderDashboardContent();
       case "courses":
         return <CoursesForReview />;
       case "users":
-        return <h1>Admin Users</h1>;
+        return detailUser ? (
+          <DetailUserProfile
+            detailUser={detailUser}
+            setDetailUser={setDetailUser}
+          />
+        ) : (
+          <UsersAdminDashboard setDetailUser={setDetailUser} />
+        );
       case "categories":
         return <Category />;
       case "requests":
@@ -444,7 +452,7 @@ const AdminDetailDash = () => {
       default:
         return renderDashboardContent();
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -466,7 +474,10 @@ const AdminDetailDash = () => {
             return (
               <div key={item.id}>
                 <button
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    setDetailUser(null);
+                  }}
                   className={`w-full flex items-center space-x-2 p-3 rounded-lg transition-colors ${
                     activeTab === item.id
                       ? "bg-blue-50 text-blue-600"
