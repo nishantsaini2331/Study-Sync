@@ -49,6 +49,40 @@ async function sendVerificationEmail(user) {
   const response = await transporter.sendMail(message);
 }
 
+function validateSocialLinks(socials) {
+  const patterns = {
+    youtube:
+      /^(https?:\/\/)?(www\.)?youtube\.com\/@[a-zA-Z0-9_-]+(\?[a-zA-Z0-9_=&-]+)?$/,
+    linkedin:
+      /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+(\/|[-a-zA-Z0-9_%]+\/?)?$/,
+    github: /^(https?:\/\/)?(www\.)?github\.com\/[a-zA-Z0-9_-]+\/?$/,
+    website:
+      /^(https?:\/\/)?(www\.)?[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}$/,
+    twitter:
+      /^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}\/?$/,
+  };
+
+  for (const [platform, url] of Object.entries(socials)) {
+    if (!url || url.trim() === "") continue;
+
+    if (!patterns[platform]) {
+      return {
+        isValid: false,
+        message: `Unsupported social media platform: ${platform}`,
+      };
+    }
+
+    if (!patterns[platform].test(url)) {
+      return {
+        isValid: false,
+        message: `Invalid ${platform} URL format`,
+      };
+    }
+  }
+
+  return { isValid: true };
+}
+
 function checkEmailExistence(email) {
   return new Promise((resolve) => {
     emailExistence.check(email, (err, result) => {
@@ -415,7 +449,7 @@ async function updateUser(req, res) {
       return res.status(400).json({
         success: false,
         message:
-          "Username must be 3-10 characters and can only contain letters, numbers, and underscores",
+          "Username must be 3-20 characters and can only contain letters, numbers, and underscores",
       });
     }
 
@@ -429,7 +463,18 @@ async function updateUser(req, res) {
         message: "Username already exists",
       });
     }
-    const socials = JSON.parse(req.body.socials);
+
+    let socials;
+    if (req.body.socials) {
+      socials = JSON.parse(req.body.socials);
+      const socialValidation = validateSocialLinks(socials);
+      if (!socialValidation.isValid) {
+        return res.status(400).json({
+          success: false,
+          message: socialValidation.message,
+        });
+      }
+    }
 
     if (image) {
       if (user.photoUrlId) {
@@ -445,10 +490,7 @@ async function updateUser(req, res) {
 
     updateFields.forEach((field) => {
       if (req.body[field]) {
-        if (
-          field === "socials" &&
-          typeof JSON.parse(req.body.socials) === "object"
-        ) {
+        if (field === "socials" && typeof socials === "object") {
           user.socials = {
             ...user.socials,
             ...socials,
@@ -458,11 +500,6 @@ async function updateUser(req, res) {
         }
       }
     });
-
-    // if (req.body.password) {
-    //   const saltRounds = 10;
-    //   req.user.password = await bcrypt.hash(req.body.password, saltRounds);
-    // }
 
     await user.save();
 
@@ -486,6 +523,7 @@ async function updateUser(req, res) {
     });
   }
 }
+
 async function deleteUser(req, res) {
   try {
     const user = await User.findByIdAndDelete(req.user.id);
