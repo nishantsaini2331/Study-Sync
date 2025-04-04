@@ -13,6 +13,7 @@ import {
 import { Users, GraduationCap, UserCheck, BookOpen, UserX } from "lucide-react";
 import DashboardHeader from "./DashboardHeader";
 import { commentApi, LoadingSpinner } from "./CommentSystem";
+import StudentProgress from "./StudentProgress";
 
 function InstructorStudentsData() {
   const [studentsData, setStudentsData] = useState({
@@ -23,28 +24,13 @@ function InstructorStudentsData() {
     notStartingLearning: 0,
   });
 
+  const [studentsProgress, setStudentsProgress] = useState([]);
   const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(false);
-
+  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState("all");
 
-  useEffect(() => {
-    async function fetchStudentsData() {
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}instructor/students-details`,
-          { withCredentials: true, params: { courseId: selectedCourse } }
-        );
-        setStudentsData(res.data.studentsData);
-      } catch (error) {
-        console.error(error);
-        toast.error(error.response.data.message || "Please try again later");
-      }
-    }
-    fetchStudentsData();
-    document.title = "Instructor Students Data";
-  }, [selectedCourse]);
-
+  // Fetch courses on component mount
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -54,12 +40,39 @@ function InstructorStudentsData() {
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch courses:", error);
+        toast.error("Failed to load courses. Please try again.");
         setLoading(false);
       }
     };
 
     fetchCourses();
+    document.title = "Instructor Students Data";
   }, []);
+
+  // Fetch student data when selectedCourse changes
+  useEffect(() => {
+    async function fetchStudentsData() {
+      try {
+        setDataLoading(true);
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}instructor/students-details`,
+          { withCredentials: true, params: { courseId: selectedCourse } }
+        );
+        setStudentsData(res.data.studentsData);
+        setStudentsProgress(res.data.studentsProgress || []);
+        setDataLoading(false);
+      } catch (error) {
+        console.error(error);
+        toast.error(error.response?.data?.message || "Please try again later");
+        setDataLoading(false);
+      }
+    }
+
+    if (!loading) {
+      // Only fetch student data after courses are loaded
+      fetchStudentsData();
+    }
+  }, [selectedCourse, loading]);
 
   const statsCards = [
     {
@@ -130,6 +143,7 @@ function InstructorStudentsData() {
           className="w-1/4 p-2 border rounded-lg mb-3"
           onChange={(e) => setSelectedCourse(e.target.value)}
           value={selectedCourse}
+          disabled={dataLoading}
         >
           <option value="all">All Courses</option>
           {courses.map((course) => (
@@ -139,46 +153,64 @@ function InstructorStudentsData() {
           ))}
         </select>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          {statsCards.map((stat, index) => (
-            <div
-              key={index}
-              className="p-4 rounded-lg border bg-white shadow-sm"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-semibold mt-1">{stat.value}</p>
+        {dataLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <LoadingSpinner />
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+              {statsCards.map((stat, index) => (
+                <div
+                  key={index}
+                  className="p-4 rounded-lg border bg-white shadow-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">{stat.title}</p>
+                      <p className="text-2xl font-semibold mt-1">
+                        {stat.value}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-full ${stat.color}`}>
+                      <stat.icon size={24} />
+                    </div>
+                  </div>
                 </div>
-                <div className={`p-3 rounded-full ${stat.color}`}>
-                  <stat.icon size={24} />
-                </div>
+              ))}
+            </div>
+
+            <div className="bg-white p-6 rounded-lg border shadow-sm">
+              <h2 className="text-lg font-semibold mb-4">
+                Students Progress Distribution
+              </h2>
+              <div className="h-80 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar
+                      dataKey="value"
+                      name="Students"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
-          ))}
-        </div>
 
-        <div className="bg-white p-6 rounded-lg border shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">
-            Students Progress Distribution
-          </h2>
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Bar
-                  dataKey="value"
-                  name={"students"}
-                  radius={[4, 4, 0, 0]}
-                  onClick={(e) => console.log(e.payload)}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+            {selectedCourse !== "all" && studentsProgress.length > 0 && (
+              <div className="bg-white p-6 rounded-lg border shadow-sm mt-8">
+                <h2 className="text-lg font-semibold mb-4">
+                  Students Progress
+                </h2>
+                <StudentProgress studentProgressData={studentsProgress} />
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

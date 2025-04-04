@@ -1,4 +1,5 @@
 const Course = require("../models/course.model");
+const CourseProgress = require("../models/courseProgress.model");
 const Lecture = require("../models/lecture.model");
 const Payment = require("../models/payment.model");
 const ReviewAndRating = require("../models/reviewAndRating.model");
@@ -562,9 +563,36 @@ async function studentsDetails(req, res) {
       },
     ]);
 
+    let studentsProgressData = [];
+    if (courseId && courseId !== "all") {
+      const course = await Course.findOne({
+        courseId: courseId,
+        instructor: instructor._id,
+      });
+
+      if (course) {
+        studentsProgressData = await CourseProgress.find({
+          course: course._id,
+        })
+          .select(
+            "student overallProgress isCourseFinalQuizPassed lectureProgress createdAt updatedAt"
+          )
+          .populate({
+            path: "student",
+            select: "username email name photoUrl -_id",
+          })
+          .populate({
+            path: "lectureProgress.lecture",
+            select: "title lectureId isCompleted isUnlocked quizAttempts",
+          });
+      }
+    }
+
     return res.status(200).json({
       success: true,
       studentsData: studentsData[0],
+      studentsProgress:
+        courseId && courseId !== "all" ? studentsProgressData : [],
     });
   } catch (error) {
     return res.status(500).json({

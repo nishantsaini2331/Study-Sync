@@ -8,6 +8,7 @@ import {
   ChevronUp,
   Clock,
   PlayCircle,
+  User2,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -15,7 +16,11 @@ import { formatDate } from "../utils/formatDate";
 import { LoadingSpinner } from "./CommentSystem";
 import DashboardHeader from "./DashboardHeader";
 
-function StudentProgress({ isAdmin, username }) {
+function StudentProgress({
+  isAdmin = false,
+  username = "me",
+  studentProgressData = [],
+}) {
   const [progressData, setProgressData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedCourses, setExpandedCourses] = useState({});
@@ -47,7 +52,14 @@ function StudentProgress({ isAdmin, username }) {
         setLoading(false);
       }
     }
-    getCourseProgress();
+    if (studentProgressData.length == 0) {
+      console.log("Fetching course progress data from API");
+      getCourseProgress();
+    } else {
+      setLoading(false);
+      console.log(studentProgressData);
+      setProgressData(studentProgressData);
+    }
   }, []);
 
   const toggleCourseExpand = (index) => {
@@ -77,7 +89,7 @@ function StudentProgress({ isAdmin, username }) {
 
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
-      {!isAdmin && (
+      {!isAdmin && !studentProgressData.length > 0 && (
         <DashboardHeader
           title={"My Course Progress"}
           description={"Track your progress across all courses"}
@@ -89,36 +101,106 @@ function StudentProgress({ isAdmin, username }) {
           {progressData.map((course, courseIndex) => (
             <div
               key={courseIndex}
-              className="border border-gray-200 rounded-lg overflow-hidden"
+              className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-shadow"
             >
               <div
-                className="bg-gray-50 p-4 flex items-center justify-between cursor-pointer"
+                className={`bg-gray-50 p-4  cursor-pointer ${
+                  studentProgressData.length > 0
+                    ? " "
+                    : " flex items-center justify-between "
+                }`}
                 onClick={() => toggleCourseExpand(courseIndex)}
               >
-                <div className="flex items-center">
-                  <BookMarked className="h-5 w-5 text-indigo-600 mr-3" />
-                  <div>
-                    <h4 className="text-lg font-medium text-gray-900">
-                      {course.course
-                        ? `Course: ${course.course.title}`
-                        : "Course Details"}
-                    </h4>
-                  </div>
-                </div>
+                {studentProgressData.length > 0 ? (
+                  <div className="flex flex-col ">
+                    <div className="">
+                      <div className="flex items-center mr-3 gap-3">
+                        <div className="relative flex-shrink-0">
+                          {course.student.photoUrl ? (
+                            <img
+                              src={course.student.photoUrl}
+                              alt={course.student.name || "User profile"}
+                              className="w-10 h-10 sm:w-10 sm:h-10 rounded-full border-4 border-white object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 sm:w-10 sm:h-10 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center">
+                              <User2 size={22} className="text-gray-500" />
+                            </div>
+                          )}
+                        </div>
 
-                <div className="flex items-center">
-                  <div className="mr-4 text-right">
-                    <span className="text-sm text-gray-500">Progress</span>
-                    <div className="text-base font-medium text-indigo-600">
-                      {course.overallProgress}%
+                        <h4 className="text-lg font-medium text-gray-900">
+                          {course.student.name}
+                        </h4>
+                      </div>
+                      <div className="mt-2 space-y-1 text-sm text-gray-600">
+                        <p>
+                          <span className="font-medium">Email:</span>{" "}
+                          {course.student.email || "N/A"}
+                        </p>
+                        <p>
+                          <span className="font-medium">Username:</span>{" "}
+                          {course.student.username || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center mt-3">
+                      <div className="flex items-center">
+                        <BookMarked className="h-5 w-5 text-indigo-600 mr-3" />
+                        <div>
+                          <h4 className="text-lg font-medium text-gray-900">
+                            {course.course
+                              ? `Course: ${course.course.title}`
+                              : "Course Details"}
+                          </h4>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center">
+                        <div className="mr-4 text-right">
+                          <span className="text-sm text-gray-500">
+                            Progress
+                          </span>
+                          <div className="text-base font-medium text-indigo-600">
+                            {course.overallProgress}%
+                          </div>
+                        </div>
+                        {expandedCourses[courseIndex] ? (
+                          <ChevronUp className="h-5 w-5 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-gray-400" />
+                        )}
+                      </div>
                     </div>
                   </div>
-                  {expandedCourses[courseIndex] ? (
-                    <ChevronUp className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-400" />
-                  )}
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center">
+                      <BookMarked className="h-5 w-5 text-indigo-600 mr-3" />
+                      <div>
+                        <h4 className="text-lg font-medium text-gray-900">
+                          {course.course
+                            ? `Course: ${course.course.title}`
+                            : "Course Details"}
+                        </h4>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center">
+                      <div className="mr-4 text-right">
+                        <span className="text-sm text-gray-500">Progress</span>
+                        <div className="text-base font-medium text-indigo-600">
+                          {course.overallProgress}%
+                        </div>
+                      </div>
+                      {expandedCourses[courseIndex] ? (
+                        <ChevronUp className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-gray-400" />
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
 
               {expandedCourses[courseIndex] && (

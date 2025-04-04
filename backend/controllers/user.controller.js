@@ -184,7 +184,7 @@ async function register(req, res) {
       name,
       email,
       password: hashedPassword,
-      username,
+      username: username.length > 20 ? username.slice(0, 20) : username,
       qualification,
     });
 
@@ -410,7 +410,7 @@ async function updateUser(req, res) {
 
     const user = await User.findById(req.user.id);
 
-    const usernameRegex = /^[a-zA-Z0-9_]{3,10}$/;
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
     if (req.body.username && !usernameRegex.test(req.body.username)) {
       return res.status(400).json({
         success: false,

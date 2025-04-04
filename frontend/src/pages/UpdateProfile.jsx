@@ -3,8 +3,9 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import DashboardHeader from "../components/DashboardHeader";
+import { LoadingSpinner } from "../components/CommentSystem";
 
-const UpdateProfile = ({ role }) => {
+function UpdateProfile({ role }) {
   const { username } = useSelector((state) => state.user.user);
 
   const [initialData, setInitialData] = useState(null);
@@ -25,8 +26,9 @@ const UpdateProfile = ({ role }) => {
   });
 
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
+  function handleChange(e) {
     const { name, value, files } = e.target;
 
     if (files) {
@@ -40,7 +42,7 @@ const UpdateProfile = ({ role }) => {
     } else {
       setFormData({ ...formData, [name]: value });
     }
-  };
+  }
 
   useEffect(() => {
     if (initialData) {
@@ -50,7 +52,7 @@ const UpdateProfile = ({ role }) => {
   }, [formData, initialData]);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    async function fetchUserData() {
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}user/user/${username}`
@@ -63,11 +65,11 @@ const UpdateProfile = ({ role }) => {
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
-    };
+    }
     fetchUserData();
   }, [username]);
 
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
     setIsSaveDisabled(true);
     let formData2 = new FormData();
@@ -84,6 +86,7 @@ const UpdateProfile = ({ role }) => {
     }
 
     try {
+      setLoading(true);
       let response = await axios.patch(
         `${import.meta.env.VITE_BACKEND_URL}user/user`,
         formData2,
@@ -104,8 +107,9 @@ const UpdateProfile = ({ role }) => {
       toast.error(error.response.data.message);
     } finally {
       setIsSaveDisabled(true);
+      setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -262,19 +266,19 @@ const UpdateProfile = ({ role }) => {
         <div className="mt-6 text-center">
           <button
             type="submit"
-            className={`py-2 px-6 rounded text-white font-bold ${
+            className={`p-3 w-30 h-10 rounded text-white text-sm  font-bold ${
               isSaveDisabled
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
             disabled={isSaveDisabled}
           >
-            Save
+            {loading ? <LoadingSpinner /> : "Save Changes"}
           </button>
         </div>
       </form>
     </div>
   );
-};
+}
 
 export default UpdateProfile;
