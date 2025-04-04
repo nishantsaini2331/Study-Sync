@@ -23,6 +23,7 @@ import CoursesPage from "./pages/CoursesPage";
 import CourseLearningPage from "./pages/CourseLearningPage";
 import StudentDashboard from "./components/StudentDashboard";
 import CertificateVerification from "./pages/CertificationVerification";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -97,6 +98,7 @@ function App() {
             path="/verify-certificate/:id"
             element={<CertificateVerification />}
           />
+          <Route path="/profile/:id" element={<ProfilePage />} />
         </Route>
 
         <Route

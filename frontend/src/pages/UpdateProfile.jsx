@@ -7,11 +7,12 @@ import DashboardHeader from "../components/DashboardHeader";
 const UpdateProfile = ({ role }) => {
   const { username } = useSelector((state) => state.user.user);
 
-  const [initialData, setInitialData] = useState(null); // To hold the original fetched data
+  const [initialData, setInitialData] = useState(null);
   const [formData, setFormData] = useState({
     photoUrl: null,
     name: "",
     headline: "",
+    username: "",
     bio: "",
     socials: {
       website: "",
@@ -56,6 +57,7 @@ const UpdateProfile = ({ role }) => {
         );
 
         const userData = response.data.user;
+        console.log(userData);
         setInitialData(userData);
         setFormData(userData);
       } catch (error) {
@@ -71,6 +73,7 @@ const UpdateProfile = ({ role }) => {
     let formData2 = new FormData();
     formData2.append("name", formData.name);
     formData2.append("headline", formData.headline);
+    formData2.append("username", formData.username);
     formData2.append("bio", formData.bio);
     formData2.append("qualification", formData.qualification);
     formData2.append("socials", JSON.stringify(formData.socials));
@@ -169,6 +172,18 @@ const UpdateProfile = ({ role }) => {
                 type="text"
                 name="headline"
                 value={formData.headline}
+                onChange={handleChange}
+                className="w-full p-2 mt-1 border rounded"
+                placeholder="Your professional headline"
+              />
+            </label>
+
+            <label className="block mb-2">
+              Username
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
                 onChange={handleChange}
                 className="w-full p-2 mt-1 border rounded"
                 placeholder="Your professional headline"

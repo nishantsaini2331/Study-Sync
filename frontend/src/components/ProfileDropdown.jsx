@@ -132,8 +132,11 @@ function ProfileDropdown() {
           {/* <hr className="my-2 border-gray-200" /> */}
 
           {/* Section 5 */}
-          <li className="p-2 hover:bg-gray-100 cursor-pointer">
-            Public profile
+          <li
+            className="p-2 hover:bg-gray-100 cursor-pointer"
+            onClick={() => handleProfileDropDown(dispatch)}
+          >
+            <Link to={`/profile/${user.username}`}>Public profile</Link>
           </li>
           <li
             className="p-2 hover:bg-gray-100 cursor-pointer"

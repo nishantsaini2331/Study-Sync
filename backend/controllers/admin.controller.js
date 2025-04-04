@@ -547,8 +547,6 @@ async function userVerification(req, res) {
     const { username } = req.params;
     const { isVerified } = req.body;
 
-    console.log(isVerified);
-
     if (!username) {
       return res.status(400).json({
         success: false,

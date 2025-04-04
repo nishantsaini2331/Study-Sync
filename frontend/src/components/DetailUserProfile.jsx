@@ -131,7 +131,6 @@ function DetailUserProfile({ detailUser, setDetailUser }) {
                   </div>
                 )}
 
-                {/* Verification toggle - Added for admin functionality */}
                 <div className="mt-6 w-full">
                   <div className="flex flex-col items-center">
                     <p className="text-sm text-gray-500 mb-2">
@@ -170,7 +169,6 @@ function DetailUserProfile({ detailUser, setDetailUser }) {
                 </div>
               </div>
 
-              {/* Right side - Details */}
               <div className="lg:w-2/3 p-4 md:p-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <div>
@@ -229,7 +227,6 @@ function DetailUserProfile({ detailUser, setDetailUser }) {
                   </div>
                 </div>
 
-                {/* Roles */}
                 <div className="mt-4">
                   <p className="text-sm text-gray-500 mb-2">Roles</p>
                   <div className="flex flex-wrap gap-2">
@@ -260,7 +257,6 @@ function DetailUserProfile({ detailUser, setDetailUser }) {
                   </div>
                 </div>
 
-                {/* Stats */}
                 <div className="mt-6 grid grid-cols-2 sm:flex gap-2 md:gap-4">
                   <div className="bg-blue-50 rounded-lg p-3 flex items-center">
                     <BookOpen className="w-5 h-5 text-blue-600 mr-2" />
@@ -286,13 +282,11 @@ function DetailUserProfile({ detailUser, setDetailUser }) {
             </div>
           </div>
 
-          {/* Student Progress Section */}
           <div className="mb-8">
             <h2 className="text-xl font-bold mb-4">Student Progress</h2>
             <StudentProgress isAdmin={true} username={userData.username} />
           </div>
 
-          {/* Instructor Summary Section - Only shown if user has instructor role */}
           {isInstructor && (
             <div className="mb-8">
               <h2 className="text-xl font-bold mb-4">Instructor Dashboard</h2>

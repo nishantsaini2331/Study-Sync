@@ -372,7 +372,7 @@ async function getUser(req, res) {
   try {
     const { username } = req.params;
     const user = await User.findOne({ username }).select(
-      "bio name photoUrl socials qualification headline"
+      "bio name photoUrl socials qualification headline username"
     );
 
     if (!user) {
@@ -410,6 +410,25 @@ async function updateUser(req, res) {
 
     const user = await User.findById(req.user.id);
 
+    const usernameRegex = /^[a-zA-Z0-9_]{3,10}$/;
+    if (req.body.username && !usernameRegex.test(req.body.username)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Username must be 3-10 characters and can only contain letters, numbers, and underscores",
+      });
+    }
+
+    const isUserExistWithUsername = await User.findOne({
+      username: req.body.username,
+    });
+
+    if (isUserExistWithUsername && isUserExistWithUsername._id != req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: "Username already exists",
+      });
+    }
     const socials = JSON.parse(req.body.socials);
 
     if (image) {
@@ -467,7 +486,6 @@ async function updateUser(req, res) {
     });
   }
 }
-
 async function deleteUser(req, res) {
   try {
     const user = await User.findByIdAndDelete(req.user.id);
@@ -654,6 +672,42 @@ async function onboard(req, res) {
   }
 }
 
+async function fetchProfile(req, res) {
+  try {
+    const { username } = req.params;
+
+    if (!username) {
+      return res.status(400).json({
+        success: false,
+        message: "Username is required",
+      });
+    }
+
+    const user = await User.findOne({ username })
+      .select(
+        "bio name photoUrl socials qualification headline username createdCourses roles -_id"
+      )
+      .populate({
+        path: "createdCourses",
+        select: "title thumbnail description courseId -_id",
+      });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    return;
+  }
+}
+
 module.exports = {
   register,
   login,
@@ -663,4 +717,5 @@ module.exports = {
   deleteUser,
   verifyEmail,
   onboard,
+  fetchProfile,
 };

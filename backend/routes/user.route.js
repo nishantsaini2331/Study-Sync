@@ -9,6 +9,7 @@ const {
   updateUser,
   verifyEmail,
   onboard,
+  fetchProfile
 } = require("../controllers/user.controller");
 const { auth } = require("../middlewares/auth");
 const User = require("../models/user.model");
@@ -23,6 +24,7 @@ router.delete("/user", auth, deleteUser);
 router.get("/verify-email/:verificationToken", verifyEmail);
 
 router.post("/instructor/onboard", auth, onboard);
+router.get("/profile/:username" , fetchProfile)
 
 router.get("/auth", auth, async (req, res) => {
   const user = await User.findById(req.user.id)

@@ -42,7 +42,7 @@ export async function chechStudentEnrolled(courseId, setIsEnrolled = () => {}) {
 export async function handleRemoveFromCart(username, dispatch, courseId) {
   if (!username) {
     toast.error("Please login to remove from cart");
-    navigate("/login"); 
+    navigate("/login");
     return;
   }
 
@@ -576,7 +576,7 @@ const CourseDetailsPage = () => {
             {courseDetails.title}
           </h1>
 
-          <Link>
+          <Link to={`/profile/${courseDetails.instructor.username}`}>
             <div className="flex items-center gap-2 mb-6">
               <img
                 src={courseDetails.instructor.photoUrl}

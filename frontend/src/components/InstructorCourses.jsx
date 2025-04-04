@@ -88,7 +88,6 @@ function InstructorCourses({ setDetailCourseStats }) {
               >
                 <Link
                   to={`/course-preview/${course.courseId}`}
-                  // key={course.courseId}
                 >
                   <div className="relative h-48 bg-gray-200">
                     <img
