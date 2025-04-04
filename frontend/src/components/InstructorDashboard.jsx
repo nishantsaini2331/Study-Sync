@@ -1,12 +1,13 @@
 import {
-    BookOpen,
-    ChevronRight,
-    GitPullRequest,
-    LayoutDashboard,
-    MessageCircle,
-    Plus,
-    User,
-    Users
+  BookOpen,
+  ChevronRight,
+  GitPullRequest,
+  LayoutDashboard,
+  Lock,
+  MessageCircle,
+  Plus,
+  User,
+  Users,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +18,7 @@ import InstructorCourses from "./InstructorCourses";
 import InstructorStudentsData from "./InstructorStudentsData";
 import InstructorSummaryDashboard from "./InstructorSummaryDashboard";
 import Request from "./Request";
+import ChangePassword from "./ChangePassword";
 
 const InstructorDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -42,6 +44,8 @@ const InstructorDashboard = () => {
     { id: "comments", label: "Comments", icon: MessageCircle },
     // { id: "settings", label: "Settings", icon: Settings },
     { id: "profile", label: "Profile", icon: User },
+
+    { id: "change-password", label: "Change Password", icon: Lock },
   ];
 
   const renderContent = () => {
@@ -91,12 +95,12 @@ const InstructorDashboard = () => {
             <Request />
           </div>
         );
+      case "change-password":
+        return <ChangePassword role={"instructor"} />;
       default:
         return <div className="text-xl">Dashboard Content</div>;
     }
   };
-
-
 
   return (
     <div className="flex h-screen bg-gray-50">

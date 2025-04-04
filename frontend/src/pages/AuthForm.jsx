@@ -91,10 +91,9 @@ function AuthForm({ type }) {
         return;
       }
     }
-
     try {
       let res = await axios.post(
-        `http://localhost:3000/api/v1/user/${type}`,
+        `${import.meta.env.VITE_BACKEND_URL}user/${type}`,
         formData,
         { withCredentials: true }
       );

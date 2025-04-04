@@ -598,23 +598,30 @@ async function resetPassword(req, res) {
 
 async function changePassword(req, res) {
   try {
-    const { newPassword, oldPassword } = req.body;
+    const { newPassword, currentPassword } = req.body;
 
-    if (!newPassword || !oldPassword) {
+    if (!newPassword || !currentPassword) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required",
+        message: "Current password and new password are required",
       });
     }
 
     const user = await User.findById(req.user.id);
 
-    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (user.googleAuth) {
+      return res.status(400).json({
+        success: false,
+        message: "Google authenticated users cannot change password directly",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
 
     if (!isMatch) {
       return res.status(400).json({
         success: false,
-        message: "Invalid credentials",
+        message:  "Current password is incorrect",
       });
     }
 
@@ -756,4 +763,5 @@ module.exports = {
   verifyEmail,
   onboard,
   fetchProfile,
+  changePassword,
 };

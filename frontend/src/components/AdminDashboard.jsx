@@ -5,6 +5,7 @@ import {
   GitPullRequest,
   IndianRupee,
   LayoutDashboard,
+  Lock,
   Tag,
   User,
   Users,
@@ -34,6 +35,7 @@ import DashboardHeader from "./DashboardHeader";
 import DetailUserProfile from "./DetailUserProfile";
 import Request from "./Request";
 import UsersAdminDashboard from "./UsersAdminDashboard";
+import ChangePassword from "./ChangePassword";
 
 const AdminDetailDash = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -53,6 +55,7 @@ const AdminDetailDash = () => {
     { id: "requests", label: "Requests", icon: GitPullRequest },
     // { id: "settings", label: "Settings", icon: Settings },
     { id: "profile", label: "Profile", icon: User },
+    { id: "change-password", label: "Change Password", icon: Lock },
   ];
 
   useEffect(() => {
@@ -449,6 +452,8 @@ const AdminDetailDash = () => {
         return <h1>Admin Settings</h1>;
       case "profile":
         return <UpdateProfile role="admin" />;
+      case "change-password":
+        return <ChangePassword role={"admin"} />;
       default:
         return renderDashboardContent();
     }

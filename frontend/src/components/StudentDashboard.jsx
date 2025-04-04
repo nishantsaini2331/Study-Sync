@@ -4,6 +4,7 @@ import {
   DollarSign,
   FileText,
   LayoutDashboard,
+  Lock,
   Paperclip,
   PartyPopper,
   ShoppingCart,
@@ -19,6 +20,7 @@ import StudentCartCourses from "./StudentCartCourses";
 import StudentCourseCertificates from "./StudentCourseCertificates";
 import StudentPaymentDetails from "./StudentPaymentDetails";
 import StudentProgress from "./StudentProgress";
+import ChangePassword from "./ChangePassword";
 
 function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("enrolled-courses");
@@ -38,6 +40,7 @@ function StudentDashboard() {
     { id: "payments-detail", label: "Payments Details", icon: DollarSign },
     { id: "profile", label: "Profile", icon: User },
     { id: "certficates", label: "Certificates", icon: FileText },
+    { id: "change-password", label: "Change Password", icon: Lock },
     // { id: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -78,6 +81,8 @@ function StudentDashboard() {
         return <div className="text-xl">Settings Content</div>;
       case "certficates":
         return <StudentCourseCertificates />;
+      case "change-password":
+        return <ChangePassword role={"student"} />;
       default:
         return <div className="text-xl">Enrolled Course</div>;
     }
@@ -126,9 +131,7 @@ function StudentDashboard() {
         </nav>
       </div>
 
-      <div className="flex-1  p-8 overflow-y-auto">
-        {renderContent()}
-      </div>
+      <div className="flex-1  p-8 overflow-y-auto">{renderContent()}</div>
     </div>
   );
 }
