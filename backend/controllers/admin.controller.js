@@ -338,69 +338,6 @@ async function adminDashboard(req, res) {
       { $replaceRoot: { newRoot: "$mergedCounts" } },
     ]);
 
-    const userGrowth = await User.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: startDate, $lte: currentDate },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            month: { $month: "$createdAt" },
-            year: { $year: "$createdAt" },
-          },
-          students: {
-            $sum: {
-              $cond: [{ $eq: ["$role", "student"] }, 1, 0],
-            },
-          },
-          instructors: {
-            $sum: {
-              $cond: [{ $eq: ["$role", "instructor"] }, 1, 0],
-            },
-          },
-          total: { $sum: 1 },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          month: {
-            $let: {
-              vars: {
-                monthsInString: [
-                  "Jan",
-                  "Feb",
-                  "Mar",
-                  "Apr",
-                  "May",
-                  "Jun",
-                  "Jul",
-                  "Aug",
-                  "Sep",
-                  "Oct",
-                  "Nov",
-                  "Dec",
-                ],
-              },
-              in: {
-                $arrayElemAt: [
-                  "$$monthsInString",
-                  { $subtract: ["$_id.month", 1] },
-                ],
-              },
-            },
-          },
-          year: "$_id.year",
-          students: 1,
-          instructors: 1,
-          total: 1,
-        },
-      },
-      { $sort: { year: 1, month: 1 } },
-    ]);
-
     const ensureAllMonths = (data) => {
       const monthNames = [
         "Jan",
@@ -436,8 +373,12 @@ async function adminDashboard(req, res) {
     const platformSummary = {
       totalCourses: await Course.countDocuments(),
       publishedCourses: await Course.countDocuments({ status: "published" }),
-      totalStudents: await User.countDocuments({ role: "student" }),
-      totalInstructors: await User.countDocuments({ role: "instructor" }),
+      totalStudents: await User.countDocuments({
+        purchasedCourses: { $exists: true, $ne: [] },
+      }),
+      totalInstructors: await User.countDocuments({
+        roles: "instructor",
+      }),
       categories: await Category.countDocuments(),
       revenue: revenueData.length > 0 ? revenueData[0].totalRevenue : 0,
       platformRevenue:
