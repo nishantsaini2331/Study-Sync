@@ -408,7 +408,7 @@ function Request({ role }) {
                       <span>ID: {request.requestId.substring(0, 8)}...</span>
                       <span>{formatDate(request.createdAt)}</span>
                     </div>
-                    {request.requestedChanges.newLimit && (
+                    {request.requestedChanges?.newLimit && (
                       <div className="mt-1 p-1 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-700">
                         <span className="font-semibold">Changes Requested</span>
                       </div>
@@ -494,7 +494,7 @@ function Request({ role }) {
                   </div>
 
                   {/* Requested Changes Section */}
-                  {activeRequest.requestedChanges.newLimit && (
+                  {activeRequest?.requestedChanges?.newLimit && (
                     <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                       <h3 className="font-medium mb-2 text-amber-800">
                         Requested Changes:

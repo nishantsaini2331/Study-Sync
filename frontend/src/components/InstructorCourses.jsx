@@ -43,13 +43,12 @@ function InstructorCourses({ setDetailCourseStats }) {
 
   return (
     <div className="bg-white shadow rounded-lg mx-auto overflow-hidden">
-
       <DashboardHeader
         title={"Courses"}
         description={"Your courses"}
         role="instructor"
       />
-      
+
       <div className="px-4 py-5 sm:px-6">
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
@@ -86,9 +85,7 @@ function InstructorCourses({ setDetailCourseStats }) {
                 key={course?.courseId}
                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
               >
-                <Link
-                  to={`/course-preview/${course.courseId}`}
-                >
+                <Link to={`/course-preview/${course.courseId}`}>
                   <div className="relative h-48 bg-gray-200">
                     <img
                       src={course.thumbnail}
@@ -157,7 +154,11 @@ function InstructorCourses({ setDetailCourseStats }) {
                             className="bg-black mx-2 text-white rounded-full px-7 py-2 cursor-pointer"
                             onClick={(e) => {
                               e.preventDefault();
-                              setDetailCourseStats(course.courseId);
+                              setDetailCourseStats({
+                                courseId: course.courseId,
+                                title: course.title,
+                                description: course.description,
+                              });
                             }}
                           >
                             Detail Stats

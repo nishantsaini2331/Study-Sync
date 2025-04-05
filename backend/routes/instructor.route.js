@@ -41,4 +41,11 @@ router.get(
   canInstructorCreateCourse
 );
 
+router.get(
+  "/detail-course-stats/:courseId",
+  auth,
+  instructor,
+  courseDetailStats
+);
+
 module.exports = router;

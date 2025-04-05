@@ -333,7 +333,7 @@ async function getMyRequests(req, res) {
       requesterRole: "instructor",
     })
       .select(
-        "title description requestId status createdAt updatedAt comments -_id"
+        "title description requestedChanges adminNote requestId status createdAt updatedAt comments -_id"
       )
       .populate("comments.commentedBy", "name email username -_id")
       .populate("requestedBy", "name email username -_id")
@@ -382,7 +382,7 @@ async function getRequests(req, res) {
   try {
     const requests = await Request.find({ assignedTo: req.user.id })
       .select(
-        "title description requestId requestedChanges status requestType requesterRole createdAt updatedAt comments -_id"
+        "title description requestId requestedChanges adminNote status requestType requesterRole createdAt updatedAt comments -_id"
       )
       .populate("comments.commentedBy", "name email username -_id")
       .populate("requestedBy", "name email username -_id")

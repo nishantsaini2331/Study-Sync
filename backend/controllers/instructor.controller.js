@@ -679,7 +679,302 @@ async function getLectureComments(req, res) {
   }
 }
 
-async function courseDetailStats(req, res) {}
+async function courseDetailStats(req, res) {
+  try {
+    const { courseId } = req.params;
+    const instructor = req.user;
+
+    const course = await Course.findOne({ courseId }).select(
+      "title description courseId thumbnail instructor "
+    );
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    if (course.instructor.toString() !== instructor.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const studentsProgressData = await CourseProgress.find({
+      course: course._id,
+    })
+      .select(
+        "student overallProgress isCourseFinalQuizPassed lectureProgress createdAt updatedAt"
+      )
+      .populate({
+        path: "student",
+        select: "username email name photoUrl -_id",
+      })
+      .populate({
+        path: "lectureProgress.lecture",
+        select: "title lectureId isCompleted isUnlocked quizAttempts",
+      });
+
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    const monthlyRevenue = await Payment.aggregate([
+      {
+        $match: {
+          course: course._id,
+          createdAt: {
+            $gte: new Date(`${currentYear}-01-01`),
+            $lte: new Date(
+              `${currentYear}-${String(currentMonth).padStart(2, "0")}-31`
+            ),
+          },
+          status: "successful",
+        },
+      },
+      {
+        $group: {
+          _id: { month: { $month: "$createdAt" } },
+          monthlyRevenue: { $sum: { $multiply: ["$amount", 0.7] } },
+        },
+      },
+      {
+        $addFields: {
+          monthlyRevenue: { $round: ["$monthlyRevenue", 2] },
+        },
+      },
+      {
+        $project: {
+          month: {
+            $let: {
+              vars: {
+                monthsInString: [
+                  "Jan",
+                  "Feb",
+                  "Mar",
+                  "Apr",
+                  "May",
+                  "Jun",
+                  "Jul",
+                  "Aug",
+                  "Sep",
+                  "Oct",
+                  "Nov",
+                  "Dec",
+                ],
+              },
+              in: {
+                $arrayElemAt: [
+                  "$$monthsInString",
+                  { $subtract: ["$_id.month", 1] },
+                ],
+              },
+            },
+          },
+          revenue: "$monthlyRevenue",
+        },
+      },
+      { $sort: { "_id.month": 1 } },
+    ]);
+
+    const monthlyEnrollments = await Payment.aggregate([
+      {
+        $match: {
+          course: course._id,
+          createdAt: {
+            $gte: new Date(`${currentYear}-01-01`),
+            $lte: new Date(
+              `${currentYear}-${String(currentMonth).padStart(2, "0")}-31`
+            ),
+          },
+          status: "successful",
+        },
+      },
+      {
+        $group: {
+          _id: { month: { $month: "$createdAt" } },
+          enrollments: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          month: {
+            $let: {
+              vars: {
+                monthsInString: [
+                  "Jan",
+                  "Feb",
+                  "Mar",
+                  "Apr",
+                  "May",
+                  "Jun",
+                  "Jul",
+                  "Aug",
+                  "Sep",
+                  "Oct",
+                  "Nov",
+                  "Dec",
+                ],
+              },
+              in: {
+                $arrayElemAt: [
+                  "$$monthsInString",
+                  { $subtract: ["$_id.month", 1] },
+                ],
+              },
+            },
+          },
+          enrollments: 1,
+        },
+      },
+      { $sort: { "_id.month": 1 } },
+    ]);
+
+    const ensureAllMonths = (data, currentMonth) => {
+      const monthNames = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      const existingMonths = new Set(data.map((item) => item.month));
+
+      monthNames.slice(0, currentMonth).forEach((month) => {
+        if (!existingMonths.has(month)) {
+          data.push({ month, revenue: 0, enrollments: 0 });
+        }
+      });
+
+      return data.sort(
+        (a, b) => monthNames.indexOf(a.month) - monthNames.indexOf(b.month)
+      );
+    };
+
+    const processedMonthlyRevenue = ensureAllMonths(
+      monthlyRevenue,
+      currentMonth
+    );
+    const processedMonthlyEnrollments = ensureAllMonths(
+      monthlyEnrollments,
+      currentMonth
+    );
+
+    const totalStudents = studentsProgressData.length;
+    const completedStudents = studentsProgressData.filter(
+      (student) => student.isCourseFinalQuizPassed
+    ).length;
+    const averageProgress =
+      totalStudents > 0
+        ? studentsProgressData.reduce(
+            (sum, student) => sum + student.overallProgress,
+            0
+          ) / totalStudents
+        : 0;
+
+    const lectureCompletionStats = {};
+    studentsProgressData.forEach((progress) => {
+      progress.lectureProgress.forEach((lectureData) => {
+        const lectureId = lectureData.lecture.lectureId;
+        if (!lectureCompletionStats[lectureId]) {
+          lectureCompletionStats[lectureId] = {
+            title: lectureData.lecture.title,
+            totalViews: 0,
+            completed: 0,
+          };
+        }
+
+        lectureCompletionStats[lectureId].totalViews++;
+        if (lectureData.isCompleted) {
+          lectureCompletionStats[lectureId].completed++;
+        }
+      });
+    });
+
+    const lectureStats = Object.keys(lectureCompletionStats).map(
+      (lectureId) => {
+        const stats = lectureCompletionStats[lectureId];
+        return {
+          lectureId,
+          title: stats.title,
+          totalViews: stats.totalViews,
+          completionRate:
+            totalStudents > 0
+              ? ((stats.completed / totalStudents) * 100).toFixed(2)
+              : 0,
+        };
+      }
+    );
+
+    const quizPerformance = studentsProgressData.flatMap((progress) =>
+      progress.lectureProgress
+        .filter(
+          (lecture) =>
+            lecture.lecture.quizAttempts &&
+            lecture.lecture.quizAttempts.length > 0
+        )
+        .map((lecture) => ({
+          lectureId: lecture.lecture.lectureId,
+          lectureTitle: lecture.lecture.title,
+          attempts: lecture.lecture.quizAttempts.length,
+          averageScore:
+            lecture.lecture.quizAttempts.reduce(
+              (sum, attempt) => sum + attempt.score,
+              0
+            ) / lecture.lecture.quizAttempts.length,
+        }))
+    );
+
+    return res.status(200).json({
+      success: true,
+      courseDetails: course,
+      enrollmentStats: {
+        totalStudents,
+        completedStudents,
+        completionRate:
+          totalStudents > 0
+            ? ((completedStudents / totalStudents) * 100).toFixed(2)
+            : 0,
+        averageProgress: averageProgress.toFixed(2),
+      },
+      revenue: {
+        monthlyRevenue: processedMonthlyRevenue,
+        totalRevenue: processedMonthlyRevenue.reduce(
+          (sum, month) => sum + month.revenue,
+          0
+        ),
+      },
+      engagement: {
+        monthlyEnrollments: processedMonthlyEnrollments,
+        totalEnrollments: processedMonthlyEnrollments.reduce(
+          (sum, month) => sum + month.enrollments,
+          0
+        ),
+      },
+      contentPerformance: {
+        lectureStats,
+        quizPerformance,
+      },
+      studentsProgressData,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching course stats",
+      error: error.message,
+    });
+  }
+}
 
 async function canInstructorCreateCourse(req, res) {
   try {
@@ -718,4 +1013,5 @@ module.exports = {
   getLectures,
   getLectureComments,
   canInstructorCreateCourse,
+  courseDetailStats,
 };

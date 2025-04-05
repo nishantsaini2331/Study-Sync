@@ -70,7 +70,7 @@ const InstructorDashboard = () => {
         return (
           <div className="text-xl">
             {detailCourseStats ? (
-              <DetailCourseStats detailCourseStats={detailCourseStats} />
+              <DetailCourseStats detailCourseStats={detailCourseStats} setDetailCourseStats={setDetailCourseStats} />
             ) : (
               <InstructorCourses setDetailCourseStats={setDetailCourseStats} />
             )}
