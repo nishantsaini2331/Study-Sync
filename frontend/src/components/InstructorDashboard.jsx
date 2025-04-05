@@ -9,7 +9,7 @@ import {
   User,
   Users,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UpdateProfile from "../pages/UpdateProfile";
 import DetailCourseStats from "./DetailCourseStats";
@@ -19,11 +19,25 @@ import InstructorStudentsData from "./InstructorStudentsData";
 import InstructorSummaryDashboard from "./InstructorSummaryDashboard";
 import Request from "./Request";
 import ChangePassword from "./ChangePassword";
+import RequestModal from "./RequestModal";
+import { RequestType } from "../utils/requestTypes";
+import toast from "react-hot-toast";
+import axios from "axios";
 
 const InstructorDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [detailCourseStats, setDetailCourseStats] = useState(null);
+  const [isInstructorCreateCourse, setIsInstructorCreateCourse] =
+    useState(false);
   const navigate = useNavigate();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [requestType, setRequestType] = useState(null);
+
+  function openRequestModal(type) {
+    setRequestType(type);
+    setIsModalOpen(true);
+  }
 
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -102,6 +116,30 @@ const InstructorDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    async function checkForInstructorCourseCreation() {
+      try {
+        const res = await axios.get(
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }instructor/can-instructor-create-course`,
+          { withCredentials: true }
+        );
+        if (res.data.canCreateCourse) {
+          setIsInstructorCreateCourse(true);
+        } else {
+          setIsInstructorCreateCourse(false);
+        }
+      } catch (error) {
+        console.log(error);
+        toast.error(
+          error.response?.data?.message || "Failed to check course limit"
+        );
+      }
+    }
+    checkForInstructorCourseCreation();
+  }, []);
+
   return (
     <div className="flex h-screen bg-gray-50">
       <div className="w-64 bg-white shadow-md">
@@ -149,13 +187,33 @@ const InstructorDashboard = () => {
             >
               Switch to Student
             </button>
-            <button
-              onClick={() => navigate("/create-course")}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              Create Course
-            </button>
+
+            {!isInstructorCreateCourse ? (
+              <>
+                <button
+                  onClick={() =>
+                    openRequestModal(RequestType.INCREASE_COURSE_CREATE_LIMIT)
+                  }
+                  className="flex-1 md:flex-none w-full md:w-auto flex items-center justify-center px-4 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors duration-200"
+                >
+                  <Plus className="w-4 h-4 mr-2" /> Request Create Course
+                </button>
+                <RequestModal
+                  isOpen={isModalOpen}
+                  onClose={() => setIsModalOpen(false)}
+                  requestType={requestType}
+                  entityType="User"
+                />
+              </>
+            ) : (
+              <button
+                onClick={() => navigate("/create-course")}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-5 h-5" />
+                Create Course
+              </button>
+            )}
           </div>
         </div>
         {renderContent()}

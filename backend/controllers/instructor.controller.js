@@ -681,6 +681,35 @@ async function getLectureComments(req, res) {
 
 async function courseDetailStats(req, res) {}
 
+async function canInstructorCreateCourse(req, res) {
+  try {
+    const instructor = await User.findById(req.user.id);
+    if (!instructor) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    if (instructor.createdCourses.length >= instructor.courseCreateLimit) {
+      return res.status(200).json({
+        canCreateCourse: false,
+        message: "Course upload limit reached",
+      });
+    }
+    return res.status(200).json({
+      canCreateCourse: true,
+      message: "Instructor can create course",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error checking course upload limit",
+      error: error.message,
+    });
+  }
+}
+
 module.exports = {
   instructorDashboard,
   instructorCourses,
@@ -688,4 +717,5 @@ module.exports = {
   courseDetailStats,
   getLectures,
   getLectureComments,
+  canInstructorCreateCourse,
 };

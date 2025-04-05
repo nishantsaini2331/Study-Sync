@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import { X, Send, AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { RequestType } from "../utils/requestTypes";
 import axios from "axios";
+import { useSelector } from "react-redux";
 
 const RequestModal = ({
   isOpen,
   onClose,
   requestType,
-  entityId,
-  entityType,
+  entityId = null,
+  entityType = null,
   moduleId = null,
   userId = null,
 }) => {
@@ -24,8 +25,11 @@ const RequestModal = ({
     },
   });
 
+  const { courseCreateLimit } = useSelector((state) => state.user.user);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+  const [newLimit, setNewLimit] = useState(0);
   const [errorMsg, setErrorMsg] = useState(
     "There was an error submitting your request. Please try again."
   );
@@ -57,6 +61,8 @@ const RequestModal = ({
       [RequestType.EXTENSION_REQUEST]: "Course Access Extension Request",
       [RequestType.REFUND_REQUEST]: "Refund Request",
       [RequestType.CERTIFICATE_ISSUE]: "Certificate Issue Report",
+      [RequestType.INCREASE_COURSE_CREATE_LIMIT]:
+        "Increase Course Upload Limit Request",
     };
     return titles[type] || "New Request";
   }
@@ -272,6 +278,39 @@ const RequestModal = ({
           </div>
         );
 
+      case RequestType.INCREASE_COURSE_CREATE_LIMIT:
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Current course creation limit
+              </label>
+              <input
+                type="text"
+                disabled
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100 text-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                value={
+                  courseCreateLimit ? `${courseCreateLimit} courses` : "N/A"
+                }
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                How many courses do you want to create?
+              </label>
+              <input
+                type="number"
+                min={courseCreateLimit + 1}
+                value={newLimit}
+                required
+                placeholder="Enter new limit"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100 text-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                onChange={(e) => setNewLimit(e.target.value)}
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="space-y-4">
@@ -319,6 +358,10 @@ const RequestModal = ({
         `${import.meta.env.VITE_BACKEND_URL}request`,
         {
           ...formData,
+          newLimit:
+            requestType === RequestType.INCREASE_COURSE_CREATE_LIMIT
+              ? Number(newLimit) + Number(courseCreateLimit)
+              : null,
         },
         {
           withCredentials: true,

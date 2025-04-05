@@ -37,7 +37,7 @@ router.post("/verify-reset-token/:token", verifyResetToken);
 
 router.get("/auth", auth, async (req, res) => {
   const user = await User.findById(req.user.id)
-    .select("name photoUrl username roles email cart")
+    .select("name photoUrl username roles email courseCreateLimit cart")
     .populate({ path: "cart", select: "courseId -_id" });
 
   const courseIds = user.cart.map((course) => course.courseId);

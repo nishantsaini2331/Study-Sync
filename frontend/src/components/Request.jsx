@@ -11,11 +11,13 @@ import {
   Trash,
   X,
   Filter,
+  User,
 } from "lucide-react";
 import DashboardHeader from "./DashboardHeader";
 import { formatDate } from "../utils/formatDate";
 import { useSelector } from "react-redux";
 import UpdateRequestModal from "./UpdateRequestModal";
+import { STATUS } from "../utils/status";
 
 function Request({ role }) {
   const [requests, setRequests] = useState([]);
@@ -27,19 +29,13 @@ function Request({ role }) {
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateNote, setUpdateNote] = useState("");
+  const [requestType, setRequestType] = useState("");
+  const [requesterRole, setRequesterRole] = useState("");
   const [status, setStatus] = useState("");
   const { username, name, email, roles } = useSelector(
     (state) =>
       state.user.user || { username: "", name: "", email: "", roles: [] }
   );
-
-  const STATUS = {
-    ALL: "ALL",
-    PENDING: "PENDING",
-    IN_REVIEW: "IN_REVIEW",
-    APPROVED: "APPROVED",
-    REJECTED: "REJECTED",
-  };
 
   const apiUrlRef = useRef("");
 
@@ -197,7 +193,7 @@ function Request({ role }) {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
       const res = await axios.put(
         `${backendUrl}request/${activeRequest.requestId}/update`,
-        { note: updateNote, status },
+        { note: updateNote, status, requestType, requesterRole },
         { withCredentials: true }
       );
 
@@ -226,11 +222,12 @@ function Request({ role }) {
     } finally {
       setShowUpdateModal(false);
       setUpdateNote("");
+      setRequestType("");
+      setRequesterRole("");
     }
   }
 
   async function handleDeleteRequest() {
-    console.log("asdasd");
     if (!activeRequest) return;
     if (
       activeRequest.status === "APPROVED" ||
@@ -240,7 +237,6 @@ function Request({ role }) {
       toast.error("Cannot delete an approved, rejected or in review request");
       return;
     } else {
-      console.log("vcxvsdv");
       try {
         const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
         const res = await axios.delete(
@@ -412,6 +408,11 @@ function Request({ role }) {
                       <span>ID: {request.requestId.substring(0, 8)}...</span>
                       <span>{formatDate(request.createdAt)}</span>
                     </div>
+                    {request.requestedChanges.newLimit && (
+                      <div className="mt-1 p-1 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-700">
+                        <span className="font-semibold">Changes Requested</span>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
@@ -434,31 +435,85 @@ function Request({ role }) {
                       {getStatusIcon(activeRequest.status)}
                       <span className="ml-2">{activeRequest.status}</span>
                     </div>
-                    {role === "admin" && (
-                      <button
-                        className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
-                        onClick={() => {
-                          setStatus(activeRequest.status);
-                          setUpdateNote(activeRequest.adminNote || "");
-                          setShowUpdateModal(true);
-                        }}
-                      >
-                        Update Request
-                      </button>
-                    )}
-                    {console.log(activeRequest.requestedBy)}
-                    {activeRequest.requestedBy.username === username && (
-                      <button
-                        className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md"
-                        onClick={handleDeleteRequest}
-                      >
-                        Delete Request
-                      </button>
-                    )}
+                    <div className="flex space-x-2">
+                      {role === "admin" && (
+                        <button
+                          className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
+                          onClick={() => {
+                            setStatus(activeRequest.status);
+                            setUpdateNote(activeRequest.adminNote || "");
+                            setRequestType(activeRequest.requestType);
+                            setRequesterRole(activeRequest.requesterRole);
+                            setShowUpdateModal(true);
+                          }}
+                        >
+                          Update Request
+                        </button>
+                      )}
+                      {activeRequest.requestedBy?.username === username && (
+                        <button
+                          className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md"
+                          onClick={handleDeleteRequest}
+                        >
+                          Delete Request
+                        </button>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Requester details for admin */}
+                  {role === "admin" && activeRequest.requestedBy && (
+                    <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+                      <div className="flex items-center mb-2">
+                        <User className="text-gray-500 mr-2" size={16} />
+                        <h3 className="font-medium">Requested By</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="font-medium">Name:</span>{" "}
+                          {activeRequest.requestedBy.name}
+                        </div>
+                        <div>
+                          <span className="font-medium">Username:</span>{" "}
+                          {activeRequest.requestedBy.username}
+                        </div>
+                        <div>
+                          <span className="font-medium">Email:</span>{" "}
+                          {activeRequest.requestedBy.email}
+                        </div>
+                        <div>
+                          <span className="font-medium">Role:</span>{" "}
+                          {activeRequest.requesterRole}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="mb-4">
                     <p className="text-gray-700">{activeRequest.description}</p>
                   </div>
+
+                  {/* Requested Changes Section */}
+                  {activeRequest.requestedChanges.newLimit && (
+                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <h3 className="font-medium mb-2 text-amber-800">
+                        Requested Changes:
+                      </h3>
+                      <p className="text-gray-700">
+                        new limit : {activeRequest.requestedChanges.newLimit}
+                      </p>
+                    </div>
+                  )}
+
+                  {activeRequest.adminNote && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h3 className="font-medium mb-2 text-blue-800">
+                        Admin Note:
+                      </h3>
+                      <p className="text-gray-700">{activeRequest.adminNote}</p>
+                    </div>
+                  )}
+
                   <div className="flex justify-between text-sm text-gray-500">
                     <span>Request ID: {activeRequest.requestId}</span>
                     <span>Created: {formatDate(activeRequest.createdAt)}</span>

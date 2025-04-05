@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import CourseVerifyModal from "./CourseVerifyModal";
 import axios from "axios";
 import DashboardHeader from "./DashboardHeader";
+import toast from "react-hot-toast";
 
 function CoursesForReview() {
   const [searchTerm, setSearchTerm] = useState("");

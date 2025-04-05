@@ -1,9 +1,21 @@
+const Category = require("../models/category.model");
 const Course = require("../models/course.model");
+const CourseVerify = require("../models/courseVerify.model");
+const FinalQuiz = require("../models/finalQuiz.model");
+const Lecture = require("../models/lecture.model");
+const MCQ = require("../models/mcq.model");
 const {
   Request,
   RequestType,
   RequestStatus,
 } = require("../models/request.model");
+const ReviewAndRating = require("../models/reviewAndRating.model");
+const User = require("../models/user.model");
+const {
+  deleteMediaFromCloudinary,
+  deleteVideoFromCloudinary,
+} = require("../utils/cloudinary");
+const { deleteCourse } = require("./course.controller");
 
 async function createRequest(req, res) {
   try {
@@ -14,6 +26,7 @@ async function createRequest(req, res) {
       relatedEntities,
       attachments = [],
       requestedChanges = {},
+      newLimit = null,
     } = req.body;
 
     const { id: userId, roles } = req.user;
@@ -23,8 +36,7 @@ async function createRequest(req, res) {
       !description ||
       !requestType ||
       !relatedEntities ||
-      !relatedEntities.entityType ||
-      !relatedEntities.entityId
+      !relatedEntities.entityType
     ) {
       return res.status(400).json({
         success: false,
@@ -56,6 +68,10 @@ async function createRequest(req, res) {
       result = await Lecture.findOne({
         lectureId: relatedEntities.entityId,
       });
+    }
+
+    if (relatedEntities.entityType === "User") {
+      result = await User.findById(userId);
     }
 
     if (!result) {
@@ -116,6 +132,7 @@ async function handleInstructorRequest(req, res) {
       relatedEntities,
       attachments = [],
       requestedChanges = {},
+      newLimit = null,
     } = req.body;
 
     const { id: userId, name, roles } = req.user;
@@ -144,6 +161,16 @@ async function handleInstructorRequest(req, res) {
       }
     }
 
+    if (relatedEntities.entityType === "User") {
+      result = await User.findById(userId);
+      if (!result) {
+        return res.status(403).json({
+          success: false,
+          message: "You don't have permission for this user",
+        });
+      }
+    }
+
     const newRequest = new Request({
       title,
       description,
@@ -156,7 +183,7 @@ async function handleInstructorRequest(req, res) {
         entityId: result._id,
       },
       attachments,
-      requestedChanges,
+      requestedChanges: { newLimit, ...requestedChanges },
     });
 
     await newRequest.save();
@@ -175,7 +202,6 @@ async function handleInstructorRequest(req, res) {
     });
   }
 }
-
 
 async function handleStudentRequest(req, res) {
   try {
@@ -356,7 +382,7 @@ async function getRequests(req, res) {
   try {
     const requests = await Request.find({ assignedTo: req.user.id })
       .select(
-        "title description requestId status createdAt updatedAt comments -_id"
+        "title description requestId requestedChanges status requestType requesterRole createdAt updatedAt comments -_id"
       )
       .populate("comments.commentedBy", "name email username -_id")
       .populate("requestedBy", "name email username -_id")
@@ -378,7 +404,7 @@ async function updateRequest(req, res) {
   try {
     const { requestId } = req.params;
     const { note, status } = req.body;
-    const { id: userId, name, roles } = req.user;
+    const { id: userId } = req.user;
 
     if (!status) {
       return res.status(400).json({
@@ -396,6 +422,16 @@ async function updateRequest(req, res) {
       });
     }
 
+    if (
+      request.status === RequestStatus.APPROVED ||
+      request.status === RequestStatus.REJECTED
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Request has already been resolved",
+      });
+    }
+
     if (request.assignedTo.toString() !== userId) {
       return res.status(403).json({
         success: false,
@@ -406,13 +442,23 @@ async function updateRequest(req, res) {
     request.status = status;
     request.adminNote = note || "";
 
-    if (status === RequestStatus.APPROVED) {
+    if (
+      status === RequestStatus.APPROVED ||
+      status === RequestStatus.REJECTED
+    ) {
       request.resolution = {
-        action: "APPROVED",
+        action: status,
         reason: note,
         resolvedBy: userId,
       };
       request.resolvedAt = new Date();
+
+      if (status === RequestStatus.APPROVED) {
+        if (request.requesterRole === "instructor") {
+          await handleInstructorApprovedRequest(request, res);
+        } else if (request.requesterRole === "student") {
+        }
+      }
     }
 
     await request.save();
@@ -429,6 +475,80 @@ async function updateRequest(req, res) {
       message: "Internal Server Error",
       error: error.message,
     });
+  }
+}
+
+async function handleInstructorApprovedRequest(request, res) {
+  if (request.requestType === RequestType.instructorRequest.DELETE_COURSE) {
+    try {
+      const course = await Course.findById(
+        request.relatedEntities.entityId
+      ).populate("finalQuiz");
+
+      if (!course) {
+        throw new Error("Course not found");
+      }
+
+      await deleteMediaFromCloudinary(course.thumbnailId);
+      await deleteVideoFromCloudinary(course.previewVideoId);
+
+      const lectures = await Lecture.find({ course: course._id });
+      for (let lecture of lectures) {
+        await deleteVideoFromCloudinary(lecture.videoId);
+        if (lecture.mcqs && lecture.mcqs.length > 0) {
+          await MCQ.deleteMany({ _id: { $in: lecture.mcqs } });
+        }
+        await Lecture.findByIdAndDelete(lecture._id);
+      }
+
+      await User.updateMany(
+        { enrolledCourses: course._id },
+        { $pull: { enrolledCourses: course._id } }
+      );
+
+      await User.findByIdAndUpdate(course.instructor, {
+        $pull: { createdCourses: course._id },
+      });
+
+      await Category.findByIdAndUpdate(course.category, {
+        $pull: { courses: course._id },
+      });
+
+      if (course.courseVerification) {
+        await CourseVerify.findByIdAndDelete(course.courseVerification);
+      }
+
+      if (course.finalQuiz) {
+        for (let mcq of course.finalQuiz.mcqs) {
+          await MCQ.findByIdAndDelete(mcq);
+        }
+        await FinalQuiz.findByIdAndDelete(course.finalQuiz._id);
+      }
+
+      await ReviewAndRating.deleteMany({ course: course._id });
+
+      await Course.findByIdAndDelete(course._id);
+    } catch (error) {
+      throw new Error(`Failed to delete course: ${error.message}`);
+    }
+  } else if (
+    request.requestType ===
+    RequestType.instructorRequest.INCREASE_COURSE_CREATE_LIMIT
+  ) {
+    try {
+      const user = await User.findById(request.requestedBy);
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      user.courseCreateLimit = request.requestedChanges.newLimit;
+      await user.save();
+    } catch (error) {
+      throw new Error(
+        `Failed to increase course create limit: ${error.message}`
+      );
+    }
   }
 }
 

@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
-import { X, Upload, ImagePlus, Video, Trash2, Info } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
-import toast from "react-hot-toast";
 import axios from "axios";
+import { ImagePlus, Info, Trash2, Video, X } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function CourseCreationForm({ edit = false }) {
   const navigate = useNavigate();
@@ -250,6 +251,28 @@ export default function CourseCreationForm({ edit = false }) {
       <p className="mt-1 text-sm text-red-600">{errors[field]}</p>
     ) : null;
   }
+
+  useEffect(() => {
+    async function checkForInstructorCourseCreation() {
+      try {
+        const res = await axios.get(
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }instructor/can-instructor-create-course`,
+          { withCredentials: true }
+        );
+        if (!res.data.canCreateCourse) {
+          toast.error("You have reached your course upload limit.");
+          navigate("/instructor/dashboard");
+        }
+      } catch (error) {
+        toast.error(
+          error.response?.data?.message || "Failed to check course limit"
+        );
+      }
+    }
+    checkForInstructorCourseCreation();
+  }, []);
 
   useEffect(() => {
     if (courseId && edit) {

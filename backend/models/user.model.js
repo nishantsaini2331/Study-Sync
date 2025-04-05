@@ -107,7 +107,7 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-    courseUploadedLimit: {
+    courseCreateLimit: {
       type: Number,
       default: 2,
     },

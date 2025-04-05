@@ -12,6 +12,7 @@ const {
   courseDetailStats,
   getLectures,
   getLectureComments,
+  canInstructorCreateCourse,
 } = require("../controllers/instructor.controller");
 
 const router = express.Router();
@@ -31,6 +32,13 @@ router.get(
   auth,
   instructor,
   getLectureComments
+);
+
+router.get(
+  "/can-instructor-create-course",
+  auth,
+  instructor,
+  canInstructorCreateCourse
 );
 
 module.exports = router;
