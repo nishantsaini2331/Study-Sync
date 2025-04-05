@@ -11,6 +11,9 @@ const {
   onboard,
   fetchProfile,
   changePassword,
+  forgotPassword,
+  resetPassword,
+  verifyResetToken,
 } = require("../controllers/user.controller");
 const { auth } = require("../middlewares/auth");
 const User = require("../models/user.model");
@@ -28,6 +31,9 @@ router.post("/instructor/onboard", auth, onboard);
 router.get("/profile/:username", fetchProfile);
 
 router.post("/change-password", auth, changePassword);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
+router.post("/verify-reset-token/:token", verifyResetToken);
 
 router.get("/auth", auth, async (req, res) => {
   const user = await User.findById(req.user.id)

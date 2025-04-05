@@ -5,9 +5,9 @@ import loginLogo from "../assets/loginLogo.svg";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { emailRegex, passwordRegex } from "../utils/regex";
 
-const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
-const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+
 
 function AuthForm({ type }) {
   const [loading, setLoading] = useState(false);
@@ -175,7 +175,10 @@ function AuthForm({ type }) {
                   className="text-right
                     mt-2"
                 >
-                  <Link className="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
+                  <Link
+                    to={"/forgot-password"}
+                    className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+                  >
                     Forgot Password?
                   </Link>
                 </div>

@@ -3,8 +3,7 @@ import axios from "axios";
 import { Lock, Eye, EyeOff, Save, AlertCircle } from "lucide-react";
 import DashboardHeader from "./DashboardHeader";
 import toast from "react-hot-toast";
-
-const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
+import { passwordRegex } from "../utils/regex";
 
 const ChangePassword = ({ role }) => {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -15,18 +14,16 @@ const ChangePassword = ({ role }) => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   function validatePassword() {
     if (!passwordRegex.test(newPassword)) {
-      setError(
+      toast.error(
         "Password must be at least 8 characters long and contain at least one number, one uppercase letter, and one lowercase letter"
       );
       return false;
     }
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match");
       return false;
     }
     return true;
@@ -34,9 +31,6 @@ const ChangePassword = ({ role }) => {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-
     if (!validatePassword()) return;
 
     setLoading(true);
@@ -97,7 +91,6 @@ const ChangePassword = ({ role }) => {
             </div>
           </div>
 
-          {/* New Password Field */}
           <div className="mb-4">
             <label
               className="block text-gray-700 text-sm font-medium mb-2"
@@ -127,7 +120,6 @@ const ChangePassword = ({ role }) => {
             </p>
           </div>
 
-          {/* Confirm New Password Field */}
           <div className="mb-6">
             <label
               className="block text-gray-700 text-sm font-medium mb-2"
@@ -154,7 +146,6 @@ const ChangePassword = ({ role }) => {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}

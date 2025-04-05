@@ -76,7 +76,7 @@ function ProfileDropdown() {
             onClick={() => handleProfileDropDown(dispatch)}
           >
             <li className="p-2 hover:bg-gray-100 cursor-pointer">
-              My learning
+              Student Dashboard
             </li>
           </Link>
           {/* <li className="p-2 hover:bg-gray-100 cursor-pointer">My cart</li>
@@ -100,28 +100,28 @@ function ProfileDropdown() {
           <hr className="my-2 border-gray-200" />
 
           {/* Section 2 */}
-          <li className="p-2 hover:bg-gray-100 cursor-pointer">
+          {/* <li className="p-2 hover:bg-gray-100 cursor-pointer">
             Notifications
-          </li>
+          </li> */}
           {/* <li className="p-2 hover:bg-gray-100 cursor-pointer">Messages</li> */}
 
           {/* Divider */}
-          <hr className="my-2 border-gray-200" />
+          {/* <hr className="my-2 border-gray-200" /> */}
 
           {/* Section 3 */}
-          <li className="p-2 hover:bg-gray-100 cursor-pointer">
+          {/* <li className="p-2 hover:bg-gray-100 cursor-pointer">
             Account settings
-          </li>
+          </li> */}
           {/* <li className="p-2 hover:bg-gray-100 cursor-pointer">
           Payment methods
         </li> */}
           {/* <li className="p-2 hover:bg-gray-100 cursor-pointer">Subscriptions</li> */}
-          <li className="p-2 hover:bg-gray-100 cursor-pointer">
+          {/* <li className="p-2 hover:bg-gray-100 cursor-pointer">
             Purchase history
-          </li>
+          </li> */}
 
           {/* Divider */}
-          <hr className="my-2 border-gray-200" />
+          {/* <hr className="my-2 border-gray-200" /> */}
 
           {/* Section 4 */}
           {/* <li className="p-2 flex justify-between items-center hover:bg-gray-100 cursor-pointer">
@@ -149,9 +149,9 @@ function ProfileDropdown() {
           <hr className="my-2 border-gray-200" />
 
           {/* Section 6 */}
-          <li className="p-2 hover:bg-gray-100 cursor-pointer">
+          {/* <li className="p-2 hover:bg-gray-100 cursor-pointer">
             Help and Support
-          </li>
+          </li> */}
           <li
             onClick={handleLogout}
             className="p-2 hover:bg-gray-100 cursor-pointer text-red-500 font-medium"

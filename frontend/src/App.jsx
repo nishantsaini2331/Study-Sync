@@ -24,6 +24,8 @@ import CourseLearningPage from "./pages/CourseLearningPage";
 import StudentDashboard from "./components/StudentDashboard";
 import CertificateVerification from "./pages/CertificationVerification";
 import ProfilePage from "./pages/ProfilePage";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 
 function App() {
   return (
@@ -99,6 +101,11 @@ function App() {
             element={<CertificateVerification />}
           />
           <Route path="/profile/:id" element={<ProfilePage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route
+            path="/reset-password/:resetToken"
+            element={<ResetPassword />}
+          />
         </Route>
 
         <Route

@@ -130,6 +130,18 @@ const userSchema = new mongoose.Schema(
         ref: "Payment",
       },
     ],
+    resetPasswordToken: {
+      type: String,
+      default: null,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: null,
+    },
+    lastPasswordChange: {
+      type: Date,
+      default: null,
+    },
 
     instructorProfile: {
       totalStudents: {

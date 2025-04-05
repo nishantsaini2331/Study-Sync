@@ -8,7 +8,7 @@ export function handleProfileDropDown(dispatch) {
   dispatch(showProfileDropdown(false));
 }
 
-const Header = () => {
+function Header() {
   const { username, name, email, roles } = useSelector(
     (state) => state.user.user
   );
@@ -111,6 +111,6 @@ const Header = () => {
       <Outlet />
     </>
   );
-};
+}
 
 export default Header;
