@@ -6,6 +6,7 @@ import {
   IndianRupee,
   LayoutDashboard,
   Lock,
+  LucideHome,
   Tag,
   User,
   Users,
@@ -36,6 +37,7 @@ import DetailUserProfile from "./DetailUserProfile";
 import Request from "./Request";
 import UsersAdminDashboard from "./UsersAdminDashboard";
 import ChangePassword from "./ChangePassword";
+import HomePageManagement from "./HomepageManagement";
 
 const AdminDetailDash = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -56,6 +58,7 @@ const AdminDetailDash = () => {
     // { id: "settings", label: "Settings", icon: Settings },
     { id: "profile", label: "Profile", icon: User },
     { id: "change-password", label: "Change Password", icon: Lock },
+    { id: "homePage", label: "Home Page", icon: LucideHome },
   ];
 
   useEffect(() => {
@@ -454,6 +457,8 @@ const AdminDetailDash = () => {
         return <UpdateProfile role="admin" />;
       case "change-password":
         return <ChangePassword role={"admin"} />;
+      case "homePage":
+        return <HomePageManagement role={"admin"} />;
       default:
         return renderDashboardContent();
     }

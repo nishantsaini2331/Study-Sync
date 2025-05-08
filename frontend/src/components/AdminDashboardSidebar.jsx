@@ -4,6 +4,7 @@ import {
   ChevronRight,
   Home,
   LayoutDashboard,
+  LucideHome,
   Settings,
   Users,
 } from "lucide-react";
@@ -17,6 +18,7 @@ const sidebarItems = [
   { key: "settings", label: "Settings", icon: Settings },
   { key: "category", label: "Category", icon: ChartBarBig },
   { key: "Request", label: "Request", icon: Users },
+  { key: "homePage", label: "Home Page", icon: LucideHome },
 ];
 
 function AdminDashboardSidebar({ activeTab, setActiveTab }) {
