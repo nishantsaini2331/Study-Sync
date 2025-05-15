@@ -53,12 +53,12 @@ const AdminDetailDash = () => {
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "courses", label: "Courses for Review", icon: BookOpen },
     { id: "users", label: "Users", icon: Users },
+    { id: "homePage", label: "Home Page", icon: LucideHome },
     { id: "categories", label: "Categories", icon: Tag },
     { id: "requests", label: "Requests", icon: GitPullRequest },
     // { id: "settings", label: "Settings", icon: Settings },
     { id: "profile", label: "Profile", icon: User },
     { id: "change-password", label: "Change Password", icon: Lock },
-    { id: "homePage", label: "Home Page", icon: LucideHome },
   ];
 
   useEffect(() => {

@@ -5,6 +5,9 @@ const {
   searchForStudentOrInstructor,
   getUserData,
   userVerification,
+  getAllCourses,
+  getAllCategories,
+  getAllTestimonials,
 } = require("../controllers/admin.controller");
 const { auth, admin } = require("../middlewares/auth");
 
@@ -17,5 +20,9 @@ router.patch(
   admin,
   userVerification
 );
+
+router.get("/all-courses", auth, admin, getAllCourses);
+router.get("/all-categories", auth, admin, getAllCategories);
+router.get("/all-testimonials", auth, admin, getAllTestimonials);
 
 module.exports = router;

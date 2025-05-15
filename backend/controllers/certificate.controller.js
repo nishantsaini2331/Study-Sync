@@ -16,7 +16,12 @@ async function downloadCertificate(req, res) {
     const certificate = await CourseCertification.findOne({
       certificateId,
       student: student._id,
-    }).populate("course");
+    })
+      .populate("course")
+      .populate({
+        path: "user",
+        select: "name -_id",
+      });
 
     if (!certificate) {
       return res.status(404).json({
@@ -81,7 +86,7 @@ async function downloadCertificate(req, res) {
     });
 
     const certificateData = {
-      learnerName: certificate.learnerName,
+      learnerName: certificate.user.name,
       courseName: certificate.courseName,
       instructorName: certificate.instructorName,
       certificateId: certificate.certificateId,

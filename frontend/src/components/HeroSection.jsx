@@ -6,7 +6,7 @@ const HeroSection = () => {
       <div className="container mx-auto flex flex-col lg:flex-row lg:justify-between items-center">
         <div className="lg:w-1/2 text-center lg:text-left">
           <h1 className="text-4xl font-bold mb-4">
-            Explore Live Creative Classes
+          Stream Creative Classes on Your Schedule
           </h1>
           <p className="text-gray-600 mb-6">
             Choose from over 2,000+ courses on topics like UI design, front-end

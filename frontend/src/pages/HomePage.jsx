@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import HeroSection from "../components/HeroSection";
 import WhyChooseUs from "../components/WhyChooseUs";
 import CourseCategories from "../components/CourseCategories";
@@ -7,30 +7,26 @@ import Testimonials from "../components/Testimonials";
 import SubscribeSection from "../components/SubscribeSection";
 import Footer from "../components/Footer";
 import axios from "axios";
-import { useDispatch } from "react-redux";
-import { setUser } from "../store/userSlice";
 function HomePage() {
-  const dispatch = useDispatch();
-
+  const [homePageData, setHomePageData] = useState({
+    courseCategories: [],
+    featuredCourses: [],
+    testimonials: [],
+  });
   useEffect(() => {
-    async function VerifyUser() {
+    async function getHomePageData() {
       try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}user/auth`,
-          {
-            withCredentials: true,
-          }
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}home-page`
         );
 
-        if (response.data.success) {
-          dispatch(setUser(response.data.user));
-        }
+        setHomePageData(res.data.data);
       } catch (error) {
         console.log(error);
       }
     }
 
-    // VerifyUser();
+    getHomePageData();
 
     document.title = "Study Sync";
   }, []);
@@ -39,9 +35,15 @@ function HomePage() {
     <div>
       <HeroSection />
       <WhyChooseUs />
-      <CourseCategories />
-      <FeaturedCourses />
-      <Testimonials />
+      {homePageData.courseCategories.length > 0 && (
+        <CourseCategories courseCategories={homePageData.courseCategories} />
+      )}
+      {homePageData.featuredCourses.length > 0 && (
+        <FeaturedCourses featuredCourses={homePageData.featuredCourses} />
+      )}
+      {/* {homePageData.testimonials.length > 0 && ( */}
+        <Testimonials testimonials={homePageData.testimonials} />
+      {/* )} */}
       <SubscribeSection />
       <Footer />
     </div>

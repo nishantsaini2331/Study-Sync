@@ -1,6 +1,7 @@
 const Category = require("../models/category.model");
 const Course = require("../models/course.model");
 const Payment = require("../models/payment.model");
+const ReviewAndRating = require("../models/reviewAndRating.model");
 const User = require("../models/user.model");
 
 async function adminDashboard(req, res) {
@@ -523,9 +524,76 @@ async function userVerification(req, res) {
   }
 }
 
+async function getAllCourses(req, res) {
+  try {
+    const courses = await Course.find({ status: "published" }).select(
+      "title courseId -_id"
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "All courses fetched successfully",
+      data: courses,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching courses",
+      error: error.message,
+    });
+  }
+}
+
+async function getAllCategories(req, res) {
+  try {
+    const categories = await Category.find();
+
+    return res.status(200).json({
+      success: true,
+      data: categories,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching categories",
+      error: error.message,
+    });
+  }
+}
+
+async function getAllTestimonials(req, res) {
+  try {
+    const testimonials = await ReviewAndRating.find().select("review").populate({
+      path: "student",
+      select: "name photoUrl -_id",
+    }).populate({
+      path: "course",
+      select: "title -_id",
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: testimonials,
+      message: "Testimonials fetched successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching testimonials",
+      error: error.message,
+    });
+  }
+}
+
 module.exports = {
   adminDashboard,
   searchForStudentOrInstructor,
   getUserData,
   userVerification,
+  getAllCourses,
+  getAllCategories,
+  getAllTestimonials,
 };
