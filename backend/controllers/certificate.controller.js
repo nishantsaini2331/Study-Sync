@@ -1,13 +1,12 @@
 // const puppeteer = require("puppeteer");
 const puppeteer = require("puppeteer-core");
-const chromium = require("@sparticuz/chromium");
 const fs = require("fs");
 const path = require("path");
 const Handlebars = require("handlebars");
 const CourseCertification = require("../models/certificate.model");
 const CourseProgress = require("../models/courseProgress.model");
 const QRCode = require("qrcode");
-const { FRONTEND_URL } = require("../config/dotenv");
+const { FRONTEND_URL, NODE_ENV } = require("../config/dotenv");
 
 async function downloadCertificate(req, res) {
   let browser = null;
@@ -103,12 +102,11 @@ async function downloadCertificate(req, res) {
 
     browser = await puppeteer.launch({
       headless: true,
-      executablePath: "/usr/bin/chromium",
+      executablePath:
+        NODE_ENV === "production"
+          ? "/usr/bin/chromium"
+          : "/usr/bin/chromium-browser",
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      //   args: chromium.args,
-      //   executablePath: await chromium.executablePath,
-      //   defaultViewport: chromium.defaultViewport,
-      //   headless: chromium.headless,
     });
 
     const page = await browser.newPage();

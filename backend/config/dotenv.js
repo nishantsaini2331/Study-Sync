@@ -24,4 +24,6 @@ module.exports = {
   ADMIN_USER_ID: process.env.ADMIN_USER_ID,
 
   FRONTEND_URL: process.env.FRONTEND_URL,
+
+  NODE_ENV: process.env.NODE_ENV,
 };
