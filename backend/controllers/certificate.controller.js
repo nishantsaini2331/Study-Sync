@@ -100,11 +100,15 @@ async function downloadCertificate(req, res) {
     };
 
     const html = template(certificateData);
-    
-    const browser = await puppeteer.launch({
+
+    browser = await puppeteer.launch({
       headless: true,
-      executablePath: "/usr/bin/chromium",
+      executablePath: "/usr/bin/chromium-browser",
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      //   args: chromium.args,
+      //   executablePath: await chromium.executablePath,
+      //   defaultViewport: chromium.defaultViewport,
+      //   headless: chromium.headless,
     });
 
     const page = await browser.newPage();
