@@ -10,7 +10,7 @@ async function getHomePage(req, res) {
       })
       .populate({
         path: "featuredCourses",
-        select: "title description thumbnail price",
+        select: "title description thumbnail price courseId",
         populate: {
           path: "instructor",
           select: "name username photoUrl",

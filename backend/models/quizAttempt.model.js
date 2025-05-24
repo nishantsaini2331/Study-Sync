@@ -23,8 +23,8 @@ const quizAttemptSchema = new mongoose.Schema(
           required: true,
         },
         selectedOption: {
-          text: {
-            type: String,
+          textIndex: {
+            type: Number,
             required: true,
           },
           isCorrect: {

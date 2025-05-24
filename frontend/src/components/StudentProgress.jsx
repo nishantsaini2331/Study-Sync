@@ -162,7 +162,7 @@ function StudentProgress({
                             Progress
                           </span>
                           <div className="text-base font-medium text-indigo-600">
-                            {course.overallProgress}.toFixed(2)%
+                            {course.overallProgress.toFixed(2)}%
                           </div>
                         </div>
                         {expandedCourses[courseIndex] ? (

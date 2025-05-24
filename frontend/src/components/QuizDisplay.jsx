@@ -1,8 +1,4 @@
-import React from "react";
-import { CheckCircle, Award } from "lucide-react";
-
 const QuizDisplay = ({ mcqs, responses, isFinalQuiz = false }) => {
-  // Format the responses for easier access
   const formattedResponses =
     responses?.mcqResponses?.reduce((acc, response) => {
       acc[response.mcq] = response.selectedOption;
@@ -18,7 +14,11 @@ const QuizDisplay = ({ mcqs, responses, isFinalQuiz = false }) => {
           </p>
           <div className="space-y-2 pl-2">
             {mcq.options.map((option, oIndex) => {
-              const userSelected = formattedResponses[mcq._id]?.text === option;
+              const userResponse = formattedResponses[mcq._id];
+
+              const userSelected =
+                mcq.options[userResponse?.textIndex] === option;
+
               const isCorrect = oIndex === mcq.correctOption;
 
               return (
@@ -34,7 +34,7 @@ const QuizDisplay = ({ mcqs, responses, isFinalQuiz = false }) => {
                 >
                   <div className="mr-3">
                     {isCorrect && (
-                      <CheckCircle size={18} className="text-green-500" />
+                      <div className="h-4 w-4 rounded-full bg-green-500" />
                     )}
                     {userSelected && !isCorrect && (
                       <div className="h-4 w-4 rounded-full bg-red-500" />
@@ -45,13 +45,19 @@ const QuizDisplay = ({ mcqs, responses, isFinalQuiz = false }) => {
               );
             })}
           </div>
+
           {formattedResponses[mcq._id] &&
             !formattedResponses[mcq._id].isCorrect && (
-              <p className="mt-2 text-sm text-blue-600 pl-2">
-                <span className="font-medium">Explanation:</span>{" "}
-                {mcq.explanation ||
-                  `The correct answer is "${mcq.options[mcq.correctOption]}".`}
-              </p>
+              <div className="mt-3 flex items-center font-bold gap-4 text-xs pl-2 bg-gray-100 p-2 rounded">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-red-500" />
+                  <span className="text-gray-600">Your choice</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-green-500" />
+                  <span className="text-gray-600">Correct answer</span>
+                </div>
+              </div>
             )}
         </div>
       ))}
