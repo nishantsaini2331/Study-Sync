@@ -299,7 +299,7 @@ async function login(req, res) {
 
     res.cookie("token", token, {
       httpOnly: true, // Ensures the cookie is inaccessible to JavaScript
-      secure: false, // Set to true if using HTTPS (use `false` in local dev)
+      secure: true, // Set to true if using HTTPS (use `false` in local dev)
       sameSite: "strict", // Adjust to 'lax' if strict causes issues
       maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days in milliseconds
     });
