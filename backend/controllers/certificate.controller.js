@@ -1,4 +1,6 @@
-const puppeteer = require("puppeteer");
+// const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
 const fs = require("fs");
 const path = require("path");
 const Handlebars = require("handlebars");
@@ -98,10 +100,10 @@ async function downloadCertificate(req, res) {
     };
 
     const html = template(certificateData);
-
-    browser = await puppeteer.launch({
+    
+    const browser = await puppeteer.launch({
       headless: true,
-    //   executablePath: "/usr/bin/chromium-browser",
+      executablePath: "/usr/bin/chromium",
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 

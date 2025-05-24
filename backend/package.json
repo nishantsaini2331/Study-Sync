@@ -17,6 +17,7 @@
     "license": "ISC",
     "description": "",
     "dependencies": {
+        "@sparticuz/chromium": "^133.0.0",
         "bcryptjs": "^2.4.3",
         "cloudinary": "^2.5.1",
         "cookie-parser": "^1.4.7",
@@ -32,7 +33,7 @@
         "multer": "^1.4.5-lts.1",
         "nodemailer": "^6.9.16",
         "nodemon": "^3.1.7",
-        "puppeteer": "^24.3.0",
+        "puppeteer-core": "^24.9.0",
         "qrcode": "^1.5.4",
         "razorpay": "^2.9.5",
         "short-unique-id": "^5.2.0",
