@@ -10,6 +10,7 @@ const {
   getAllTestimonials,
 } = require("../controllers/admin.controller");
 const { auth, admin } = require("../middlewares/auth");
+const { register } = require("../controllers/user.controller");
 
 router.get("/dashboard", auth, admin, adminDashboard);
 router.get("/users", auth, admin, searchForStudentOrInstructor);
@@ -20,6 +21,8 @@ router.patch(
   admin,
   userVerification
 );
+
+router.post("/users" , auth, admin, register)
 
 router.get("/all-courses", auth, admin, getAllCourses);
 router.get("/all-categories", auth, admin, getAllCategories);

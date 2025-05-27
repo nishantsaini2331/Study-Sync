@@ -169,6 +169,12 @@ function CoursesForReview() {
     fetchCoursesForReview();
 
     document.title = "Courses for Review";
+    setTimeout(() => {
+      window.scroll({
+        top: 0,
+        behavior: "smooth",
+      });
+    }, 0);
   }, []);
   return (
     <div className="bg-white shadow rounded-lg mx-auto overflow-hidden">

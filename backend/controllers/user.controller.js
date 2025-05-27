@@ -140,7 +140,7 @@ async function verifyEmail(req, res) {
 
 async function register(req, res) {
   try {
-    const { name, email, password, qualification } = req.body;
+    const { name, email, password, qualification, isAdmin = false } = req.body;
 
     if (!name) {
       return res.status(400).json({
@@ -170,21 +170,22 @@ async function register(req, res) {
       });
     }
 
-    if (!passwordRegex.test(password)) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Password must be at least 8 characters long, contain at least one number, one uppercase letter, one lowercase letter, and one special character",
-      });
-    }
+    if (!isAdmin) {
+      if (!passwordRegex.test(password)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Password must be at least 8 characters long, contain at least one number, one uppercase letter, one lowercase letter, and one special character",
+        });
+      }
+      const isValid = await checkEmailExistence(email);
 
-    const isValid = await checkEmailExistence(email);
-
-    if (!isValid) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is invalid or does not exist",
-      });
+      if (!isValid) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is invalid or does not exist",
+        });
+      }
     }
 
     const existingUser = await User.findOne({
@@ -207,7 +208,6 @@ async function register(req, res) {
         });
       } else {
         sendVerificationEmail(existingUser);
-
         return res.status(400).json({
           success: false,
           message: "Please verify your email address",
@@ -225,9 +225,13 @@ async function register(req, res) {
       password: hashedPassword,
       username: username.length > 20 ? username.slice(0, 20) : username,
       qualification,
+
+      isVerified: isAdmin ? true : false,
     });
 
-    sendVerificationEmail(user);
+    if (!isAdmin) {
+      sendVerificationEmail(user);
+    }
 
     res.status(201).json({
       success: true,
@@ -694,7 +698,7 @@ async function fetchProfile(req, res) {
       )
       .populate({
         path: "createdCourses",
-        select: "title thumbnail description courseId -_id",
+        select: "title thumbnail description courseId status -_id",
       });
 
     if (!user) {
@@ -703,10 +707,19 @@ async function fetchProfile(req, res) {
         message: "User not found",
       });
     }
+    console.log("Created Courses:", user.createdCourses);
+    let createdCourses = user.createdCourses.filter(
+      (course) => course.status === "published"
+    );
+
+    console.log("Created Courses:", createdCourses);
 
     return res.status(200).json({
       success: true,
-      user,
+      user: {
+        ...user.toObject(),
+        createdCourses,
+      },
     });
   } catch (error) {
     return;

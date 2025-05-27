@@ -29,6 +29,7 @@ function HomePage() {
     getHomePageData();
 
     document.title = "Study Sync";
+    window.scrollTo(0, 0);
   }, []);
 
   return (
@@ -42,7 +43,7 @@ function HomePage() {
         <FeaturedCourses featuredCourses={homePageData.featuredCourses} />
       )}
       {/* {homePageData.testimonials.length > 0 && ( */}
-        <Testimonials testimonials={homePageData.testimonials} />
+      <Testimonials testimonials={homePageData.testimonials} />
       {/* )} */}
       <SubscribeSection />
       <Footer />

@@ -8,6 +8,8 @@ import {
   Plus,
   User,
   Users,
+  Menu,
+  X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -27,8 +29,8 @@ import axios from "axios";
 const InstructorDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [detailCourseStats, setDetailCourseStats] = useState(null);
-  const [isInstructorCreateCourse, setIsInstructorCreateCourse] =
-    useState(false);
+  const [isInstructorCreateCourse, setIsInstructorCreateCourse] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,19 +50,44 @@ const InstructorDashboard = () => {
       label: "My Requests",
       icon: GitPullRequest,
     },
-    // {
-    //   id: "student-requests",
-    //   label: "Student Requests",
-    //   icon: GitPullRequestArrow,
-    // },
-    // { id: "payments", label: "Payments", icon: DollarSign },
-    // { id: "reviews", label: "Reviews", icon: Star },
     { id: "comments", label: "Comments", icon: MessageCircle },
-    // { id: "settings", label: "Settings", icon: Settings },
     { id: "profile", label: "Profile", icon: User },
-
     { id: "change-password", label: "Change Password", icon: Lock },
   ];
+
+  // Close sidebar when clicking outside on mobile
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (isSidebarOpen && !event.target.closest('.sidebar-container') && !event.target.closest('.mobile-menu-toggle')) {
+        setIsSidebarOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSidebarOpen]);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    if (tabId === "courses") {
+      setDetailCourseStats(null);
+    }
+    // Close sidebar on mobile after selecting a tab
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  };
+
+  const getCurrentTabLabel = () => {
+    const currentTab = sidebarItems.find(item => item.id === activeTab);
+    return currentTab ? currentTab.label : "Dashboard";
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -94,7 +121,6 @@ const InstructorDashboard = () => {
             <UpdateProfile role={"instructor"} />
           </div>
         );
-
       case "comments":
         return <InstructorCommentDashboard />;
       case "my-requests":
@@ -141,8 +167,30 @@ const InstructorDashboard = () => {
   }, []);
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <div className="w-64 bg-white shadow-md">
+    <div className="flex h-[calc(100vh-70px)] bg-gray-50 overflow-hidden">
+      {/* Mobile Menu Toggle Button */}
+      <button
+        className="mobile-menu-toggle lg:hidden fixed top-20 left-4 z-50 bg-white shadow-md rounded-md p-2 text-gray-600 hover:text-blue-600"
+        onClick={toggleSidebar}
+        aria-label="Toggle sidebar"
+      >
+        {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`sidebar-container bg-white shadow-md transition-all duration-300 z-40 ${
+        isSidebarOpen 
+          ? 'fixed left-0 top-[70px] h-[calc(100vh-70px)] w-64 lg:relative lg:translate-x-0' 
+          : 'fixed -translate-x-full lg:relative lg:translate-x-0 lg:w-64 w-64'
+      }`}>
         <div className="p-4 border-b">
           <h1 className="text-xl font-bold text-gray-800">Instructor Panel</h1>
         </div>
@@ -150,73 +198,83 @@ const InstructorDashboard = () => {
           {sidebarItems.map((item) => {
             const Icon = item.icon;
             return (
-              <div>
+              <div key={item.id}>
                 <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    if (item.id === "courses") {
-                      setDetailCourseStats(null);
-                    }
-                  }}
-                  className={`w-full flex items-center space-x-2 p-3 rounded-lg transition-colors ${
+                  onClick={() => handleTabChange(item.id)}
+                  className={`w-full flex items-center space-x-2 p-3 mx-2 rounded-lg transition-colors ${
                     activeTab === item.id
                       ? "bg-blue-50 text-blue-600"
                       : "text-gray-600 hover:bg-gray-100"
                   }`}
                 >
                   <Icon className="w-5 h-5" />
-                  <span>{item.label}</span>
+                  <span className="truncate">{item.label}</span>
                   {activeTab === item.id && (
-                    <ChevronRight className="w-4 h-4 ml-auto" />
+                    <ChevronRight className="w-4 h-4 ml-auto flex-shrink-0" />
                   )}
                 </button>
-                <div className="border-t border-gray-200 my-1"></div>
+                <div className="border-t border-gray-200 my-1 mx-2"></div>
               </div>
             );
           })}
         </nav>
       </div>
 
-      <div className="flex-1 p-8 overflow-y-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/")}
-              className="text-blue-600 hover:text-blue-700"
-            >
-              Switch to Student
-            </button>
-
-            {!isInstructorCreateCourse ? (
-              <>
-                <button
-                  onClick={() =>
-                    openRequestModal(RequestType.INCREASE_COURSE_CREATE_LIMIT)
-                  }
-                  className="flex-1 md:flex-none w-full md:w-auto flex items-center justify-center px-4 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors duration-200"
-                >
-                  <Plus className="w-4 h-4 mr-2" /> Request Create Course
-                </button>
-                <RequestModal
-                  isOpen={isModalOpen}
-                  onClose={() => setIsModalOpen(false)}
-                  requestType={requestType}
-                  entityType="User"
-                />
-              </>
-            ) : (
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile Header showing current tab */}
+        <div className="lg:hidden bg-white border-b border-gray-200 p-4 pl-16">
+          <h2 className="text-lg font-semibold text-gray-800">{getCurrentTabLabel()}</h2>
+        </div>
+        
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Action Bar */}
+          <div className="bg-white border-b border-gray-200 p-4 lg:p-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <button
-                onClick={() => navigate("/create-course")}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+                onClick={() => navigate("/")}
+                className="text-blue-600 hover:text-blue-700 text-sm lg:text-base"
               >
-                <Plus className="w-5 h-5" />
-                Create Course
+                Switch to Student
               </button>
-            )}
+
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                {!isInstructorCreateCourse ? (
+                  <>
+                    <button
+                      onClick={() =>
+                        openRequestModal(RequestType.INCREASE_COURSE_CREATE_LIMIT)
+                      }
+                      className="flex items-center justify-center px-4 py-2 text-sm bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors duration-200 whitespace-nowrap"
+                    >
+                      <Plus className="w-4 h-4 mr-2" /> Request Create Course
+                    </button>
+                    <RequestModal
+                      isOpen={isModalOpen}
+                      onClose={() => setIsModalOpen(false)}
+                      requestType={requestType}
+                      entityType="User"
+                    />
+                  </>
+                ) : (
+                  <button
+                    onClick={() => navigate("/create-course")}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors whitespace-nowrap"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Create Course
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="p-4 lg:p-8">
+            {renderContent()}
           </div>
         </div>
-        {renderContent()}
       </div>
     </div>
   );
