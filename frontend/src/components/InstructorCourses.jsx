@@ -138,20 +138,11 @@ function InstructorCourses({ setDetailCourseStats }) {
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                       {course.description}
                     </p>
-                    <div className="flex items-center justify-between mb-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          course.status === "Published"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {course.status}
-                      </span>
-                      <div>
+                    <div className="flex  flex-col items-start gap-4 mb-4">
+                      <div className="flex items-center gap-3">
                         {course.status === "published" ? (
                           <span
-                            className="bg-black mx-2 text-white rounded-full px-7 py-2 cursor-pointer"
+                            className="bg-black text-white rounded-full px-7 py-2 cursor-pointer"
                             onClick={(e) => {
                               e.preventDefault();
                               setDetailCourseStats({
@@ -177,17 +168,16 @@ function InstructorCourses({ setDetailCourseStats }) {
                           </span>
                         </Link>
                       </div>
-                      {/* <div className="flex items-center">
-                  <span className="text-yellow-400">★</span>
-                  <span className="ml-1 text-gray-600">
-                    {course.rating || "N/A"}
-                  </span>
-                </div> */}
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          course.status === "Published"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {course.status}
+                      </span>
                     </div>
-                    {/* <div className="flex justify-between text-sm text-gray-500">
-                <span>{course.students.toLocaleString()} students</span>
-                <span>${course.revenue.toLocaleString()}</span>
-              </div> */}
                     <div className="text-xs text-gray-400 mt-2">
                       Last updated:{" "}
                       {new Date(course.updatedAt).toLocaleDateString()}
