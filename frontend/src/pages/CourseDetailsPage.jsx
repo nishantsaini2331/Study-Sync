@@ -759,7 +759,7 @@ const CourseDetailsPage = () => {
         </div>
       </div>
 
-      <RelatedCourses relatedCourses={relatedCourses} />
+      {/* <RelatedCourses relatedCourses={relatedCourses} /> */}
     </div>
   );
 };
