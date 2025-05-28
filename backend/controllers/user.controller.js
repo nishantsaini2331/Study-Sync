@@ -7,6 +7,7 @@ const {
   NODEMAILER_USER,
   JWT_SECRET,
   FRONTEND_URL,
+  NODE_ENV,
 } = require("../config/dotenv");
 const { randomUUID } = new ShortUniqueId({ length: 6 });
 const jwt = require("jsonwebtoken");
@@ -23,6 +24,8 @@ const InstructorOnBoardForm = require("../models/instructorOnBoardFromSchema");
 const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
 const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
 const crypto = require("crypto");
+
+const isProduction = NODE_ENV === "production";
 
 // admin.initializeApp({
 //     credential: admin.credential.cert({
@@ -402,10 +405,17 @@ async function googleAuth(req, res) {
 
 async function logout(req, res) {
   try {
-    return res.status(200).clearCookie("token").json({
-      success: true,
-      message: "User logged out successfully",
-    });
+    return res
+      .status(200)
+      .clearCookie("token", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "None" : "Lax",
+      })
+      .json({
+        success: true,
+        message: "User logged out successfully",
+      });
   } catch (error) {
     res.status(500).send();
   }
