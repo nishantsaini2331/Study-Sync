@@ -43,7 +43,7 @@ function HomePage() {
         <FeaturedCourses featuredCourses={homePageData.featuredCourses} />
       )}
       {/* {homePageData.testimonials.length > 0 && ( */}
-      <Testimonials testimonials={homePageData.testimonials} />
+      {/* <Testimonials testimonials={homePageData.testimonials} /> */}
       {/* )} */}
       <SubscribeSection />
       <Footer />
