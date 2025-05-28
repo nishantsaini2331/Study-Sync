@@ -154,9 +154,13 @@ async function verifyCertificate(req, res) {
 
     const certificate = await CourseCertification.findOne({
       certificateId,
-    }).select(
-      "learnerName courseName instructorName issueDate courseCompletionDate finalQuizScore certificateId -_id"
-    );
+      //   student: student._id,
+    })
+      .populate("course")
+      .populate({
+        path: "user",
+        select: "name -_id",
+      });
 
     if (!certificate) {
       return res.status(404).json({
@@ -164,10 +168,19 @@ async function verifyCertificate(req, res) {
         message: "Certificate not found",
       });
     }
-
+    
+    const certificateData = {
+      learnerName: certificate.user.name,
+      courseName: certificate.courseName,
+      instructorName: certificate.instructorName,
+      certificateId: certificate.certificateId,
+      issueDate: certificate.issueDate,
+      finalQuizScore: certificate.finalQuizScore,
+      courseCompletionDate: certificate.courseCompletionDate,
+    };
     return res.status(200).json({
       success: true,
-      data: certificate,
+      data: certificateData,
     });
   } catch (error) {
     console.error("Certificate verification error:", error);
