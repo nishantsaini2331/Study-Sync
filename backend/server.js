@@ -1,7 +1,7 @@
 const express = require("express");
 const dbConnect = require("./config/dbConnect");
 const cors = require("cors");
-const { PORT } = require("./config/dotenv");
+const { PORT, FRONTEND_URL } = require("./config/dotenv");
 const userRoute = require("./routes/user.route");
 const courseRoute = require("./routes/course.route");
 const lectureRoute = require("./routes/lecture.route");
@@ -24,7 +24,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // Your frontend URL
+    origin: FRONTEND_URL, // Your frontend URL
     credentials: true, // Allows cookies to be sent
   })
 );
