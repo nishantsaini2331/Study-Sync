@@ -120,8 +120,8 @@ function AuthForm({ type }) {
   useEffect(() => {
     setFormData({
       name: "",
-      email: "ns0109375@gmail.com",
-      password: "#Nishant1",
+      email: "",
+      password: "",
       confirmPassword: "",
       qualification: "",
     });
