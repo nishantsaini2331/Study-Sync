@@ -73,7 +73,6 @@ export default function CourseCreationForm({ edit = false }) {
       (key) =>
         JSON.stringify(formData[key]) !== JSON.stringify(initialData[key])
     );
-    console.log("Has changes:", hasChanges);
     return hasChanges;
   }
 

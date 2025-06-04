@@ -59,7 +59,6 @@ function UpdateProfile({ role }) {
         );
 
         const userData = response.data.user;
-        console.log(userData);
         setInitialData(userData);
         setFormData(userData);
       } catch (error) {

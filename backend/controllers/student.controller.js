@@ -252,7 +252,7 @@ async function unlockLecture(req, res) {
         mcqResponses: mcqs.map((mcq, index) => ({
           mcq: mcq._id,
           selectedOption: {
-            text: mcq.options[userAnswers[mcq._id]],
+            textIndex: userAnswers[mcq._id],
             isCorrect: mcq.correctOption === userAnswers[mcq._id],
           },
         })),
@@ -455,7 +455,7 @@ async function submitFinalQuiz(req, res) {
         mcqResponses: mcqs.map((mcq, index) => ({
           mcq: mcq._id,
           selectedOption: {
-            text: mcq.options[userAnswers[mcq._id]],
+            textIndex: userAnswers[mcq._id],
             isCorrect: mcq.correctOption === userAnswers[mcq._id],
           },
         })),

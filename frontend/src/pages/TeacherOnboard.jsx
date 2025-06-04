@@ -78,8 +78,6 @@ const TeacherOnboard = () => {
       })),
     };
 
-    console.log(answers);
-    console.log(formattedData);
 
     try {
       const response = await axios.post(

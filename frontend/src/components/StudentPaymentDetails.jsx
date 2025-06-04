@@ -27,7 +27,6 @@ function StudentPaymentDetails() {
           }
         );
         setPaymentData(res.data.data);
-        console.log(res.data);
       } catch (error) {
         toast.error(
           error.response?.data?.message ||

@@ -27,7 +27,6 @@ function DetailCourseStats({ detailCourseStats, setDetailCourseStats }) {
   const [loading, setLoading] = useState(true);
 
   const [studentProgressData, setStudentProgressData] = useState([]);
-  console.log(studentProgressData.length);
 
   const [monthlyEnrollmentData, setMontlyEnrollmentData] = useState([
     { name: "Jan", enrollments: 0 },

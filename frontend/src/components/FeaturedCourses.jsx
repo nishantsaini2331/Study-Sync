@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 const FeaturedCourses = ({ featuredCourses }) => {
-    console.log(featuredCourses);
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto text-center">

@@ -5,7 +5,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 function VerifyUser() {
   const { verificationToken } = useParams();
-  console.log(verificationToken);
   const navigate = useNavigate();
   useEffect(() => {
     async function verifyUser() {

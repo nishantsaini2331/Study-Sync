@@ -19,7 +19,6 @@ async function verifyUser(
       { withCredentials: true }
     );
 
-    console.log(id);
 
     if (response.data.success) {
       const user = response.data.user;

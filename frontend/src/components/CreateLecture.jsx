@@ -20,7 +20,6 @@ const CreateLecture = ({ edit = false }) => {
     requiredPassPercentage: 60,
   });
 
-  console.log(lectureForm);
 
   const [editingOption, setEditingOption] = useState({
     mcqIndex: null,
@@ -80,7 +79,6 @@ const CreateLecture = ({ edit = false }) => {
   };
 
   const handleMcqChange = (mcqIndex, field, value, optionIndex = null) => {
-    console.log(mcqIndex, field, value, optionIndex);
     const newMcqs = [...lectureForm.mcqs];
     if (optionIndex !== null) {
       newMcqs[mcqIndex].options[optionIndex] = value;
@@ -214,7 +212,6 @@ const CreateLecture = ({ edit = false }) => {
               withCredentials: true,
             }
           );
-          console.log(res.data.lecture);
           setLectureForm({
             ...res.data.lecture,
             videoPreview: res.data.lecture.videoUrl,

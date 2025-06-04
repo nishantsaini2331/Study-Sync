@@ -6,7 +6,6 @@ import axios from "axios";
 
 const FinalQuizComponent = ({ edit = false }) => {
   const { id: courseId } = useParams();
-  console.log(edit);
 
   const [quizForm, setQuizForm] = useState({
     mcqs: [
@@ -169,7 +168,6 @@ const FinalQuizComponent = ({ edit = false }) => {
           }
         );
       }
-      console.log(res.data);
       toast.success(res.data.message || "Quiz saved successfully");
       navigate(-1);
     } catch (error) {

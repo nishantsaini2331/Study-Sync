@@ -258,7 +258,6 @@ const CourseDetailsPage = () => {
                 }
               );
 
-              console.log(data);
               if (data.success) {
                 toast.success("Payment successful");
                 chechStudentEnrolled(courseId, setIsEnrolled);

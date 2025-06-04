@@ -26,7 +26,6 @@ function InstructorCourses({ setDetailCourseStats }) {
           `${import.meta.env.VITE_BACKEND_URL}instructor/courses`,
           { withCredentials: true }
         );
-        console.log(res.data.courses);
         setCourses(res.data.courses);
       } catch (error) {
         console.error(error);

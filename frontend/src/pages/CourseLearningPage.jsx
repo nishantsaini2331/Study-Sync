@@ -17,6 +17,7 @@ import { useParams } from "react-router-dom";
 import Comment from "../components/Comment";
 import QuizComponent from "../components/QuizComponent";
 import FinalQuizAttemptsOver from "../components/FinalQuizAttemptsOver";
+import { LoadingSpinner } from "../components/CommentSystem";
 
 function CourseLearningPage() {
   const { id: courseId } = useParams();
@@ -156,6 +157,7 @@ function CourseLearningPage() {
   }
 
   async function unlockNextLecture() {
+    setIsLoading(true);
     try {
       const response = await axios.patch(
         `${import.meta.env.VITE_BACKEND_URL}student/${courseId}/${
@@ -177,6 +179,8 @@ function CourseLearningPage() {
       }
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -214,6 +218,7 @@ function CourseLearningPage() {
   }
 
   async function submitFinalQuiz() {
+    setIsLoading(true);
     try {
       const response = await axios.post(
         `${
@@ -247,6 +252,8 @@ function CourseLearningPage() {
     } catch (error) {
       toast.error(error.response.data.message);
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -318,8 +325,8 @@ function CourseLearningPage() {
 
   if ((!currentLecture && !showingFinalQuiz) || isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p>Loading course content...</p>
+      <div className="flex justify-center items-center h-64">
+        <LoadingSpinner />
       </div>
     );
   }

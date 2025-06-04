@@ -113,10 +113,8 @@ async function removeHomePageCategory(req, res) {
 async function addHomePageCourse(req, res) {
   try {
     const { courseId } = req.params;
-    console.log(courseId);
     const homePage = await HomePage.findOne();
     const course = await Course.findOne({ courseId });
-    console.log(course);
     if (homePage && course) {
       homePage.featuredCourses.push(course._id);
       await homePage.save();

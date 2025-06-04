@@ -717,12 +717,9 @@ async function fetchProfile(req, res) {
         message: "User not found",
       });
     }
-    console.log("Created Courses:", user.createdCourses);
     let createdCourses = user.createdCourses.filter(
       (course) => course.status === "published"
     );
-
-    console.log("Created Courses:", createdCourses);
 
     return res.status(200).json({
       success: true,

@@ -30,7 +30,6 @@ function ResetPassword() {
   useEffect(() => {
     async function extractAndVerifyToken() {
       try {
-        console.log("Verifying token:", resetToken);
         if (!resetToken) {
           setError("Reset token is missing from URL");
           setVerifyingToken(false);

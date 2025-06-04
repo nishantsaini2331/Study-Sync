@@ -53,11 +53,9 @@ function StudentProgress({
       }
     }
     if (studentProgressData.length == 0) {
-      console.log("Fetching course progress data from API");
       getCourseProgress();
     } else {
       setLoading(false);
-      console.log(studentProgressData);
       setProgressData(studentProgressData);
     }
   }, []);

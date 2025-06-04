@@ -283,9 +283,6 @@ function CoursesForReview() {
                   <button
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
                     title="View Course"
-                    onClick={() =>
-                      console.log(`Reviewing course ${course.course.courseId}`)
-                    }
                   >
                     <Eye className="w-5 h-5" />
                   </button>
