@@ -3,6 +3,7 @@ import { Filter, MoreVertical, Search } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import DashboardHeader from "./DashboardHeader";
+import { LoadingSpinner } from "./CommentSystem";
 
 function InstructorCourses({ setDetailCourseStats }) {
   const [courses, setCourses] = useState(null);
@@ -37,7 +38,7 @@ function InstructorCourses({ setDetailCourseStats }) {
   }, []);
 
   if (!courses) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner/>;
   }
 
   return (

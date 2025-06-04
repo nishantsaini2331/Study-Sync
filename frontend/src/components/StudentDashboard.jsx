@@ -23,6 +23,7 @@ import StudentCourseCertificates from "./StudentCourseCertificates";
 import StudentPaymentDetails from "./StudentPaymentDetails";
 import StudentProgress from "./StudentProgress";
 import ChangePassword from "./ChangePassword";
+import { LoadingSpinner } from "./CommentSystem";
 
 function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("enrolled-courses");
@@ -65,14 +66,18 @@ function StudentDashboard() {
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
     function handleClickOutside(event) {
-      if (isSidebarOpen && !event.target.closest('.sidebar-container') && !event.target.closest('.mobile-menu-toggle')) {
+      if (
+        isSidebarOpen &&
+        !event.target.closest(".sidebar-container") &&
+        !event.target.closest(".mobile-menu-toggle")
+      ) {
         setIsSidebarOpen(false);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isSidebarOpen]);
 
@@ -89,7 +94,7 @@ function StudentDashboard() {
   };
 
   const getCurrentTabLabel = () => {
-    const currentTab = sidebarItems.find(item => item.id === activeTab);
+    const currentTab = sidebarItems.find((item) => item.id === activeTab);
     return currentTab ? currentTab.label : "Dashboard";
   };
 
@@ -119,7 +124,7 @@ function StudentDashboard() {
   if (!enrolledCourses) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
+        <LoadingSpinner />
       </div>
     );
   }
@@ -132,23 +137,29 @@ function StudentDashboard() {
         onClick={toggleSidebar}
         aria-label="Toggle sidebar"
       >
-        {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        {isSidebarOpen ? (
+          <X className="w-5 h-5" />
+        ) : (
+          <Menu className="w-5 h-5" />
+        )}
       </button>
 
       {/* Mobile Overlay */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`sidebar-container bg-white shadow-md transition-all duration-300 z-40 ${
-        isSidebarOpen 
-          ? 'fixed left-0 top-[70px] h-[calc(100vh-70px)] w-64 lg:relative lg:translate-x-0' 
-          : 'fixed -translate-x-full lg:relative lg:translate-x-0 lg:w-64 w-64'
-      }`}>
+      <div
+        className={`sidebar-container bg-white shadow-md transition-all duration-300 z-40 ${
+          isSidebarOpen
+            ? "fixed left-0 top-[70px] h-[calc(100vh-70px)] w-64 lg:relative lg:translate-x-0"
+            : "fixed -translate-x-full lg:relative lg:translate-x-0 lg:w-64 w-64"
+        }`}
+      >
         <div className="p-4 border-b">
           <h1 className="text-xl font-bold text-gray-800">Student Dashboard</h1>
         </div>
@@ -182,9 +193,11 @@ function StudentDashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Header showing current tab */}
         <div className="lg:hidden bg-white border-b border-gray-200 p-4 pl-16">
-          <h2 className="text-lg font-semibold text-gray-800">{getCurrentTabLabel()}</h2>
+          <h2 className="text-lg font-semibold text-gray-800">
+            {getCurrentTabLabel()}
+          </h2>
         </div>
-        
+
         {/* Content Area */}
         <div className="flex-1 p-4 lg:p-8 overflow-y-auto">
           {renderContent()}

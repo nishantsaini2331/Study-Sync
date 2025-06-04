@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { setUser } from "../store/userSlice";
 import { useNavigate, useParams } from "react-router-dom";
 import { chechStudentEnrolled } from "../pages/CourseDetailsPage";
+import { LoadingSpinner } from "./CommentSystem";
 
 async function verifyUser(
   dispatch,
@@ -92,7 +93,7 @@ function AuthenticationWrapper({
     checkUser();
   }, [dispatch, navigate, protect, id, checkInstructor]);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <LoadingSpinner/>;
 
   return children;
 }

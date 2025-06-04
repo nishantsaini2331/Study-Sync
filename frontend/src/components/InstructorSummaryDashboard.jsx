@@ -17,6 +17,7 @@ import {
   YAxis,
 } from "recharts";
 import DashboardHeader from "./DashboardHeader";
+import { LoadingSpinner } from "./CommentSystem";
 
 function InstructorSummaryDashboard({ isAdmin, username }) {
   const [courses, setCourses] = useState(null);
@@ -70,7 +71,7 @@ function InstructorSummaryDashboard({ isAdmin, username }) {
   if (!courses || !instructorStats) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
+        <LoadingSpinner/>
       </div>
     );
   }
