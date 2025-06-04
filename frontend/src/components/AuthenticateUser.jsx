@@ -20,7 +20,6 @@ async function verifyUser(
       { withCredentials: true }
     );
 
-
     if (response.data.success) {
       const user = response.data.user;
       dispatch(setUser(user));
@@ -93,7 +92,12 @@ function AuthenticationWrapper({
     checkUser();
   }, [dispatch, navigate, protect, id, checkInstructor]);
 
-  if (isLoading) return <LoadingSpinner/>;
+  if (isLoading)
+    return (
+      <div className="col-span-3 flex justify-center items-center h-64">
+        <LoadingSpinner />
+      </div>
+    );
 
   return children;
 }
