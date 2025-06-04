@@ -11,6 +11,7 @@ import {
 import axios from "axios";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import { LoadingSpinner } from "../components/CommentSystem";
 
 const CoursesPage = () => {
   const [filters, setFilters] = useState({
@@ -21,57 +22,7 @@ const CoursesPage = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [courses, setCourses] = useState([
-    {
-      courseId: "1",
-      title: "Complete Web Development Bootcamp",
-      description: "Learn full-stack web development from scratch",
-      instructor: {
-        name: "John Doe",
-        username: "john_doe",
-      },
-      rating: 4.8,
-      enrolledStudents: 12345,
-      price: 89.99,
-      category: {
-        name: "Web Development",
-      },
-      language: "English",
-      thumbnail: "/api/placeholder/280/160",
-    },
-    {
-      courseId: "2",
-      title: "Python for Data Science and Machine Learning",
-      description: "Learn Python for data science and machine learning",
-      instructor: {
-        name: "Jane Doe",
-        username: "jane_doe",
-      },
-      rating: 4.5,
-      enrolledStudents: 54321,
-      price: 79.99,
-      category: {
-        name: "Data Science",
-      },
-      thumbnail: "/api/placeholder/280/160",
-    },
-    {
-      courseId: "3",
-      title: "Complete JavaScript Course",
-      description: "Learn JavaScript from scratch",
-      instructor: {
-        name: "John Doe",
-        username: "john_doe",
-      },
-      rating: 4.7,
-      enrolledStudents: 23456,
-      price: 69.99,
-      category: {
-        name: "Web Development",
-      },
-      thumbnail: "/api/placeholder/280/160",
-    },
-  ]);
+  const [courses, setCourses] = useState([]);
 
   const [categories, setCategories] = useState([
     "Web Development",
@@ -83,8 +34,10 @@ const CoursesPage = () => {
 
   const languages = ["English", "Hindi", "French", "German"];
   const ratings = ["4.5+", "4.0+", "3.5+", "3.0+"];
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchFilteredCourses = useCallback(async (currentFilters, search) => {
+    setIsLoading(true);
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}course/search`,
@@ -99,6 +52,8 @@ const CoursesPage = () => {
     } catch (error) {
       //   toast.error("Please try again");
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -144,6 +99,7 @@ const CoursesPage = () => {
 
   useEffect(() => {
     async function fetchAllCategories() {
+      setIsLoading(true);
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}category`,
@@ -154,6 +110,8 @@ const CoursesPage = () => {
         setCategories(res?.data?.categories);
       } catch (error) {
         // toast.error("Please try again");
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchAllCategories();
@@ -240,7 +198,11 @@ const CoursesPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.length ? (
+          {isLoading ? (
+            <div className="col-span-3 flex justify-center items-center h-64">
+              <LoadingSpinner />
+            </div>
+          ) : courses.length ? (
             courses.map((course) => (
               <Link key={course.courseId} to={`/course/${course.courseId}`}>
                 <div

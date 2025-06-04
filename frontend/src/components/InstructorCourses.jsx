@@ -38,7 +38,11 @@ function InstructorCourses({ setDetailCourseStats }) {
   }, []);
 
   if (!courses) {
-    return <LoadingSpinner/>;
+    return (
+      <div className="col-span-3 flex justify-center items-center h-64">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   return (

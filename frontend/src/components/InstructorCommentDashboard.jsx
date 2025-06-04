@@ -243,7 +243,9 @@ const InstructorCommentDashboard = () => {
         )}
 
         {loading ? (
-          <LoadingSpinner />
+          <div className="col-span-3 flex justify-center items-center h-64">
+            <LoadingSpinner />
+          </div>
         ) : (
           <div className="bg-white rounded-lg shadow px-2">
             {selectedLecture ? (

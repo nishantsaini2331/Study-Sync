@@ -20,7 +20,6 @@ const CreateLecture = ({ edit = false }) => {
     requiredPassPercentage: 60,
   });
 
-
   const [editingOption, setEditingOption] = useState({
     mcqIndex: null,
     optionIndex: null,
